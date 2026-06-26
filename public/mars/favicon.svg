@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- 火星のグラデーション -->
+    <radialGradient id="marsGrad" cx="40%" cy="40%" r="50%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#ff9f7d" />
+      <stop offset="70%" stop-color="#ff5a2b" />
+      <stop offset="100%" stop-color="#991f00" />
+    </radialGradient>
+    
+    <!-- グローエフェクト -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- ダークサイバーフレーム (外枠) -->
+  <circle cx="50%" cy="50%" r="47" fill="#0f0505" stroke="#ff5a2b" stroke-width="2" />
+  
+  <!-- 大気シールド (オレンジの外周グロー) -->
+  <circle cx="50%" cy="50%" r="41" fill="none" stroke="rgba(255, 106, 61, 0.2)" stroke-width="3" filter="url(#glow)" />
+  
+  <!-- 火星の惑星球体 -->
+  <circle cx="50%" cy="50%" r="32" fill="url(#marsGrad)" />
+  
+  <!-- 水と保護の電磁シールドドーム (サイバーシアンの破線ライン) -->
+  <path d="M 50 18 A 32 32 0 0 1 82 50" fill="none" stroke="#4cc9f0" stroke-width="2" filter="url(#glow)" stroke-dasharray="3 3" />
+  <path d="M 18 50 A 32 32 0 0 1 50 18" fill="none" stroke="#4cc9f0" stroke-width="2" filter="url(#glow)" stroke-dasharray="3 3" />
+  
+  <!-- 基地コアシンボル (「A」およびロケットを模した形状) -->
+  <polygon points="50,26 36,64 42,64 50,46 58,64 64,64" fill="#ffffff" filter="url(#glow)" />
+  
+  <!-- 基地の基盤ライン -->
+  <line x1="39" y1="58" x2="61" y2="58" stroke="#0f0505" stroke-width="2" />
+</svg>
