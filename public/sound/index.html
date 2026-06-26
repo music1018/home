@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deep Sea Soundscape - Web Audio APIを使用した完全ローカルの深海アンビエント音源ジェネレーター。ソナー、泡、海底地響き、波音をブレンドして集中やリラックスに活用。">
+    <title>Deep Sea Soundscape | 深海アンビエント音源</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #000c1d; /* 深海の闇 */
+            --bg-surface: rgba(4, 15, 30, 0.75);
+            --bg-card: rgba(8, 25, 53, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #00f0ff; /* 蛍光シアン */
+            --primary-glow: rgba(0, 240, 255, 0.3);
+            --secondary: #7000ff; /* バイオレット */
+            --secondary-glow: rgba(112, 0, 255, 0.25);
+            --accent: #39ff14; /* ネオングリーン */
+            --text-main: #eaf1f8;
+            --text-muted: #8b9bb4;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景潜水シミュレーション */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 30%, #031b3a 0%, var(--bg-base) 80%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 潜水ソナーパルス波紋 */
+        .sonar-pulse-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            margin-top: -400px;
+            margin-left: -400px;
+            border: 1px solid rgba(0, 240, 255, 0.03);
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+            transform: scale(0.1);
+            opacity: 0;
+        }
+
+        .sonar-pulse-bg.active {
+            animation: sonarRing 6s infinite linear;
+        }
+
+        @keyframes sonarRing {
+            0% {
+                transform: scale(0.1);
+                opacity: 0.8;
+            }
+            80% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        /* メインボード */
+        .soundboard {
+            width: 100%;
+            max-width: 600px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 100px rgba(0, 240, 255, 0.03);
+            z-index: 1;
+            position: relative;
+            animation: panelEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes panelEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 戻るリンク */
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        /* ヘッダー */
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        header h1 span {
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        header p {
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        /* マスターパワーボタン */
+        .power-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .power-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 2.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .power-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow), inset 0 0 10px rgba(0,240,255,0.1);
+        }
+
+        .power-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000c1d;
+            box-shadow: 0 0 35px var(--primary), inset 0 0 10px rgba(255,255,255,0.4);
+        }
+
+        /* 波紋アニメーション */
+        .power-btn.active::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            animation: pulseRing 1.8s infinite cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* ミキサーボードスライダー */
+        .mixer-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .channel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            display: grid;
+            grid-template-columns: 3.5rem 1fr 3rem;
+            align-items: center;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .channel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(8, 25, 53, 0.55);
+        }
+
+        .channel-icon {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            justify-self: center;
+            transition: var(--transition);
+        }
+
+        .channel.active .channel-icon {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .channel-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .channel-info label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .channel-info span {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* ボリュームスライダー */
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .channel.active input[type="range"]::-webkit-slider-thumb {
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* ボリュームパーセント数値 */
+        .vol-display {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .channel.active .vol-display {
+            color: var(--primary);
+        }
+
+        /* 視覚的オーディオビジュアライザー */
+        .visualizer-container {
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2rem;
+            opacity: 0.3;
+            transition: var(--transition);
+        }
+
+        .visualizer-container.active {
+            opacity: 1;
+        }
+
+        .bar {
+            width: 3px;
+            height: 15px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        /* ビジュアライザーアニメーション定義 */
+        .visualizer-container.active .bar {
+            animation: bounce 1.2s infinite ease-in-out alternate;
+        }
+
+        .visualizer-container .bar:nth-child(2)  { animation-delay: 0.1s; }
+        .visualizer-container .bar:nth-child(3)  { animation-delay: 0.25s; }
+        .visualizer-container .bar:nth-child(4)  { animation-delay: 0.05s; }
+        .visualizer-container .bar:nth-child(5)  { animation-delay: 0.4s; }
+        .visualizer-container .bar:nth-child(6)  { animation-delay: 0.15s; }
+        .visualizer-container .bar:nth-child(7)  { animation-delay: 0.3s; }
+        .visualizer-container .bar:nth-child(8)  { animation-delay: 0.2s; }
+        .visualizer-container .bar:nth-child(9)  { animation-delay: 0.45s; }
+        .visualizer-container .bar:nth-child(10) { animation-delay: 0.35s; }
+
+        @keyframes bounce {
+            0% { height: 4px; opacity: 0.4; }
+            100% { height: 35px; opacity: 1; box-shadow: 0 0 10px var(--primary-glow); }
+        }
+
+        /* 安全基準バッジ */
+        .offline-notice {
+            text-align: center;
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .offline-notice i {
+            color: var(--accent);
+        }
+
+        @media (max-width: 480px) {
+            .soundboard {
+                padding: 1.5rem;
+            }
+            .channel {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            .slider-wrapper {
+                grid-column: span 2;
+            }
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+    <div class="sonar-pulse-bg" id="sonarPulseBg"></div>
+
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> RETURN TO PORTFOLIO
+    </a>
+
+    <div class="soundboard">
+        <header>
+            <h1>Abyssal <span>Ambient</span></h1>
+            <p>DEPTH -1500M / SOUND GENERATOR</p>
+        </header>
+
+        <!-- マスター電源ボタン -->
+        <div class="power-section">
+            <button class="power-btn" id="masterPower" title="オーディオ開始/停止">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+        </div>
+
+        <!-- イコライザービジュアライザー -->
+        <div class="visualizer-container" id="visualizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <!-- 各種トラックミキサー -->
+        <div class="mixer-grid">
+            <!-- ソナーパルス -->
+            <div class="channel" id="chanSonar">
+                <i class="channel-icon fa-solid fa-circle-notch"></i>
+                <div class="channel-info">
+                    <label>SONAR PULSE</label>
+                    <span>ソナー探索音 (オシレーター合成)</span>
+                    <div class="slider-wrapper">
+                        <input type="range" id="volSonar" min="0" max="100" value="30" oninput="updateVol('sonar', this.value)">
+                    </div>
+                </div>
+                <div class="vol-display" id="valSonar">30%</div>
+            </div>
+
+            <!-- バブルコポコポ -->
+            <div class="channel" id="chanBubbles">
+                <i class="channel-icon fa-solid fa-water"></i>
+                <div class="channel-info">
+                    <label>DEEP BUBBLES</label>
+                    <span>コポコポと湧き上がる深海の泡音</span>
+                    <div class="slider-wrapper">
+                        <input type="range" id="volBubbles" min="0" max="100" value="40" oninput="updateVol('bubbles', this.value)">
+                    </div>
+                </div>
+                <div class="vol-display" id="valBubbles">40%</div>
+            </div>
+
+            <!-- 低周波地響き -->
+            <div class="channel" id="chanRumble">
+                <i class="channel-icon fa-solid fa-wind"></i>
+                <div class="channel-info">
+                    <label>ABYSS RUMBLE</label>
+                    <span>海底低周波のうねり (ブラウンノイズ)</span>
+                    <div class="slider-wrapper">
+                        <input type="range" id="volRumble" min="0" max="100" value="50" oninput="updateVol('rumble', this.value)">
+                    </div>
+                </div>
+                <div class="vol-display" id="valRumble">50%</div>
+            </div>
+
+            <!-- 遠い波音 -->
+            <div class="channel" id="chanWaves">
+                <i class="channel-icon fa-solid fa-wave-square"></i>
+                <div class="channel-info">
+                    <label>DISTANT WAVES</label>
+                    <span>はるか水面の波音 (ホワイトノイズ + LFO)</span>
+                    <div class="slider-wrapper">
+                        <input type="range" id="volWaves" min="0" max="100" value="20" oninput="updateVol('waves', this.value)">
+                    </div>
+                </div>
+                <div class="vol-display" id="valWaves">20%</div>
+            </div>
+        </div>
+
+        <div class="offline-notice">
+            <i class="fa-solid fa-circle-nodes"></i> 完全オフライン合成: 音データはブラウザ上でリアルタイムに波形合成されています。
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isPlaying = false;
+
+        // ノード類
+        const nodes = {
+            masterGain: null,
+            sonarGain: null,
+            bubblesGain: null,
+            rumbleGain: null,
+            wavesGain: null,
+            rumbleSource: null,
+            wavesSource: null,
+            wavesLfo: null
+        };
+
+        // ボリューム初期値設定
+        const volumes = {
+            sonar: 0.3,
+            bubbles: 0.4,
+            rumble: 0.5,
+            waves: 0.2
+        };
+
+        // タイマー系
+        let sonarInterval = null;
+        let bubblesTimeout = null;
+
+        // 起動処理
+        document.getElementById('masterPower').addEventListener('click', () => {
+            if (!isPlaying) {
+                initAudio();
+                startAudio();
+            } else {
+                stopAudio();
+            }
+        });
+
+        function initAudio() {
+            if (audioCtx) return;
+
+            // AudioContext 作成
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            // マスターゲイン
+            nodes.masterGain = audioCtx.createGain();
+            nodes.masterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+            nodes.masterGain.connect(audioCtx.destination);
+
+            // チャンネルゲイン
+            nodes.sonarGain = audioCtx.createGain();
+            nodes.sonarGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            nodes.sonarGain.connect(nodes.masterGain);
+
+            nodes.bubblesGain = audioCtx.createGain();
+            nodes.bubblesGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            nodes.bubblesGain.connect(nodes.masterGain);
+
+            nodes.rumbleGain = audioCtx.createGain();
+            nodes.rumbleGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            nodes.rumbleGain.connect(nodes.masterGain);
+
+            nodes.wavesGain = audioCtx.createGain();
+            nodes.wavesGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            nodes.wavesGain.connect(nodes.masterGain);
+        }
+
+        function startAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isPlaying = true;
+            document.getElementById('masterPower').classList.add('active');
+            document.getElementById('visualizer').classList.add('active');
+
+            // チャンネルをフェードイン
+            fadeChannel(nodes.sonarGain, volumes.sonar);
+            fadeChannel(nodes.bubblesGain, volumes.bubbles);
+            fadeChannel(nodes.rumbleGain, volumes.rumble);
+            fadeChannel(nodes.wavesGain, volumes.waves);
+
+            document.getElementById('chanSonar').classList.add('active');
+            document.getElementById('chanBubbles').classList.add('active');
+            document.getElementById('chanRumble').classList.add('active');
+            document.getElementById('chanWaves').classList.add('active');
+
+            // 音源ノード起動
+            playSonarLoop();
+            playBubblesLoop();
+            startRumbleNoise();
+            startWavesNoise();
+        }
+
+        function stopAudio() {
+            isPlaying = false;
+            document.getElementById('masterPower').classList.remove('active');
+            document.getElementById('visualizer').classList.remove('active');
+            document.getElementById('sonarPulseBg').classList.remove('active');
+
+            // チャンネルフェードアウト
+            fadeChannel(nodes.sonarGain, 0);
+            fadeChannel(nodes.bubblesGain, 0);
+            fadeChannel(nodes.rumbleGain, 0);
+            fadeChannel(nodes.wavesGain, 0);
+
+            document.getElementById('chanSonar').classList.remove('active');
+            document.getElementById('chanBubbles').classList.remove('active');
+            document.getElementById('chanRumble').classList.remove('active');
+            document.getElementById('chanWaves').classList.remove('active');
+
+            // ループ解除
+            clearInterval(sonarInterval);
+            clearTimeout(bubblesTimeout);
+
+            // ノイズノード停止
+            setTimeout(() => {
+                if (nodes.rumbleSource) {
+                    try { nodes.rumbleSource.stop(); } catch(e){}
+                    nodes.rumbleSource = null;
+                }
+                if (nodes.wavesSource) {
+                    try { nodes.wavesSource.stop(); } catch(e){}
+                    nodes.wavesSource = null;
+                }
+                if (nodes.wavesLfo) {
+                    try { nodes.wavesLfo.stop(); } catch(e){}
+                    nodes.wavesLfo = null;
+                }
+            }, 300);
+        }
+
+        function fadeChannel(gainNode, targetVal) {
+            if (!gainNode) return;
+            gainNode.gain.linearRampToValueAtTime(targetVal, audioCtx.currentTime + 0.3);
+        }
+
+        function updateVol(type, val) {
+            const rawVal = val / 100;
+            volumes[type] = rawVal;
+            document.getElementById(`val${type.charAt(0).toUpperCase() + type.slice(1)}`).textContent = `${val}%`;
+
+            const channelEl = document.getElementById(`chan${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (val > 0) {
+                channelEl.classList.add('active');
+                if (isPlaying) {
+                    fadeChannel(nodes[`${type}Gain`], rawVal);
+                }
+            } else {
+                channelEl.classList.remove('active');
+                if (isPlaying) {
+                    fadeChannel(nodes[`${type}Gain`], 0);
+                }
+            }
+        }
+
+        // --- 1. ソナー生成 ---
+        function playSonarLoop() {
+            triggerSonar();
+            // 6秒ごとに発音
+            sonarInterval = setInterval(() => {
+                triggerSonar();
+            }, 6000);
+        }
+
+        function triggerSonar() {
+            if (!isPlaying || volumes.sonar === 0) return;
+
+            const osc = audioCtx.createOscillator();
+            const triggerGain = audioCtx.createGain();
+            const delayNode = audioCtx.createDelay(1.0);
+            const feedbackGain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(840, audioCtx.currentTime); // 840Hz
+
+            triggerGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            triggerGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); // アタック
+            triggerGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5); // ディケイ
+
+            // ディレイエコー回路
+            delayNode.delayTime.setValueAtTime(0.65, audioCtx.currentTime);
+            feedbackGain.gain.setValueAtTime(0.4, audioCtx.currentTime); // エコーの音量減衰
+
+            osc.connect(triggerGain);
+            
+            // 直接出力とエコー出力をミキサーに繋ぐ
+            triggerGain.connect(nodes.sonarGain);
+            triggerGain.connect(delayNode);
+            delayNode.connect(feedbackGain);
+            feedbackGain.connect(delayNode); // フィードバックループ
+            feedbackGain.connect(nodes.sonarGain);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 3.0);
+
+            // ソナー波紋演出
+            const pulseBg = document.getElementById('sonarPulseBg');
+            pulseBg.classList.remove('active');
+            void pulseBg.offsetWidth; // リフロー発生
+            pulseBg.classList.add('active');
+        }
+
+        // --- 2. 泡の音生成 ---
+        function playBubblesLoop() {
+            const nextTime = Math.random() * 800 + 400; // 0.4s〜1.2sのランダム間隔
+            bubblesTimeout = setTimeout(() => {
+                triggerBubble();
+                playBubblesLoop();
+            }, nextTime);
+        }
+
+        function triggerBubble() {
+            if (!isPlaying || volumes.bubbles === 0) return;
+
+            const osc = audioCtx.createOscillator();
+            const bubbleGain = audioCtx.createGain();
+
+            const startFreq = Math.random() * 150 + 200; // 200Hz〜350Hz
+            const endFreq = startFreq * (Math.random() * 1.5 + 2.0); // 高周波へのスイープ
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 0.18); // 泡の上昇
+
+            bubbleGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            bubbleGain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
+            bubbleGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+
+            osc.connect(bubbleGain);
+            bubbleGain.connect(nodes.bubblesGain);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // --- 3. 海底低周波 (ブラウンノイズ) ---
+        function startRumbleNoise() {
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            
+            // ブラウンノイズ合成
+            let lastOut = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = output[i];
+                output[i] *= 4.5; // 音量補正
+            }
+
+            nodes.rumbleSource = audioCtx.createBufferSource();
+            nodes.rumbleSource.buffer = noiseBuffer;
+            nodes.rumbleSource.loop = true;
+
+            // 超低周波ローパスフィルター (100Hz以下のみ通す)
+            const lowpass = audioCtx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.setValueAtTime(80, audioCtx.currentTime);
+            lowpass.Q.setValueAtTime(1.0, audioCtx.currentTime);
+
+            nodes.rumbleSource.connect(lowpass);
+            lowpass.connect(nodes.rumbleGain);
+
+            nodes.rumbleSource.start();
+        }
+
+        // --- 4. 遠い波音 (ホワイトノイズ + LFO) ---
+        function startWavesNoise() {
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1; // ホワイトノイズ
+            }
+
+            nodes.wavesSource = audioCtx.createBufferSource();
+            nodes.wavesSource.buffer = noiseBuffer;
+            nodes.wavesSource.loop = true;
+
+            // バンドパスフィルター
+            const bandpass = audioCtx.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.setValueAtTime(600, audioCtx.currentTime); // 600Hz
+            bandpass.Q.setValueAtTime(1.2, audioCtx.currentTime);
+
+            // 波のうねりを表現するLFO (0.09Hz = 約11秒周期の満ち引き)
+            nodes.wavesLfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            nodes.wavesLfo.type = 'sine';
+            nodes.wavesLfo.frequency.setValueAtTime(0.09, audioCtx.currentTime);
+
+            lfoGain.gain.setValueAtTime(320, audioCtx.currentTime); // 揺らす幅 (600Hz±320Hz)
+
+            // LFOをフィルター周波数にモジュレーション接続
+            nodes.wavesLfo.connect(lfoGain);
+            lfoGain.connect(bandpass.frequency);
+
+            nodes.wavesSource.connect(bandpass);
+            bandpass.connect(nodes.wavesGain);
+
+            nodes.wavesLfo.start();
+            nodes.wavesSource.start();
+        }
+    </script>
+</body>
+
+</html>
