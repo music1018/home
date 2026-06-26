@@ -390,11 +390,19 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.25rem;
-            flex-grow: 1;
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            min-height: 250px;
+            max-height: 330px;
+            overflow-y: auto;
+        }
+
+        .feed-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .feed-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
         }
 
         .event-card {
@@ -1050,12 +1058,18 @@
             const title = document.getElementById('modalTitle');
             const text = document.getElementById('modalText');
 
-            // 敗北：人口が0名、または幸福度が0
+            // 敗北：人口が0名、または幸福度が0、または電力が不足
             if (population <= 0) {
                 title.textContent = 'MISSION FAILED';
                 text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
+                modal.classList.add('show');
+            } else if (resources.energy < 0) {
+                title.textContent = 'GRID COLLAPSE';
+                text.textContent = `電力が完全に喪失し、生命維持装置を含むすべてのインフラシステムが凍結・停止しました。アレス基地は放棄されました。\n(生存日数: ${sol} Sols)`;
+                icon.className = 'modal-icon danger';
+                icon.innerHTML = '<i class="fa-solid fa-bolt"></i>';
                 modal.classList.add('show');
             } else if (happiness <= 0) {
                 title.textContent = 'COLONY RIOT';
