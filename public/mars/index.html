@@ -538,9 +538,144 @@
             transition: var(--transition);
         }
 
-        .modal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px var(--primary-glow);
+        .policy-trade-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .panel-policy, .panel-trade {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel-policy h3, .panel-trade h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(240, 90, 40, 0.1);
+            padding-bottom: 0.4rem;
+        }
+
+        .policy-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .policy-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(240, 90, 40, 0.05);
+        }
+
+        .policy-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .policy-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(240, 90, 40, 0.2);
+            border-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .trade-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .trade-btn {
+            background: rgba(240, 90, 40, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.6rem 1rem;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .trade-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #0f0505;
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .trade-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
 
         @media (max-width: 768px) {
@@ -675,6 +810,46 @@
             </section>
         </div>
 
+        <!-- 政策と緊急物資取引 -->
+        <section class="policy-trade-row">
+            <!-- 植民地政策 -->
+            <div class="panel-policy">
+                <h3>Colony Policies (植民地政策)</h3>
+                <div class="policy-grid">
+                    <div class="policy-card">
+                        <div>
+                            <div class="policy-name">配給制限 (Rationing)</div>
+                            <div class="policy-desc">水・食料消費-30% / 幸福度-4% / Sol</div>
+                        </div>
+                        <span class="switch">
+                            <input type="checkbox" id="policyRationing" onchange="togglePolicy('rationing')">
+                            <span class="slider"></span>
+                        </span>
+                    </div>
+                    <div class="policy-card">
+                        <div>
+                            <div class="policy-name">発電増幅 (Overdrive)</div>
+                            <div class="policy-desc">太陽光発電+30% / コスト: 毎Sol Cr-15</div>
+                        </div>
+                        <span class="switch">
+                            <input type="checkbox" id="policyOverdrive" onchange="togglePolicy('overdrive')">
+                            <span class="slider"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 緊急地球取引 -->
+            <div class="panel-trade">
+                <h3>Emergency Trade (地球との緊急物資取引)</h3>
+                <div class="trade-grid">
+                    <button class="trade-btn" id="buyOxygenBtn" onclick="tradeResource('oxygen')"><i class="fa-solid fa-wind"></i> 酸素購入 (Cr -150 / O2 +100)</button>
+                    <button class="trade-btn" id="buyWaterBtn" onclick="tradeResource('water')"><i class="fa-solid fa-droplet"></i> 水購入 (Cr -150 / H2O +100)</button>
+                    <button class="trade-btn" id="buyFoodBtn" onclick="tradeResource('food')"><i class="fa-solid fa-wheat-awn"></i> 食料購入 (Cr -150 / Food +100)</button>
+                </div>
+            </div>
+        </section>
+
         <!-- アクションバー -->
         <footer class="actions-row">
             <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">ARES COMMAND CENTER v1.0.4</span>
@@ -711,6 +886,11 @@
         let population = 15;
         let happiness = 80;
         let maxPopulation = 20;
+        let totalDeaths = 0;
+        const activePolicies = {
+            rationing: false,
+            overdrive: false
+        };
 
         // 施設データベース
         const buildings = [
@@ -863,6 +1043,11 @@
             checkWarning('Food', resources.food);
             checkWarning('Energy', resources.energy);
 
+            // 取引ボタンの無効化・有効化
+            document.getElementById('buyOxygenBtn').disabled = resources.credits < 150;
+            document.getElementById('buyWaterBtn').disabled = resources.credits < 150;
+            document.getElementById('buyFoodBtn').disabled = resources.credits < 150;
+
             renderBuildings();
         }
 
@@ -892,6 +1077,38 @@
             }
         }
 
+        // 政策のON/OFF
+        function togglePolicy(type) {
+            if (type === 'rationing') {
+                activePolicies.rationing = document.getElementById('policyRationing').checked;
+                addLog('政策変更', `配給制限を${activePolicies.rationing ? '有効化' : '無効化'}しました。`);
+            } else if (type === 'overdrive') {
+                activePolicies.overdrive = document.getElementById('policyOverdrive').checked;
+                addLog('政策変更', `発電増幅を${activePolicies.overdrive ? '有効化' : '無効化'}しました。`);
+            }
+            updateUI();
+        }
+
+        // 地球からの緊急物資取引
+        function tradeResource(type) {
+            if (resources.credits >= 150) {
+                resources.credits -= 150;
+                let resourceName = '';
+                if (type === 'oxygen') {
+                    resources.oxygen += 100;
+                    resourceName = '酸素 100 単位';
+                } else if (type === 'water') {
+                    resources.water += 100;
+                    resourceName = '水 100 単位';
+                } else if (type === 'food') {
+                    resources.food += 100;
+                    resourceName = '食料 100 単位';
+                }
+                addLog('緊急取引', `地球の補給船から ${resourceName} を購入しました。(Cr -150)`);
+                updateUI();
+            }
+        }
+
         // 毎ターンの収支・Delta算出
         function calculateDeltas() {
             const deltas = { credits: 0, oxygen: 0, water: 0, food: 0, energy: 0 };
@@ -901,17 +1118,29 @@
             deltas.credits = population * 8; 
             
             // 生命維持：一人あたり酸素 -2、水 -2.5、食料 -3
-            deltas.oxygen -= population * 2;
-            deltas.water -= population * 2.5;
-            deltas.food -= population * 3;
+            let o2Consumption = population * 2;
+            let waterConsumption = population * 2.5;
+            let foodConsumption = population * 3;
+
+            // 配給制限政策の適用
+            if (activePolicies.rationing) {
+                waterConsumption *= 0.7; // 30%削減
+                foodConsumption *= 0.7;  // 30%削減
+            }
+
+            deltas.oxygen -= o2Consumption;
+            deltas.water -= waterConsumption;
+            deltas.food -= foodConsumption;
 
             // 施設効果の累積
             buildings.forEach(b => {
                 if (b.count > 0) {
                     if (b.id === 'solar') {
                         // 砂嵐中は発電量が半分
-                        const multiplier = sandstormSol > 0 ? 0.5 : 1.0;
-                        deltas.energy += b.deltaDesc.energy * b.count * multiplier;
+                        const sandstormMultiplier = sandstormSol > 0 ? 0.5 : 1.0;
+                        // 発電増幅政策の適用
+                        const overdriveMultiplier = activePolicies.overdrive ? 1.3 : 1.0;
+                        deltas.energy += b.deltaDesc.energy * b.count * sandstormMultiplier * overdriveMultiplier;
                     } else {
                         // その他施設の生産
                         for (let key in b.deltaDesc) {
@@ -920,6 +1149,11 @@
                     }
                 }
             });
+
+            // 発電増幅政策の維持コスト
+            if (activePolicies.overdrive) {
+                deltas.credits -= 15; // 毎Sol 15 Cr消費
+            }
 
             return deltas;
         }
@@ -961,6 +1195,11 @@
             let happinessChange = 0;
             let criticalLack = false;
 
+            // 配給制限政策による幸福度低下
+            if (activePolicies.rationing) {
+                happinessChange -= 4;
+            }
+
             if (resources.oxygen <= 0) { happinessChange -= 30; criticalLack = true; }
             if (resources.water <= 0) { happinessChange -= 20; criticalLack = true; }
             if (resources.food <= 0) { happinessChange -= 15; criticalLack = true; }
@@ -982,6 +1221,7 @@
             if (criticalLack) {
                 const deathCount = Math.min(population - 3, Math.round(population * 0.15) + 1);
                 population -= deathCount;
+                totalDeaths += deathCount; // 死亡数カウント
                 addLog('開拓者危篤', `深刻な生活物資の不足により、開拓者が ${deathCount} 名離脱または死亡しました。`);
             } else if (happiness >= 75 && population < maxPopulation) {
                 // 幸福で住居に空きがあれば自然増加（移民）
@@ -1061,19 +1301,21 @@
             // 敗北：人口が0名、または幸福度が0、または電力が不足
             if (population <= 0) {
                 title.textContent = 'MISSION FAILED';
-                text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols)`;
+                text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
                 modal.classList.add('show');
             } else if (resources.energy < 0) {
+                totalDeaths += population; // 残った全員が死亡
+                population = 0;
                 title.textContent = 'GRID COLLAPSE';
-                text.textContent = `電力が完全に喪失し、生命維持装置を含むすべてのインフラシステムが凍結・停止しました。アレス基地は放棄されました。\n(生存日数: ${sol} Sols)`;
+                text.textContent = `電力が完全に喪失し、生命維持装置を含むすべてのインフラシステムが凍結・停止しました。アレス基地は放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-bolt"></i>';
                 modal.classList.add('show');
             } else if (happiness <= 0) {
                 title.textContent = 'COLONY RIOT';
-                text.textContent = `幸福度が0%になりました。過酷な労働と深刻な物資不足により住民の暴動が発生し、コロニーは放棄されました。`;
+                text.textContent = `幸福度が0%になりました。過酷な労働と深刻な物資不足により住民の暴動が発生し、コロニーは放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
                 modal.classList.add('show');
@@ -1081,7 +1323,7 @@
             // 勝利：人口が100人突破
             else if (population >= 100) {
                 title.textContent = 'TERRAFORM SUCCESS';
-                text.textContent = `おめでとうございます！Ares Baseは人口100名を突破し、地球からの支援に頼らない完全自立型ドーム都市へと進化しました。火星が新しい人類の故郷になる第一歩です！`;
+                text.textContent = `おめでとうございます！Ares Baseは人口100名を突破し、地球からの支援に頼らない完全自立型ドーム都市へと進化しました。火星が新しい人類の故郷になる第一歩です！\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon success';
                 icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
                 modal.classList.add('show');
@@ -1098,6 +1340,12 @@
             population = 15;
             happiness = 80;
             maxPopulation = 20;
+            totalDeaths = 0;
+            activePolicies.rationing = false;
+            activePolicies.overdrive = false;
+
+            document.getElementById('policyRationing').checked = false;
+            document.getElementById('policyOverdrive').checked = false;
 
             buildings.forEach(b => {
                 if (b.id === 'bio') b.count = 0;
