@@ -1,14 +1,8 @@
 ---
-import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_TITLE } from '../consts';
-
-// 生成した高品質アンビエントグラフィックをインポート
-import deepSeaAiAmbient from '../assets/deep_sea_ai_ambient.png';
-import underwaterNeonBubble from '../assets/underwater_neon_bubble.png';
-import abyssalCreativeLight from '../assets/abyssal_creative_light.png';
 
 const people = [
 	{
@@ -17,7 +11,7 @@ const people = [
 		description: "株式会社キッカケクリエイション取締役副社長。慶應法卒、エンジニア採用の現場での実務経験をベースに、IT業界の転職事情やエージェントの裏表、ウェブ系のキャリアパスをYouTube等で非常にわかりやすく発信しているインフルエンサー。転職活動の最前線の目線を泥臭く伝えてくれます（※入社後の現場の実態はこれからに期待！）。",
 		tags: ["IT転職", "キャリアハック", "エンジニア採用"],
 		link: "https://www.youtube.com/@it_bosatsu_moro",
-		image: deepSeaAiAmbient
+		image: "/assets/deep_sea_ai_ambient.png"
 	},
 	{
 		name: "ここなのAI大学",
@@ -25,7 +19,7 @@ const people = [
 		description: "YouTubeチャンネルおよびオープンチャットコミュニティ「ここなのAI勉強部屋」を運営するAI活用エデュケーター。Claude、Cursor、Gemini等の最新AIツールを副業や日常業務に活かす方法を、抜群のスピード感とテンポの良さで初心者向けに解説。YouTuberの方の魅力的な語り口も見ていて刺激になります。",
 		tags: ["AI副業", "Cursor / Claude", "AI初心者向け"],
 		link: "https://www.youtube.com/@cocona_ai_school",
-		image: underwaterNeonBubble
+		image: "/assets/underwater_neon_bubble.png"
 	},
 	{
 		name: "AI駆動開発勉強会",
@@ -33,7 +27,7 @@ const people = [
 		description: "GitHub CopilotやCursorといった生成AIを駆使した開発プロセス・効率化、およびAI駆動のビジネス変革をテーマにした勉強会コミュニティ。多くの開発者が登壇し、最新のアイデアから失敗談、合っている考え方や古い情報まで多角的な視点を提供してくれるため、AI時代の現場のリアルを広く学べます。",
 		tags: ["AI駆動開発", "エンジニアコミュニティ", "技術共有"],
 		link: "https://www.ai-driven.dev/",
-		image: deepSeaAiAmbient
+		image: "/assets/deep_sea_ai_ambient.png"
 	},
 	{
 		name: "クウキデザイン (Rio / 松元 良介)",
@@ -41,7 +35,7 @@ const people = [
 		description: "元Google・Amazon・Ciscoのシニアデザイナーである松元良介（Rio）氏によるスタジオおよび活動。Googleや米国発の最先端のUX思考を取り入れ、AIをツールではなく、日常やプロダクトに自然と溶け込む『空気』のようなユーザー体験（アンビエント体験）としてどう構築すべきか、日本で最も最先端で体現・発信している注目ソースです。",
 		tags: ["UXデザイン", "Google思考", "アンビエントAI"],
 		link: "https://www.youtube.com/@KuukiDesign",
-		image: abyssalCreativeLight
+		image: "/assets/abyssal_creative_light.png"
 	},
 	{
 		name: "安野貴博の自由研究",
@@ -49,7 +43,7 @@ const people = [
 		description: "AIエンジニアでありSF作家、そしてデジタルを駆使した都知事選などの活動でも話題を呼んだ安野貴博氏のYouTubeチャンネル。最新のAIモデルの「ゆる解説」や、テクノロジーが変える社会構造に関する深いゲスト対談など、知的好奇心を刺激する『自由研究』が配信されています。",
 		tags: ["AI解説", "SF作家", "デジタル民主主義"],
 		link: "https://www.youtube.com/@takahiroanno",
-		image: abyssalCreativeLight
+		image: "/assets/abyssal_creative_light.png"
 	},
 	{
 		name: "ソフトバンクグループ株式会社",
@@ -57,7 +51,7 @@ const people = [
 		description: "孫正義会長率いる、世界で最も影響力を持つAI投資・推進グループ。AGI（汎用人工知能）やASI（人工超知能）の実現に向けた超巨額投資、Arm社を中心としたハードウェアからAIロボティクスまでのエコシステム構築など、テクノロジーの未来を物理的に加速させている最大の巨人。",
 		tags: ["孫正義", "AGI / ASI", "AI投資"],
 		link: "https://group.softbank/",
-		image: deepSeaAiAmbient
+		image: "/assets/deep_sea_ai_ambient.png"
 	},
 	{
 		name: "池田 朋弘 (いけともch)",
@@ -65,9 +59,10 @@ const people = [
 		description: "複数のスタートアップ起業を経て、現在は「AI-Native」を率いる起業家・池田朋弘氏のYouTubeチャンネル。ChatGPTやClaude、音声AIなどの「即実践できるビジネス活用ノウハウ」を、非常にクリアで論理的なステップで解説。AI時代に必要な新しい働き方の指針を学べます。",
 		tags: ["AIビジネス活用", "生産性向上", "いけともch"],
 		link: "https://www.youtube.com/@iketomo-ch",
-		image: underwaterNeonBubble
+		image: "/assets/underwater_neon_bubble.png"
 	}
 ];
+
 ---
 
 <!doctype html>
@@ -252,7 +247,7 @@ const people = [
 				{people.map((person) => (
 					<div class="person-card">
 						<div class="card-image-wrapper">
-							<Image src={person.image} alt={person.name} class="card-art" width={480} height={180} />
+							<img src={person.image} alt={person.name} class="card-art" width="480" height="180" loading="lazy" />
 						</div>
 						<div class="person-header">
 							<h2 class="person-name">{person.name}</h2>
