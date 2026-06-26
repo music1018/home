@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a1d15" />
+      <stop offset="100%" stop-color="#020604" />
+    </radialGradient>
+    <radialGradient id="greenGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#39e600" />
+      <stop offset="100%" stop-color="#006600" />
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- 外枠 -->
+  <rect x="3" y="3" width="94" height="94" rx="12" fill="url(#bgGrad)" stroke="#39e600" stroke-width="2" />
+  
+  <!-- グリッドのライン（オセロ盤） -->
+  <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(57, 230, 0, 0.25)" stroke-width="1.5" />
+  <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(57, 230, 0, 0.25)" stroke-width="1.5" />
+  
+  <!-- オセロ石 (黒と白のサイバー表現) -->
+  <!-- 左上: 黒石（ダークサークルにグロー） -->
+  <circle cx="33" cy="33" r="14" fill="#111111" stroke="#39e600" stroke-width="2" filter="url(#glow)" />
+  <circle cx="33" cy="33" r="4" fill="#39e600" opacity="0.8" />
+  
+  <!-- 右下: 白石（輝くホワイトサークル） -->
+  <circle cx="67" cy="67" r="14" fill="#ffffff" stroke="#39e600" stroke-width="2" filter="url(#glow)" />
+  <circle cx="67" cy="67" r="4" fill="#39e600" />
+  
+  <!-- 右上: 光るグリーン指標 -->
+  <circle cx="67" cy="33" r="5" fill="url(#greenGlow)" filter="url(#glow)" />
+  <!-- 左下: 光るグリーン指標 -->
+  <circle cx="33" cy="67" r="5" fill="url(#greenGlow)" filter="url(#glow)" />
+</svg>

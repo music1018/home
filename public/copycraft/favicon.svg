@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="penGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb703" />
+      <stop offset="50%" stop-color="#fb8500" />
+      <stop offset="100%" stop-color="#8338ec" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- 背景 -->
+  <rect x="4" y="4" width="92" height="92" rx="16" fill="#0d0b14" stroke="#fb8500" stroke-width="2" />
+  
+  <!-- 羽ペン / ペン先 (Craft) -->
+  <path d="M 32 68 L 48 52 M 48 52 C 54 42, 68 28, 72 24 C 68 28, 54 42, 48 52 Z" fill="url(#penGrad)" stroke="#ffb703" stroke-width="1.5" filter="url(#glow)" />
+  
+  <!-- AIの火花・ひらめき（4点星） -->
+  <path d="M 68 44 Q 68 34 78 34 Q 68 34 68 24 Q 68 34 58 34 Q 68 34 68 44 Z" fill="#ffffff" filter="url(#glow)" />
+  <path d="M 38 34 Q 38 29 43 29 Q 38 29 38 24 Q 38 29 33 29 Q 38 29 38 34 Z" fill="#ffb703" filter="url(#glow)" />
+  
+  <!-- 書類/紙のライン（背景に薄く） -->
+  <line x1="28" y1="74" x2="72" y2="74" stroke="rgba(251, 133, 0, 0.3)" stroke-width="2" stroke-linecap="round" />
+</svg>

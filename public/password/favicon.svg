@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="keyGrad" cx="40%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#4cc9f0" />
+      <stop offset="100%" stop-color="#0077b6" />
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- 背景シールド -->
+  <rect x="4" y="4" width="92" height="92" rx="16" fill="#000814" stroke="#0077b6" stroke-width="2" />
+  
+  <!-- 鍵のボディ (サイバーロック) -->
+  <!-- 鍵の持ち手部分 (円形) -->
+  <circle cx="50" cy="38" r="18" fill="none" stroke="url(#keyGrad)" stroke-width="5.5" filter="url(#glow)" />
+  <circle cx="50" cy="38" r="7" fill="none" stroke="#4cc9f0" stroke-width="2" />
+  
+  <!-- 鍵のシャフトとツメ -->
+  <path d="M 50 56 L 50 82 L 62 82 L 62 74 L 50 74 L 50 66 L 58 66 L 58 58 L 50 58" fill="url(#keyGrad)" filter="url(#glow)" />
+  
+  <!-- セキュアチェック（グリーンの小さなレ点） -->
+  <path d="M 68 32 L 74 38 L 86 26" fill="none" stroke="#39e600" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" />
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5d4" />
+      <stop offset="60%" stop-color="#005f73" />
+      <stop offset="100%" stop-color="#0a1128" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- 外枠（丸型メーターフレーム） -->
+  <circle cx="50" cy="50" r="47" fill="#000814" stroke="#00f5d4" stroke-width="2" />
+  
+  <!-- 水の雫 (深海潜水艦の窓から見るイメージ) -->
+  <path d="M50 20 C50 20, 28 44, 28 62 A 22 22 0 1 0 72 62 C 72 44, 50 20, 50 20 Z" fill="url(#dropGrad)" />
+  
+  <!-- 水圧ゲージの目盛りライン -->
+  <path d="M 32 62 A 18 18 0 0 1 68 62" fill="none" stroke="#ffb703" stroke-width="1.5" stroke-dasharray="2 3" filter="url(#glow)" />
+  
+  <!-- 水圧を示す針 -->
+  <line x1="50" y1="62" x2="56" y2="40" stroke="#ff4d5a" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)" />
+  <circle cx="50" cy="62" r="3.5" fill="#ff4d5a" />
+</svg>
