@@ -114,24 +114,3 @@ Use scoped prefixes for mini-apps: `feat(mars):`, `fix(othello):`, etc.
 2. `wrangler deploy` — Uploads to Cloudflare Workers
 
 The Wrangler config (`wrangler.jsonc`) uses `@astrojs/cloudflare/entrypoints/server` as the main entry and serves `./dist` as static assets.
-
-## Recent Commit History
-
-```
-4e03e56 docs: update ai-driven-development post and add new article on multi-agent bottlenecks
-bcc5eba feat: add new blog post on AI-driven development with supporting image and page template
-5cc6796 feat: add 2D model map visualization to AI model guide
-dddc258 feat: add AI model reference page (/models) with comparison cards, table, and use-case guide
-a8f1109 fix: remove duplicate work items and repair corrupted HTML structure in index.astro
-7ca34e7 Merge pull request #2 from music1018/update_worker_name_to_home
-6ed2e5a Update wrangler config name to home
-6938930 Remove default placeholder blog posts
-527f97a Rename author from Kaito to r and enforce custom SVG favicon globally
-136b199 Create unique custom SVG favicons for all mini-apps and main portal
-53cb839 Fix Colony Monitor height overflow and optimize responsive mobile layout
-b50d424 feat: add Mars colonization game and Othello AI simulator
-ef0d201 feat: add sound generator, pressure simulator, and O2 reading progress meter
-db10f6c feat: add NextGen Password Generator at /password/ and link it from homepage
-8f16b02 feat: publish AI CopyCraft at /copycraft/ and link it from homepage
-83f78ea Initial commit: Setup Astro blog with Deep Sea theme
-```
