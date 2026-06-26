@@ -10,15 +10,13 @@
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
             --bg-base: #0f0505; /* 火星の赤黒い夜 */
-            --bg-surface: rgba(26, 12, 12, 0.8);
+            --bg-surface: rgba(26, 12, 12, 0.85);
             --bg-card: rgba(45, 20, 20, 0.45);
             --border-color: rgba(240, 90, 40, 0.15); /* 錆びたオレンジ */
             --primary: #f05a28; /* 火星オレンジ */
@@ -32,7 +30,7 @@
             --font-main: 'Inter', sans-serif;
             --font-display: 'Outfit', sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -45,14 +43,22 @@
             background-color: var(--bg-base);
             color: var(--text-main);
             font-family: var(--font-main);
-            min-height: 100vh;
+            height: 100vh;
+            min-height: 600px;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 2rem 1rem;
-            overflow-x: hidden;
+            padding: 1rem;
+            overflow: hidden;
             position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            body {
+                height: auto;
+                overflow-y: auto;
+                padding: 3rem 1rem;
+            }
         }
 
         /* 火星の砂嵐背景グロー */
@@ -73,10 +79,10 @@
         /* 戻るリンク */
         .back-link {
             position: absolute;
-            top: 2rem;
-            left: 2rem;
+            top: 1rem;
+            left: 1.5rem;
             font-family: var(--font-mono);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             text-decoration: none;
             transition: var(--transition);
@@ -93,24 +99,24 @@
         /* コロニーダッシュボード */
         .dashboard {
             width: 100%;
-            max-width: 860px;
+            max-width: 1160px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 2.5rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.25rem;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 80px rgba(240, 90, 40, 0.03);
             z-index: 1;
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            animation: panelEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            gap: 1rem;
+            animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes panelEntrance {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -120,20 +126,18 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1.25rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+            padding-bottom: 0.75rem;
         }
 
         header h1 {
             font-family: var(--font-display);
-            font-size: 1.75rem;
+            font-size: 1.4rem;
             font-weight: 800;
             letter-spacing: 0.05em;
             color: var(--text-main);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             text-transform: uppercase;
         }
 
@@ -144,73 +148,32 @@
 
         .sol-counter {
             font-family: var(--font-mono);
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             background: rgba(240, 90, 40, 0.1);
             border: 1px solid var(--primary);
-            padding: 0.4rem 1rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 30px;
             color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
+            box-shadow: 0 0 8px var(--primary-glow);
             font-weight: 600;
         }
 
-        /* 住民・基本ステータス */
-        .colony-stats-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .colony-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .colony-card i {
-            font-size: 1.75rem;
-            color: var(--primary);
-        }
-
-        .colony-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .colony-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .colony-val {
-            font-family: var(--font-mono);
-            font-size: 1.35rem;
-            font-weight: 700;
-        }
-
-        /* 資源グリッド */
+        /* 資源グリッド (コンパクト上部配置) */
         .resources-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
         .res-card {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            padding: 1.25rem 1rem;
+            border-radius: 10px;
+            padding: 0.5rem 0.75rem;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: space-between;
             gap: 0.5rem;
-            text-align: center;
             transition: var(--transition);
         }
 
@@ -219,8 +182,14 @@
             background: rgba(240, 90, 40, 0.02);
         }
 
+        .res-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .res-icon {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             color: var(--text-muted);
         }
 
@@ -240,21 +209,27 @@
         }
 
         .res-name {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
         }
 
+        .res-value-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
         .res-amount {
             font-family: var(--font-mono);
-            font-size: 1.25rem;
+            font-size: 1.05rem;
             font-weight: 700;
         }
 
         .res-delta {
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             font-weight: 600;
         }
 
@@ -262,33 +237,138 @@
         .res-delta.negative { color: var(--secondary); }
         .res-delta.neutral { color: var(--text-muted); }
 
-        /* メインゲームボード：建築とイベント */
-        .board-main {
+        /* 3列フル画面ダッシュボードレイアウト */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 1.5rem;
+            grid-template-columns: 1fr 1.6fr 1.2fr;
+            gap: 1rem;
+            height: 380px;
         }
 
-        /* 建築パネル */
-        .build-section h2, .event-section h2 {
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+                gap: 1.5rem;
+            }
+        }
+
+        .dash-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* 監視モニター・政策・取引・設定共通カード */
+        .dash-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .dash-panel h3 {
             font-family: var(--font-display);
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(240, 90, 40, 0.1);
+            padding-bottom: 0.3rem;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* コロニー監視モニター */
+        .monitor-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .monitor-metric {
+            display: grid;
+            grid-template-columns: 1.1fr 1.2fr 0.7fr;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+        }
+
+        .metric-label {
+            color: var(--text-main);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .metric-label i {
+            color: var(--primary);
+            width: 12px;
+        }
+
+        .metric-bar-wrapper {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .metric-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .bar-happiness { background: var(--primary); }
+        .bar-health { background: #4cc9f0; }
+        .bar-integrity { background: #ffb703; }
+        .bar-goal { background: #38b000; }
+
+        .metric-val {
+            text-align: right;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* 施設建設エリア (2列コンパクトグリッド) */
+        .build-section {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .build-section h2 {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
             color: var(--primary);
             letter-spacing: 0.05em;
             text-transform: uppercase;
             border-bottom: 1px solid rgba(240, 90, 40, 0.1);
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.3rem;
         }
 
         .build-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            max-height: 330px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
             overflow-y: auto;
-            padding-right: 0.5rem;
+            flex-grow: 1;
+            padding-right: 0.25rem;
+        }
+
+        @media (max-width: 640px) {
+            .build-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .build-grid::-webkit-scrollbar {
@@ -302,56 +382,61 @@
         .build-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
+            border-radius: 10px;
+            padding: 0.6rem;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
+            gap: 0.4rem;
             transition: var(--transition);
         }
 
         .build-card:hover {
-            background: rgba(45, 20, 20, 0.65);
+            background: rgba(45, 20, 20, 0.6);
+            border-color: rgba(240, 90, 40, 0.25);
         }
 
         .build-desc {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.15rem;
         }
 
         .build-name {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-weight: 700;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
         }
 
         .build-name span {
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--primary);
             background: rgba(240, 90, 40, 0.1);
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
+            padding: 0.05rem 0.3rem;
+            border-radius: 3px;
         }
 
         .build-detail {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        .build-effect {
+            font-size: 0.65rem;
+            color: var(--primary);
+            font-weight: 600;
         }
 
         .build-costs {
-            display: flex;
-            gap: 0.75rem;
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
-        }
-
-        .build-costs span i {
-            margin-right: 0.2rem;
+            display: flex;
+            gap: 0.5rem;
         }
 
         .build-btn {
@@ -359,17 +444,18 @@
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.35rem;
+            border-radius: 4px;
             cursor: pointer;
+            width: 100%;
             transition: var(--transition);
+            text-align: center;
         }
 
         .build-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 0 12px var(--primary-glow);
+            box-shadow: 0 0 8px var(--primary-glow);
         }
 
         .build-btn:disabled {
@@ -379,64 +465,247 @@
             border: 1px solid var(--border-color);
         }
 
-        /* イベント・ニュースフィード */
+        /* 植民地政策・規制スライダー・ログ */
+        .policy-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .policy-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(240, 90, 40, 0.05);
+        }
+
+        .policy-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .policy-name {
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .policy-desc {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        /* トグルスイッチ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .2s;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--text-muted);
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(240, 90, 40, 0.2);
+            border-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+            background-color: var(--primary);
+            box-shadow: 0 0 6px var(--primary-glow);
+        }
+
+        /* 調整スライダー */
+        .regulation-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .reg-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            background: rgba(0,0,0,0.15);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .reg-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+        }
+
+        .reg-header span:first-child {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .reg-header span:last-child {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            margin: 0.2rem 0;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 4px var(--primary-glow);
+        }
+
+        .reg-desc {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        /* 地球取引パネル */
+        .trade-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+        }
+
+        .trade-btn {
+            background: rgba(240, 90, 40, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.5rem;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .trade-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #0f0505;
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .trade-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* ログフィード (超コンパクト配置) */
         .event-section {
             display: flex;
             flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .event-section h2 {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .feed-container {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem;
+            border-radius: 8px;
+            padding: 0.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            max-height: 330px;
+            gap: 0.4rem;
+            max-height: 110px;
             overflow-y: auto;
         }
 
         .feed-container::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
         .feed-container::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 2px;
+            border-radius: 1.5px;
         }
 
         .event-card {
             border-left: 2px solid var(--primary);
-            padding-left: 0.75rem;
-            animation: eventAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            padding-left: 0.5rem;
+            animation: eventAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes eventAppear {
-            from { opacity: 0; transform: translateX(-10px); }
+            from { opacity: 0; transform: translateX(-5px); }
             to { opacity: 1; transform: translateX(0); }
         }
 
         .event-title {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 0.25rem;
-            text-transform: uppercase;
+            margin-bottom: 0.1rem;
         }
 
         .event-text {
-            font-size: 0.8rem;
-            line-height: 1.5;
+            font-size: 0.65rem;
+            line-height: 1.3;
             color: var(--text-main);
         }
 
-        /* コントロール・ターン送り */
+        /* アクションバー */
         .actions-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid var(--border-color);
-            padding-top: 1.5rem;
+            padding-top: 0.75rem;
         }
 
         .next-turn-btn {
@@ -444,28 +713,24 @@
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 1.05rem;
+            font-size: 0.9rem;
             font-weight: 800;
-            padding: 0.85rem 2.25rem;
-            border-radius: 10px;
+            padding: 0.5rem 1.75rem;
+            border-radius: 8px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(240, 90, 40, 0.25);
+            gap: 0.4rem;
+            box-shadow: 0 4px 12px rgba(240, 90, 40, 0.2);
         }
 
         .next-turn-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(240, 90, 40, 0.45);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(240, 90, 40, 0.35);
         }
 
-        .next-turn-btn:active {
-            transform: translateY(0);
-        }
-
-        /* ポップアップ・ダイアログ */
+        /* モーダルダイアログ (ゲームオーバー / 勝利用) */
         .modal {
             position: fixed;
             top: 0;
@@ -488,8 +753,8 @@
             background: var(--bg-surface);
             border: 2px solid var(--primary);
             border-radius: 20px;
-            padding: 2.5rem;
-            max-width: 480px;
+            padding: 2rem;
+            max-width: 440px;
             width: 90%;
             text-align: center;
             box-shadow: 0 0 50px rgba(240, 90, 40, 0.2);
@@ -502,27 +767,28 @@
         }
 
         .modal-icon {
-            font-size: 3.5rem;
+            font-size: 3rem;
             color: var(--primary);
-            margin-bottom: 1.5rem;
-            text-shadow: 0 0 15px var(--primary-glow);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 12px var(--primary-glow);
         }
 
-        .modal-icon.success { color: var(--success); text-shadow: 0 0 15px rgba(56, 176, 0, 0.3); }
-        .modal-icon.danger { color: var(--secondary); text-shadow: 0 0 15px rgba(230, 57, 70, 0.3); }
+        .modal-icon.success { color: var(--success); text-shadow: 0 0 12px rgba(56, 176, 0, 0.3); }
+        .modal-icon.danger { color: var(--secondary); text-shadow: 0 0 12px rgba(230, 57, 70, 0.3); }
 
         .modal-title {
             font-family: var(--font-display);
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 800;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .modal-text {
-            font-size: 0.9rem;
-            line-height: 1.6;
+            font-size: 0.85rem;
+            line-height: 1.5;
             color: var(--text-muted);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            white-space: pre-line;
         }
 
         .modal-btn {
@@ -530,173 +796,17 @@
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 0.9rem;
-            font-weight: 700;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .policy-trade-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            padding-top: 1.5rem;
-        }
-
-        .panel-policy, .panel-trade {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .panel-policy h3, .panel-trade h3 {
-            font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(240, 90, 40, 0.1);
-            padding-bottom: 0.4rem;
-        }
-
-        .policy-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .policy-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid rgba(240, 90, 40, 0.05);
-        }
-
-        .policy-name {
             font-size: 0.85rem;
             font-weight: 700;
-        }
-
-        .policy-desc {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .3s;
-            border-radius: 34px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--text-muted);
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: rgba(240, 90, 40, 0.2);
-            border-color: var(--primary);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(22px);
-            background-color: var(--primary);
-            box-shadow: 0 0 8px var(--primary-glow);
-        }
-
-        .trade-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.6rem;
-            height: 100%;
-            justify-content: center;
-        }
-
-        .trade-btn {
-            background: rgba(240, 90, 40, 0.08);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.6rem 1rem;
-            font-family: var(--font-display);
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 8px;
+            padding: 0.6rem 1.75rem;
+            border-radius: 6px;
             cursor: pointer;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
         }
 
-        .trade-btn:hover:not(:disabled) {
-            background: var(--primary);
-            color: #0f0505;
-            box-shadow: 0 0 12px var(--primary-glow);
-        }
-
-        .trade-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard {
-                padding: 1.5rem;
-            }
-            .colony-stats-row {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            .resources-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .board-main {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-            .back-link {
-                top: 1rem;
-                left: 1rem;
-            }
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--primary-glow);
         }
     </style>
 </head>
@@ -715,144 +825,196 @@
             <div class="sol-counter" id="solCounter">SOL 1</div>
         </header>
 
-        <!-- コロニー主要ステータス -->
-        <section class="colony-stats-row">
-            <!-- 人口 -->
-            <div class="colony-card">
-                <i class="fa-solid fa-users"></i>
-                <div class="colony-info">
-                    <span class="colony-label">Population</span>
-                    <span class="colony-val" id="valPopulation">15 / 20</span>
-                </div>
-            </div>
-
-            <!-- 幸福度 -->
-            <div class="colony-card">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <div class="colony-info">
-                    <span class="colony-label">Happiness</span>
-                    <span class="colony-val" id="valHappiness">80 %</span>
-                </div>
-            </div>
-
-            <!-- 自立目標進捗 -->
-            <div class="colony-card">
-                <i class="fa-solid fa-flag-checkered"></i>
-                <div class="colony-info">
-                    <span class="colony-label">Victory Goal</span>
-                    <span class="colony-val" id="valGoal">15%</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 資源モニター -->
+        <!-- 資源モニター (上部コンパクト配置) -->
         <section class="resources-grid">
             <!-- 資金 -->
             <div class="res-card" id="resCredits">
-                <i class="res-icon fa-solid fa-circle-dollar-to-slot"></i>
-                <span class="res-name">Credits</span>
-                <span class="res-amount" id="amtCredits">1000</span>
-                <span class="res-delta positive" id="dCredits">+100</span>
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-circle-dollar-to-slot"></i>
+                    <span class="res-name">Credits</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtCredits">1000</span>
+                    <span class="res-delta positive" id="dCredits">+100</span>
+                </div>
             </div>
 
             <!-- 酸素 -->
             <div class="res-card" id="resOxygen">
-                <i class="res-icon fa-solid fa-wind"></i>
-                <span class="res-name">Oxygen</span>
-                <span class="res-amount" id="amtOxygen">300</span>
-                <span class="res-delta positive" id="dOxygen">+10</span>
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-wind"></i>
+                    <span class="res-name">Oxygen</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtOxygen">400</span>
+                    <span class="res-delta positive" id="dOxygen">+10</span>
+                </div>
             </div>
 
             <!-- 水 -->
             <div class="res-card" id="resWater">
-                <i class="res-icon fa-solid fa-droplet"></i>
-                <span class="res-name">Water</span>
-                <span class="res-amount" id="amtWater">400</span>
-                <span class="res-delta positive" id="dWater">+5</span>
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-droplet"></i>
+                    <span class="res-name">Water</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtWater">350</span>
+                    <span class="res-delta positive" id="dWater">+5</span>
+                </div>
             </div>
 
             <!-- 食料 -->
             <div class="res-card" id="resFood">
-                <i class="res-icon fa-solid fa-wheat-awn"></i>
-                <span class="res-name">Food</span>
-                <span class="res-amount" id="amtFood">500</span>
-                <span class="res-delta positive" id="dFood">+0</span>
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-wheat-awn"></i>
+                    <span class="res-name">Food</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtFood">450</span>
+                    <span class="res-delta positive" id="dFood">+0</span>
+                </div>
             </div>
 
             <!-- 電力 -->
             <div class="res-card" id="resEnergy">
-                <i class="res-icon fa-solid fa-bolt"></i>
-                <span class="res-name">Energy</span>
-                <span class="res-amount" id="amtEnergy">50</span>
-                <span class="res-delta positive" id="dEnergy">+10</span>
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-bolt"></i>
+                    <span class="res-name">Energy</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtEnergy">60</span>
+                    <span class="res-delta positive" id="dEnergy">+10</span>
+                </div>
             </div>
         </section>
 
-        <!-- メインパネル -->
-        <div class="board-main">
-            <!-- 建築エリア -->
+        <!-- メイングリッド (3列配置) -->
+        <div class="dashboard-grid">
+            <!-- 1列目: 状態モニター & 地球取引 -->
+            <div class="dash-col">
+                <!-- 状態モニター -->
+                <div class="dash-panel">
+                    <h3>Colony Monitor (コロニー状態)</h3>
+                    <div class="monitor-grid">
+                        <div class="monitor-metric">
+                            <span class="metric-label"><i class="fa-solid fa-users"></i> Population</span>
+                            <div class="metric-bar-wrapper">
+                                <div class="metric-bar bar-goal" id="barPopulation" style="width: 15%;"></div>
+                            </div>
+                            <span class="metric-val" id="valPopulation">15 / 20</span>
+                        </div>
+                        <div class="monitor-metric">
+                            <span class="metric-label"><i class="fa-solid fa-heart-pulse"></i> Happiness</span>
+                            <div class="metric-bar-wrapper">
+                                <div class="metric-bar bar-happiness" id="barHappiness" style="width: 80%;"></div>
+                            </div>
+                            <span class="metric-val" id="valHappiness">80%</span>
+                        </div>
+                        <div class="monitor-metric">
+                            <span class="metric-label"><i class="fa-solid fa-notes-medical"></i> Health</span>
+                            <div class="metric-bar-wrapper">
+                                <div class="metric-bar bar-health" id="barHealth" style="width: 90%;"></div>
+                            </div>
+                            <span class="metric-val" id="valHealth">90%</span>
+                        </div>
+                        <div class="monitor-metric">
+                            <span class="metric-label"><i class="fa-solid fa-shield-halved"></i> Base Integrity</span>
+                            <div class="metric-bar-wrapper">
+                                <div class="metric-bar bar-integrity" id="barIntegrity" style="width: 95%;"></div>
+                            </div>
+                            <span class="metric-val" id="valIntegrity">95%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地球交易 -->
+                <div class="dash-panel">
+                    <h3>Emergency Trade (緊急交易)</h3>
+                    <div class="trade-grid">
+                        <button class="trade-btn" id="buyOxygenBtn" onclick="tradeResource('oxygen')"><i class="fa-solid fa-wind"></i> O2購入 (Cr-150)</button>
+                        <button class="trade-btn" id="buyWaterBtn" onclick="tradeResource('water')"><i class="fa-solid fa-droplet"></i> 水購入 (Cr-150)</button>
+                        <button class="trade-btn" id="buyFoodBtn" onclick="tradeResource('food')"><i class="fa-solid fa-wheat-awn"></i> 食料購入 (Cr-150)</button>
+                        <button class="trade-btn" id="repairGridBtn" onclick="repairIntegrity()"><i class="fa-solid fa-wrench"></i> グリッド修復 (Cr-200)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2列目: 施設建設エリア (2列グリッド) -->
             <section class="build-section">
                 <h2>Infrastructure Construction (施設建設)</h2>
                 <div class="build-grid" id="buildGrid">
-                    <!-- 施設カードはJSで生成 -->
+                    <!-- 施設カードはJSで動的生成 -->
                 </div>
             </section>
 
-            <!-- イベントログエリア -->
-            <section class="event-section">
-                <h2>Mission Control Logs (ログフィード)</h2>
-                <div class="feed-container" id="feedContainer">
-                    <div class="event-card">
-                        <div class="event-title">システム起動</div>
-                        <div class="event-text">火星アレス基地、生命維持システムがオンラインになりました。開拓者15名の命があなたの管理に委ねられています。目標は人口100人の突破です。</div>
+            <!-- 3列目: 規制設定 & 植民地政策 & ログ -->
+            <div class="dash-col">
+                <!-- 調整スライダー -->
+                <div class="dash-panel">
+                    <h3>Colony Regulations (植民地規制)</h3>
+                    <div class="regulation-controls">
+                        <div class="reg-control">
+                            <div class="reg-header">
+                                <span>課税率 (Tax Rate)</span>
+                                <span id="lblTaxRate">10%</span>
+                            </div>
+                            <input type="range" class="range-slider" id="cfgTaxRate" min="0" max="40" value="10" oninput="changeTaxRate(this.value)">
+                            <span class="reg-desc">高税率はCredits収入を増やしますが、毎Sol幸福度が低下します。</span>
+                        </div>
+                        <div class="reg-control">
+                            <div class="reg-header">
+                                <span>食料配給量 (Rationing)</span>
+                                <span id="lblFoodRation">100%</span>
+                            </div>
+                            <input type="range" class="range-slider" id="cfgFoodRation" min="50" max="150" value="100" step="10" oninput="changeFoodRation(this.value)">
+                            <span class="reg-desc">配給量を下げると食料を節約できますが、健康度と幸福度が低下します。</span>
+                        </div>
                     </div>
                 </div>
-            </section>
+
+                <!-- 植民地政策 -->
+                <div class="dash-panel">
+                    <h3>Colony Policies (運営方針政策)</h3>
+                    <div class="policy-grid">
+                        <div class="policy-card">
+                            <div class="policy-text">
+                                <span class="policy-name">配給制限 (Rationing)</span>
+                                <span class="policy-desc">水・食料消費 -30% / 幸福度 -4%</span>
+                            </div>
+                            <span class="switch">
+                                <input type="checkbox" id="policyRationing" onchange="togglePolicy('rationing')">
+                                <span class="slider"></span>
+                            </span>
+                        </div>
+                        <div class="policy-card">
+                            <div class="policy-text">
+                                <span class="policy-name">発電増幅 (Overdrive)</span>
+                                <span class="policy-desc">太陽光発電 +30% / 毎Sol Cr -15</span>
+                            </div>
+                            <span class="switch">
+                                <input type="checkbox" id="policyOverdrive" onchange="togglePolicy('overdrive')">
+                                <span class="slider"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ログフィード -->
+                <section class="event-section">
+                    <h2>Control Logs (ログフィード)</h2>
+                    <div class="feed-container" id="feedContainer">
+                        <div class="event-card">
+                            <div class="event-title">システム起動</div>
+                            <div class="event-text">火星アレス基地、生命維持システムがオンラインになりました。開拓者15名の命があなたの管理に委ねられています。目標は人口100人の突破です。</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
-
-        <!-- 政策と緊急物資取引 -->
-        <section class="policy-trade-row">
-            <!-- 植民地政策 -->
-            <div class="panel-policy">
-                <h3>Colony Policies (植民地政策)</h3>
-                <div class="policy-grid">
-                    <div class="policy-card">
-                        <div>
-                            <div class="policy-name">配給制限 (Rationing)</div>
-                            <div class="policy-desc">水・食料消費-30% / 幸福度-4% / Sol</div>
-                        </div>
-                        <span class="switch">
-                            <input type="checkbox" id="policyRationing" onchange="togglePolicy('rationing')">
-                            <span class="slider"></span>
-                        </span>
-                    </div>
-                    <div class="policy-card">
-                        <div>
-                            <div class="policy-name">発電増幅 (Overdrive)</div>
-                            <div class="policy-desc">太陽光発電+30% / コスト: 毎Sol Cr-15</div>
-                        </div>
-                        <span class="switch">
-                            <input type="checkbox" id="policyOverdrive" onchange="togglePolicy('overdrive')">
-                            <span class="slider"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 緊急地球取引 -->
-            <div class="panel-trade">
-                <h3>Emergency Trade (地球との緊急物資取引)</h3>
-                <div class="trade-grid">
-                    <button class="trade-btn" id="buyOxygenBtn" onclick="tradeResource('oxygen')"><i class="fa-solid fa-wind"></i> 酸素購入 (Cr -150 / O2 +100)</button>
-                    <button class="trade-btn" id="buyWaterBtn" onclick="tradeResource('water')"><i class="fa-solid fa-droplet"></i> 水購入 (Cr -150 / H2O +100)</button>
-                    <button class="trade-btn" id="buyFoodBtn" onclick="tradeResource('food')"><i class="fa-solid fa-wheat-awn"></i> 食料購入 (Cr -150 / Food +100)</button>
-                </div>
-            </div>
-        </section>
 
         <!-- アクションバー -->
         <footer class="actions-row">
-            <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">ARES COMMAND CENTER v1.0.4</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">ARES COMMAND CENTER v2.1.0</span>
             <button class="next-turn-btn" onclick="nextSol()">
                 <span>NEXT SOL (次ターンへ)</span> <i class="fa-solid fa-forward-step"></i>
             </button>
@@ -885,8 +1047,16 @@
         // コロニー基本値
         let population = 15;
         let happiness = 80;
+        let health = 90;
+        let integrity = 95;
         let maxPopulation = 20;
+
         let totalDeaths = 0;
+
+        // 調整可能な政策設定
+        let taxRate = 10; // 課税率 (0% - 40%)
+        let foodRation = 100; // 食料配給量 (50% - 150%)
+
         const activePolicies = {
             rationing: false,
             overdrive: false
@@ -943,7 +1113,7 @@
                 name: '居住モジュール',
                 count: 1,
                 cost: 400,
-                desc: 'コロニーの最大収容人数を増やします。',
+                desc: '最大収容人数を増やします。',
                 effect: '最大収容人数 +15',
                 costResource: 'credits',
                 runEffect: () => { maxPopulation += 15; },
@@ -954,7 +1124,7 @@
                 name: 'バイオドーム',
                 count: 0,
                 cost: 500,
-                desc: '心の安らぎを与える緑地。幸福度を維持。',
+                desc: '心の安らぎを与える緑地。幸福度を回復。',
                 effect: '幸福度 +5%/Sol、水 -10、電力 -8',
                 costResource: 'credits',
                 runEffect: () => { happiness = Math.min(100, happiness + 5); resources.water -= 10; resources.energy -= 8; },
@@ -978,7 +1148,7 @@
                     <div class="build-desc">
                         <div class="build-name">${b.name} <span>建設数: ${b.count}</span></div>
                         <div class="build-detail">${b.desc}</div>
-                        <div class="build-detail" style="color: var(--primary); font-weight: 500;">効果: ${b.effect}</div>
+                        <div class="build-effect">効果: ${b.effect}</div>
                         <div class="build-costs">
                             <span><i class="fa-solid fa-circle-dollar-to-slot"></i> ${b.cost} Cr</span>
                         </div>
@@ -1012,13 +1182,17 @@
             // SOL
             document.getElementById('solCounter').textContent = `SOL ${sol}`;
 
-            // コロニー基本値
+            // コロニー基本値 (数値表示)
             document.getElementById('valPopulation').textContent = `${population} / ${maxPopulation}`;
             document.getElementById('valHappiness').textContent = `${happiness} %`;
+            document.getElementById('valHealth').textContent = `${health} %`;
+            document.getElementById('valIntegrity').textContent = `${integrity} %`;
             
-            // 勝利目標パーセント
-            const goalPercent = Math.min(100, Math.round((population / 100) * 100));
-            document.getElementById('valGoal').textContent = `${goalPercent}%`;
+            // コロニー基本値 (バー表示)
+            document.getElementById('barPopulation').style.width = `${Math.min(100, (population / maxPopulation) * 100)}%`;
+            document.getElementById('barHappiness').style.width = `${happiness}%`;
+            document.getElementById('barHealth').style.width = `${health}%`;
+            document.getElementById('barIntegrity').style.width = `${integrity}%`;
 
             // 資源
             document.getElementById('amtCredits').textContent = Math.round(resources.credits);
@@ -1043,10 +1217,11 @@
             checkWarning('Food', resources.food);
             checkWarning('Energy', resources.energy);
 
-            // 取引ボタンの無効化・有効化
+            // 緊急交易ボタンの状態調整
             document.getElementById('buyOxygenBtn').disabled = resources.credits < 150;
             document.getElementById('buyWaterBtn').disabled = resources.credits < 150;
             document.getElementById('buyFoodBtn').disabled = resources.credits < 150;
+            document.getElementById('repairGridBtn').disabled = resources.credits < 200;
 
             renderBuildings();
         }
@@ -1104,23 +1279,47 @@
                     resources.food += 100;
                     resourceName = '食料 100 単位';
                 }
-                addLog('緊急取引', `地球の補給船から ${resourceName} を購入しました。(Cr -150)`);
+                addLog('緊急取引', `地球の補給船から ${resourceName} を緊急購入しました。(Cr -150)`);
                 updateUI();
             }
+        }
+
+        // インフラグリッド修復
+        function repairIntegrity() {
+            if (resources.credits >= 200) {
+                resources.credits -= 200;
+                integrity = Math.min(100, integrity + 20);
+                addLog('基地修復', `Credits 200を支払い、基地インフラ健全度を +20 修復しました。`);
+                updateUI();
+            }
+        }
+
+        // 規制パラメータ変更
+        function changeTaxRate(val) {
+            taxRate = parseInt(val);
+            document.getElementById('lblTaxRate').textContent = `${taxRate}%`;
+            updateUI();
+        }
+
+        function changeFoodRation(val) {
+            foodRation = parseInt(val);
+            document.getElementById('lblFoodRation').textContent = `${foodRation}%`;
+            updateUI();
         }
 
         // 毎ターンの収支・Delta算出
         function calculateDeltas() {
             const deltas = { credits: 0, oxygen: 0, water: 0, food: 0, energy: 0 };
 
-            // 基礎収入/生命維持消費
-            // 基礎資金収入: 開拓者数に応じて増える
-            deltas.credits = population * 8; 
+            // 基礎資金収入: 開拓者数 × 8 × 課税率の影響
+            // 課税率が10%を基準とし、0%なら半減、40%なら約2.5倍
+            const taxFactor = 0.5 + (taxRate / 20);
+            deltas.credits = Math.round(population * 8 * taxFactor); 
             
             // 生命維持：一人あたり酸素 -2、水 -2.5、食料 -3
             let o2Consumption = population * 2;
             let waterConsumption = population * 2.5;
-            let foodConsumption = population * 3;
+            let foodConsumption = population * 3 * (foodRation / 100);
 
             // 配給制限政策の適用
             if (activePolicies.rationing) {
@@ -1191,24 +1390,48 @@
             if (resources.water < 0) resources.water = 0;
             if (resources.food < 0) resources.food = 0;
 
-            // 2. 状態・幸福度計算
+            // 2. 状態・幸福度・健康度計算
             let happinessChange = 0;
+            let healthChange = 0;
             let criticalLack = false;
 
-            // 配給制限政策による幸福度低下
+            // 課税による幸福度低下 (10%を基準)
+            if (taxRate > 10) {
+                happinessChange -= Math.floor((taxRate - 10) / 4);
+            } else if (taxRate < 10) {
+                happinessChange += 2;
+            }
+
+            // 配給制限政策およびスライダーによる幸福度・健康度影響
             if (activePolicies.rationing) {
                 happinessChange -= 4;
             }
+            if (foodRation < 100) {
+                happinessChange -= Math.round((100 - foodRation) / 8);
+                healthChange -= Math.round((100 - foodRation) / 6);
+            } else if (foodRation > 100) {
+                happinessChange += Math.round((foodRation - 100) / 10);
+                healthChange += Math.round((foodRation - 100) / 8);
+            }
 
-            if (resources.oxygen <= 0) { happinessChange -= 30; criticalLack = true; }
-            if (resources.water <= 0) { happinessChange -= 20; criticalLack = true; }
-            if (resources.food <= 0) { happinessChange -= 15; criticalLack = true; }
+            // 資源枯渇時の深刻なペナルティ
+            if (resources.oxygen <= 0) { happinessChange -= 30; healthChange -= 25; criticalLack = true; }
+            if (resources.water <= 0) { happinessChange -= 20; healthChange -= 20; criticalLack = true; }
+            if (resources.food <= 0) { happinessChange -= 15; healthChange -= 15; criticalLack = true; }
+            
+            // 電力不足時のベース劣化
             if (resources.energy < 0) {
                 happinessChange -= 10;
-                // 電力がマイナス＝全インフラ停止による資源損失
+                healthChange -= 10;
+                integrity -= 6; // 電力なしによるシステムの劣化
                 resources.oxygen = Math.max(0, resources.oxygen - 30);
                 resources.water = Math.max(0, resources.water - 30);
                 resources.food = Math.max(0, resources.food - 30);
+            }
+
+            // 政策(Overdrive)によるベース劣化
+            if (activePolicies.overdrive) {
+                integrity -= 2; // ジェネレータへの過負荷による劣化
             }
 
             // バイオドーム補正
@@ -1217,24 +1440,33 @@
                 happinessChange += bioCount * 4;
             }
 
-            // 幸福度がマイナスの時、人が逃げ出す/死亡する
+            // 健康度と幸福度の適用
+            happiness = Math.max(0, Math.min(100, happiness + happinessChange));
+            health = Math.max(0, Math.min(100, health + healthChange));
+
+            // 開拓者の死亡/合流判定
             if (criticalLack) {
                 const deathCount = Math.min(population - 3, Math.round(population * 0.15) + 1);
                 population -= deathCount;
                 totalDeaths += deathCount; // 死亡数カウント
                 addLog('開拓者危篤', `深刻な生活物資の不足により、開拓者が ${deathCount} 名離脱または死亡しました。`);
-            } else if (happiness >= 75 && population < maxPopulation) {
-                // 幸福で住居に空きがあれば自然増加（移民）
+            } else if (health < 40) {
+                // 健康度低下による病気死亡
+                const sickDeaths = Math.min(population - 3, Math.floor(Math.random() * 2) + 1);
+                population -= sickDeaths;
+                totalDeaths += sickDeaths;
+                addLog('健康度警告', `劣悪な健康状態（Health:${health}%）により開拓者が ${sickDeaths} 名病死しました。`);
+            } else if (happiness >= 75 && health >= 75 && population < maxPopulation) {
+                // 幸福度・健康度ともに高く、住居に空きがあれば自然増加（移民）
                 const newColonists = Math.min(maxPopulation - population, Math.floor(Math.random() * 3) + 1);
                 population += newColonists;
-                addLog('開拓者合流', `コロニーが快適であるため、地球からの第2波開拓船から新住民 ${newColonists} 名が基地へ合流しました。`);
+                addLog('開拓者合流', `コロニー環境が良好なため、地球船から新住民 ${newColonists} 名が基地へ到着しました。`);
             }
 
-            happiness = Math.max(0, Math.min(100, happiness + happinessChange));
-
-            // 3. 状態異常イベント効果減少
+            // 3. 状態異常イベント効果減少＆発生
             if (sandstormSol > 0) {
                 sandstormSol--;
+                integrity -= 3; // 砂嵐によるインフラ微減
                 if (sandstormSol === 0) {
                     addLog('砂嵐通過', '火星の砂嵐が完全に通過し、太陽光パネルの発電効率が100%に回復しました。');
                 }
@@ -1256,7 +1488,7 @@
             const events = [
                 {
                     title: '巨大砂嵐発生',
-                    text: 'コロニー周辺で巨大な砂嵐が発生。3SOLの間、太陽光パネルの発電効率が半減（50%低下）します。',
+                    text: 'コロニー周辺で巨大な砂嵐が発生。3SOLの間、太陽光パネルの発電効率が半減し、基地健全度が低下します。',
                     action: () => {
                         sandstormSol = 3;
                     }
@@ -1278,10 +1510,11 @@
                 },
                 {
                     title: '居住区配管エラー',
-                    text: '水供給ラインの一部にひび割れが発覚。修理のために資金が消失します (Cr -200、水 -50)。',
+                    text: '水供給ラインの一部に亀裂が発覚。修理のために資源が消失し、健全度が低下します (Cr -200、水 -50、Integrity -10)。',
                     action: () => {
                         resources.credits = Math.max(0, resources.credits - 200);
                         resources.water = Math.max(0, resources.water - 50);
+                        integrity = Math.max(0, integrity - 10);
                     }
                 }
             ];
@@ -1298,14 +1531,16 @@
             const title = document.getElementById('modalTitle');
             const text = document.getElementById('modalText');
 
-            // 敗北：人口が0名、または幸福度が0、または電力が不足
+            // 敗北：人口が0名
             if (population <= 0) {
                 title.textContent = 'MISSION FAILED';
                 text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
                 modal.classList.add('show');
-            } else if (resources.energy < 0) {
+            } 
+            // 敗北：電力がマイナス（凍結）
+            else if (resources.energy < 0) {
                 totalDeaths += population; // 残った全員が死亡
                 population = 0;
                 title.textContent = 'GRID COLLAPSE';
@@ -1313,11 +1548,29 @@
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-bolt"></i>';
                 modal.classList.add('show');
-            } else if (happiness <= 0) {
+            } 
+            // 敗北：幸福度が0
+            else if (happiness <= 0) {
                 title.textContent = 'COLONY RIOT';
                 text.textContent = `幸福度が0%になりました。過酷な労働と深刻な物資不足により住民の暴動が発生し、コロニーは放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                modal.classList.add('show');
+            } 
+            // 敗北：健康度が0 (疫病)
+            else if (health <= 0) {
+                title.textContent = 'EPIDEMIC OUTBREAK';
+                text.textContent = `住民の健康状態が崩壊し、致死性の感染症がドーム内に蔓延しました。防衛プロトコルが発動し、基地は永久にロックダウンされました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                icon.className = 'modal-icon danger';
+                icon.innerHTML = '<i class="fa-solid fa-virus-covid"></i>';
+                modal.classList.add('show');
+            }
+            // 敗北：インフラ健全度が0 (決壊)
+            else if (integrity <= 0) {
+                title.textContent = 'BASE COLLAPSE';
+                text.textContent = `基地のドーム外壁および電気グリッドが完全に崩壊しました。火星の大気と低温が開拓区になだれ込み、居住不能となりました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                icon.className = 'modal-icon danger';
+                icon.innerHTML = '<i class="fa-solid fa-house-crack"></i>';
                 modal.classList.add('show');
             }
             // 勝利：人口が100人突破
@@ -1339,8 +1592,18 @@
             resources.energy = 60;
             population = 15;
             happiness = 80;
+            health = 90;
+            integrity = 95;
             maxPopulation = 20;
             totalDeaths = 0;
+
+            taxRate = 10;
+            foodRation = 100;
+            document.getElementById('cfgTaxRate').value = 10;
+            document.getElementById('lblTaxRate').textContent = '10%';
+            document.getElementById('cfgFoodRation').value = 100;
+            document.getElementById('lblFoodRation').textContent = '100%';
+
             activePolicies.rationing = false;
             activePolicies.overdrive = false;
 
