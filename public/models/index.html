@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Antigravity で利用できる AIモデル一覧。Gemini 3.5 Flash・Gemini 3.1 Pro・Claude Sonnet/Opus 4.6・GPT-OSS 120B の特性・速度・思考深度を徹底解説。">
+  <title>AIモデル解説 | Antigravity Model Guide</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────── */
+    :root {
+      --bg:        #06030f;
+      --bg-card:   rgba(18, 8, 40, 0.85);
+      --border:    rgba(139, 92, 246, 0.25);
+      --border-h:  rgba(139, 92, 246, 0.7);
+
+      --gemini:       #4f9eff;
+      --gemini-glow:  rgba(79, 158, 255, 0.3);
+      --gemini-muted: rgba(79, 158, 255, 0.15);
+
+      --claude:       #f97316;
+      --claude-glow:  rgba(249, 115, 22, 0.3);
+      --claude-muted: rgba(249, 115, 22, 0.12);
+
+      --gpt:          #10b981;
+      --gpt-glow:     rgba(16, 185, 129, 0.3);
+      --gpt-muted:    rgba(16, 185, 129, 0.12);
+
+      --purple:      #a78bfa;
+      --purple-glow: rgba(167, 139, 250, 0.25);
+
+      --ink:      #e2d9ff;
+      --ink-sub:  #9980d4;
+      --ink-muted:#5a4a8a;
+
+      --fast-badge:     #4ade80;
+      --thinking-badge: #f59e0b;
+
+      --font-mono:    'IBM Plex Mono', monospace;
+      --font-display: 'Outfit', sans-serif;
+      --ease:         cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─── Reset & Base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-display);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Starfield background ──────────────────────────── */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .starfield::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(88, 28, 220, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(30, 120, 255, 0.12) 0%, transparent 60%);
+    }
+    .starfield canvas {
+      position: absolute;
+      inset: 0;
+      opacity: 0.5;
+    }
+
+    /* ─── Layout ────────────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 6rem;
+    }
+
+    /* ─── Back link ─────────────────────────────────────── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--ink-sub);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s var(--ease), text-shadow 0.2s var(--ease);
+      margin-bottom: 3rem;
+      padding-top: 0.5rem;
+    }
+    .back-link:hover {
+      color: var(--purple);
+      text-shadow: 0 0 12px var(--purple-glow);
+    }
+
+    /* ─── Hero header ───────────────────────────────────── */
+    .hero {
+      text-align: center;
+      margin-bottom: 5rem;
+    }
+    .hero-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--purple);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1.2rem;
+      opacity: 0.8;
+    }
+    .hero-title {
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e2d9ff 20%, #a78bfa 60%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.2rem;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--ink-sub);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ─── Section titles ────────────────────────────────── */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ─── Model grid ────────────────────────────────────── */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 4rem;
+    }
+
+    /* ─── Model card ────────────────────────────────────── */
+    .model-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.6rem 1.75rem;
+      backdrop-filter: blur(24px);
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+    .model-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 16px 16px 0 0;
+      transition: opacity 0.3s var(--ease);
+      opacity: 0.6;
+    }
+    .model-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* Provider-specific theming */
+    .card-gemini {
+      --c: var(--gemini);
+      --cg: var(--gemini-glow);
+      --cm: var(--gemini-muted);
+    }
+    .card-gemini::before { background: linear-gradient(90deg, var(--gemini), #818cf8); }
+    .card-gemini:hover { border-color: rgba(79,158,255,0.55); box-shadow: 0 20px 60px rgba(79,158,255,0.15); }
+
+    .card-claude {
+      --c: var(--claude);
+      --cg: var(--claude-glow);
+      --cm: var(--claude-muted);
+    }
+    .card-claude::before { background: linear-gradient(90deg, var(--claude), #fbbf24); }
+    .card-claude:hover { border-color: rgba(249,115,22,0.55); box-shadow: 0 20px 60px rgba(249,115,22,0.15); }
+
+    .card-gpt {
+      --c: var(--gpt);
+      --cg: var(--gpt-glow);
+      --cm: var(--gpt-muted);
+    }
+    .card-gpt::before { background: linear-gradient(90deg, var(--gpt), #06b6d4); }
+    .card-gpt:hover { border-color: rgba(16,185,129,0.55); box-shadow: 0 20px 60px rgba(16,185,129,0.15); }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .card-name-wrap { flex: 1; min-width: 0; }
+    .card-provider {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--c);
+      opacity: 0.75;
+      margin-bottom: 0.3rem;
+    }
+    .card-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    /* Badges */
+    .badges {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 0.2em 0.6em;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge-fast {
+      background: rgba(74, 222, 128, 0.15);
+      color: var(--fast-badge);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+    }
+    .badge-thinking {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--thinking-badge);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .badge-tier {
+      background: var(--cm);
+      color: var(--c);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Card body */
+    .card-desc {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--ink-sub);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Stats row */
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .stat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 0.6rem 0.5rem;
+      text-align: center;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--c);
+    }
+
+    /* Strength tags */
+    .strength-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .strength-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      padding: 0.25em 0.7em;
+      border-radius: 6px;
+      background: var(--cm);
+      color: var(--c);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.2s var(--ease);
+    }
+
+    /* ─── Comparison table ──────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      background: var(--bg-card);
+      margin-bottom: 4rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    thead th {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      padding: 1rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s var(--ease);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td {
+      padding: 0.9rem 1.25rem;
+      color: var(--ink-sub);
+      vertical-align: middle;
+    }
+    tbody td:first-child {
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .model-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+
+    /* Speed bar */
+    .speed-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .speed-track {
+      width: 80px;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .speed-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s var(--ease);
+    }
+    .speed-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--ink-muted);
+    }
+
+    /* Stars rating */
+    .stars {
+      display: flex;
+      gap: 2px;
+    }
+    .star {
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+    .star.on  { color: #f59e0b; }
+    .star.off { color: rgba(255,255,255,0.12); }
+
+    /* ─── Use-case guide ────────────────────────────────── */
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 4rem;
+    }
+    .usecase-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 1.4rem;
+      transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+    }
+    .usecase-card:hover {
+      border-color: var(--border-h);
+      transform: translateY(-2px);
+    }
+    .usecase-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .usecase-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+    .usecase-desc {
+      font-size: 0.82rem;
+      color: var(--ink-sub);
+      line-height: 1.6;
+      margin-bottom: 0.8rem;
+    }
+    .usecase-recommend {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      color: var(--purple);
+      opacity: 0.85;
+    }
+
+    /* ─── Footer note ───────────────────────────────────── */
+    .footer-note {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+    }
+    .footer-note a {
+      color: var(--purple);
+      text-decoration: none;
+      opacity: 0.8;
+    }
+    .footer-note a:hover { opacity: 1; }
+
+    /* ─── Responsive ────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .page { padding: 1.5rem 1rem 4rem; }
+      .model-grid { grid-template-columns: 1fr; }
+      .card-stats { grid-template-columns: repeat(3, 1fr); }
+      .hero-title { font-size: 2rem; }
+      .usecase-grid { grid-template-columns: 1fr; }
+      thead th, tbody td { padding: 0.75rem 0.9rem; }
+      .speed-track { width: 50px; }
+    }
+
+    /* ─── Reveal animation ──────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Starfield BG -->
+  <div class="starfield">
+    <canvas id="starCanvas"></canvas>
+  </div>
+
+  <div class="page">
+
+    <!-- Back link -->
+    <a href="/" class="back-link">← ホームへ戻る</a>
+
+    <!-- Hero -->
+    <header class="hero reveal">
+      <span class="hero-kicker">Antigravity — Model Reference</span>
+      <h1 class="hero-title">AIモデル完全ガイド</h1>
+      <p class="hero-sub">
+        Antigravityで選択できる全8モデルの特性、速度、思考深度を徹底解説。<br>
+        タスクに最適なモデルを選ぶための実践的指針。
+      </p>
+    </header>
+
+    <!-- ── GEMINI 3.5 FLASH ─────────────────────────────── -->
+    <p class="section-label reveal">01 &nbsp; Gemini 3.5 Flash — Google DeepMind</p>
+    <div class="model-grid reveal">
+
+      <div class="model-card card-gemini">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Google DeepMind</div>
+            <div class="card-name">Gemini 3.5 Flash<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Medium</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-fast">⚡ Fast</span>
+            <span class="badge badge-tier" style="--cm:rgba(79,158,255,0.15);--c:#4f9eff">Medium</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Flash系のデフォルト選択。速度と品質のバランスが最もとれたモデル。日常的なコーディング・文章生成・Q&Aに最適。コンテキスト理解力も十分に高い。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">⚡ 最速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">標準</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★☆☆</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">コーディング</span>
+          <span class="strength-tag">文章生成</span>
+          <span class="strength-tag">Q&A</span>
+          <span class="strength-tag">翻訳</span>
+          <span class="strength-tag">要約</span>
+        </div>
+      </div>
+
+      <div class="model-card card-gemini">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Google DeepMind</div>
+            <div class="card-name">Gemini 3.5 Flash<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">High</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-fast">⚡ Fast</span>
+            <span class="badge badge-tier" style="--cm:rgba(79,158,255,0.15);--c:#4f9eff">High</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Flash系の高品質モード。速度を維持しながら出力精度を引き上げる。複雑なコード生成・長文ドキュメント作成など、Medium では不十分なタスクに。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">⚡ 高速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">やや深</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★☆</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">複雑なコード</span>
+          <span class="strength-tag">長文生成</span>
+          <span class="strength-tag">分析</span>
+          <span class="strength-tag">リファクタ</span>
+        </div>
+      </div>
+
+      <div class="model-card card-gemini">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Google DeepMind</div>
+            <div class="card-name">Gemini 3.5 Flash<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Low</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-fast">⚡ Fast</span>
+            <span class="badge badge-tier" style="--cm:rgba(79,158,255,0.15);--c:#4f9eff">Low</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Flash系の超高速・軽量モード。シンプルなタスクや素早いプロトタイピングに特化。出力量や品質よりも応答速度を最優先したいときの選択肢。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">⚡ 超速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">最小限</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">☆☆☆</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">素早い返答</span>
+          <span class="strength-tag">簡単な変換</span>
+          <span class="strength-tag">テンプレ生成</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── GEMINI 3.1 PRO ──────────────────────────────── -->
+    <p class="section-label reveal">02 &nbsp; Gemini 3.1 Pro — Google DeepMind</p>
+    <div class="model-grid reveal" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
+
+      <div class="model-card card-gemini">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Google DeepMind</div>
+            <div class="card-name">Gemini 3.1 Pro<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Low</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-tier" style="--cm:rgba(79,158,255,0.15);--c:#4f9eff">Pro</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Proアーキテクチャを低コストで試せるエントリーポイント。Flash より高い推論能力を持ちながら、比較的速いレスポンスを維持。複雑な設計判断や多段ロジックの第一選択肢。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">中速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">深い</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★☆</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">アーキテクチャ設計</span>
+          <span class="strength-tag">多段推論</span>
+          <span class="strength-tag">デバッグ</span>
+          <span class="strength-tag">API設計</span>
+        </div>
+      </div>
+
+      <div class="model-card card-gemini">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Google DeepMind</div>
+            <div class="card-name">Gemini 3.1 Pro<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">High</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-tier" style="--cm:rgba(79,158,255,0.15);--c:#4f9eff">Pro · High</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Proシリーズの最高品質モード。長大なコンテキスト、精密な推論、高度な数理・科学タスクに対応。回答の質を最大化したい重要な局面で選択。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">低速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">最深</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★★</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">高精度推論</span>
+          <span class="strength-tag">数理・科学</span>
+          <span class="strength-tag">長文コード</span>
+          <span class="strength-tag">総合的な知識</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── CLAUDE ─────────────────────────────────────── -->
+    <p class="section-label reveal">03 &nbsp; Claude 4.6 — Anthropic</p>
+    <div class="model-grid reveal" style="grid-template-columns: repeat(auto-fill, minmax(340px,1fr));">
+
+      <div class="model-card card-claude">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Anthropic</div>
+            <div class="card-name">Claude Sonnet 4.6<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Thinking</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-thinking">🧠 Thinking</span>
+            <span class="badge badge-tier" style="--cm:rgba(249,115,22,0.12);--c:#f97316">Sonnet</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Anthropicの思考チェーン（Extended Thinking）を有効にしたSonnetモデル。回答前に内部で深く推論するため、難しい論理問題・コードのバグ修正・多段計画に圧倒的な精度を発揮。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">中速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">🧠 思考型</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★★</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">論理推論</span>
+          <span class="strength-tag">バグ解析</span>
+          <span class="strength-tag">アルゴリズム</span>
+          <span class="strength-tag">数学</span>
+          <span class="strength-tag">多段計画</span>
+        </div>
+      </div>
+
+      <div class="model-card card-claude">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">Anthropic</div>
+            <div class="card-name">Claude Opus 4.6<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Thinking</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-thinking">🧠 Thinking</span>
+            <span class="badge badge-tier" style="--cm:rgba(249,115,22,0.12);--c:#f97316">Opus</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          Anthropicのフラッグシップ。Sonnetより大規模なパラメータと深い思考チェーンにより、最高レベルの知的タスクをこなす。研究・複雑なシステム設計・哲学的議論など最難関の用途に。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">低速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">🧠 最深</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★★</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">研究・執筆</span>
+          <span class="strength-tag">システム設計</span>
+          <span class="strength-tag">哲学・倫理</span>
+          <span class="strength-tag">創作</span>
+          <span class="strength-tag">複雑推論</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── GPT-OSS ─────────────────────────────────────── -->
+    <p class="section-label reveal">04 &nbsp; GPT-OSS 120B — OpenAI</p>
+    <div class="model-grid reveal" style="grid-template-columns: minmax(320px, 600px);">
+
+      <div class="model-card card-gpt">
+        <div class="card-header">
+          <div class="card-name-wrap">
+            <div class="card-provider">OpenAI</div>
+            <div class="card-name">GPT-OSS 120B<br><small style="font-size:0.85em;font-weight:500;opacity:0.7">Medium</small></div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-tier" style="--cm:rgba(16,185,129,0.12);--c:#10b981">OSS · 120B</span>
+          </div>
+        </div>
+        <p class="card-desc">
+          OpenAIのオープンソース系大規模モデル（120Bパラメータ）。商用クローズドモデルに依存しない独立した推論が可能。プライバシー重視タスク・オフライン指向の用途・カスタムファインチューニングが前提のプロジェクトに向く。
+        </p>
+        <div class="card-stats">
+          <div class="stat">
+            <div class="stat-label">速度</div>
+            <div class="stat-value">中速</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">思考深度</div>
+            <div class="stat-value">高い</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">コスト</div>
+            <div class="stat-value">★★☆</div>
+          </div>
+        </div>
+        <div class="strength-list">
+          <span class="strength-tag">OSSコード生成</span>
+          <span class="strength-tag">プライバシー配慮</span>
+          <span class="strength-tag">汎用推論</span>
+          <span class="strength-tag">英語特化</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Comparison Table ──────────────────────────────── -->
+    <p class="section-label reveal">05 &nbsp; 全モデル比較表</p>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr>
+            <th>モデル</th>
+            <th>速度</th>
+            <th>推論精度</th>
+            <th>思考モード</th>
+            <th>おすすめシーン</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#4f9eff"></span>Flash Medium</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:100%;background:#4f9eff"></div></div>
+                <span class="speed-label">超速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— 標準</span></td>
+            <td style="font-size:0.8rem">日常タスク全般</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#4f9eff"></span>Flash High</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:85%;background:#4f9eff"></div></div>
+                <span class="speed-label">高速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— やや深</span></td>
+            <td style="font-size:0.8rem">複雑なコード・長文</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#4f9eff"></span>Flash Low</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:100%;background:#22d3ee"></div></div>
+                <span class="speed-label">最速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span><span class="star off">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— 最小</span></td>
+            <td style="font-size:0.8rem">素早い変換・検索</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#818cf8"></span>Pro Low</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:55%;background:#818cf8"></div></div>
+                <span class="speed-label">中速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— 深い</span></td>
+            <td style="font-size:0.8rem">設計・デバッグ</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#818cf8"></span>Pro High</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:35%;background:#818cf8"></div></div>
+                <span class="speed-label">低速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— 最深</span></td>
+            <td style="font-size:0.8rem">最高精度・数理</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#f97316"></span>Sonnet 4.6</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:50%;background:#f97316"></div></div>
+                <span class="speed-label">中速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></td>
+            <td><span style="font-size:0.72rem;color:#f59e0b">🧠 Thinking</span></td>
+            <td style="font-size:0.8rem">論理・バグ・アルゴリズム</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#fb923c"></span>Opus 4.6</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:25%;background:#fb923c"></div></div>
+                <span class="speed-label">低速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></td>
+            <td><span style="font-size:0.72rem;color:#f59e0b">🧠 Deep Think</span></td>
+            <td style="font-size:0.8rem">研究・執筆・創作</td>
+          </tr>
+          <tr>
+            <td><div class="model-name-cell"><span class="dot" style="background:#10b981"></span>GPT-OSS 120B</div></td>
+            <td>
+              <div class="speed-bar">
+                <div class="speed-track"><div class="speed-fill" style="width:60%;background:#10b981"></div></div>
+                <span class="speed-label">中速</span>
+              </div>
+            </td>
+            <td><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted)">— 標準</span></td>
+            <td style="font-size:0.8rem">OSS・プライバシー配慮</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Use-case guide ───────────────────────────────── -->
+    <p class="section-label reveal">06 &nbsp; タスク別・最適モデル選択ガイド</p>
+    <div class="usecase-grid reveal">
+
+      <div class="usecase-card">
+        <span class="usecase-icon">⚡</span>
+        <div class="usecase-title">素早く答えが欲しい</div>
+        <div class="usecase-desc">単純な質問・変換・検索補助など、精度より速さが重要な場合。</div>
+        <div class="usecase-recommend">→ Flash Low / Flash Medium</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">💻</span>
+        <div class="usecase-title">コードを書く・デバッグする</div>
+        <div class="usecase-desc">関数実装からバグ追跡まで。複雑なほど上位モデルが効果的。</div>
+        <div class="usecase-recommend">→ Flash High / Pro Low / Sonnet 4.6</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">🧩</span>
+        <div class="usecase-title">アーキテクチャ・設計判断</div>
+        <div class="usecase-desc">システム設計や技術選定など、多角的な視点が求められるとき。</div>
+        <div class="usecase-recommend">→ Pro High / Claude Opus 4.6</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">🧠</span>
+        <div class="usecase-title">難しい論理・数学問題</div>
+        <div class="usecase-desc">アルゴリズム証明、数学演習、複雑なロジックの検証。</div>
+        <div class="usecase-recommend">→ Claude Sonnet 4.6 (Thinking)</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">✍️</span>
+        <div class="usecase-title">高品質な文章・創作</div>
+        <div class="usecase-desc">ブログ・論文・小説・技術文書など、文体と深みが求められる執筆。</div>
+        <div class="usecase-recommend">→ Claude Opus 4.6 / Pro High</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">🔒</span>
+        <div class="usecase-title">プライバシー・OSS重視</div>
+        <div class="usecase-desc">商用APIへの依存を減らしたい、またはOSSスタックでの利用。</div>
+        <div class="usecase-recommend">→ GPT-OSS 120B</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">📊</span>
+        <div class="usecase-title">データ分析・要約</div>
+        <div class="usecase-desc">大量テキストの抽出・分類・要約・ラベリングなどの自動処理。</div>
+        <div class="usecase-recommend">→ Flash Medium / Flash High</div>
+      </div>
+
+      <div class="usecase-card">
+        <span class="usecase-icon">🌐</span>
+        <div class="usecase-title">多言語・翻訳タスク</div>
+        <div class="usecase-desc">日英間の自然な翻訳、多言語コンテンツの生成・校正。</div>
+        <div class="usecase-recommend">→ Flash Medium / Pro Low</div>
+      </div>
+
+    </div>
+
+    <!-- Footer note -->
+    <div class="footer-note reveal">
+      <p>このページは <a href="/">r のポートフォリオ</a> の一部です。</p>
+      <p style="margin-top:0.5rem">モデルの仕様は Antigravity の実装に依存します。最新情報は公式ドキュメントを参照してください。</p>
+      <p style="margin-top:0.5rem;opacity:0.5">Last updated: 2026-06</p>
+    </div>
+
+  </div><!-- /page -->
+
+  <script>
+    /* ── Starfield canvas ──────────────────────────────── */
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 180; i++) {
+      stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random(),
+        speed: Math.random() * 0.004 + 0.001,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const t = performance.now() / 1000;
+      for (const s of stars) {
+        const opacity = (Math.sin(t * s.speed * 6 + s.phase) * 0.5 + 0.5) * s.a;
+        ctx.beginPath();
+        ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 180, 255, ${opacity})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+
+    /* ── Reveal on scroll ──────────────────────────────── */
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => io.observe(el));
+
+    /* ── Stagger card reveals ──────────────────────────── */
+    document.querySelectorAll('.model-card, .usecase-card').forEach((card, i) => {
+      card.style.transitionDelay = `${(i % 4) * 60}ms`;
+    });
+  </script>
+</body>
+</html>

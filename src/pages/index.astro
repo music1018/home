@@ -356,6 +356,10 @@ const posts = (await getCollection('blog'))
 				border-color: #4cc9f0 !important;
 				box-shadow: 0 15px 30px rgba(76, 201, 240, 0.12);
 			}
+			.work-item[data-glow="models"]:hover {
+				border-color: #a78bfa !important;
+				box-shadow: 0 15px 30px rgba(167, 139, 250, 0.18), 0 0 15px rgba(167, 139, 250, 0.08);
+			}
 			.work-header {
 				display: flex;
 				flex-direction: column;
@@ -636,6 +640,17 @@ const posts = (await getCollection('blog'))
 								<span class="work-tech">HTML5 / Canvas / Web Audio API / Glitch Engine</span>
 							</div>
 							<p class="work-desc">16進数メモリハッシュコードからセキュリティキーを解読するサイバーハッキングシミュレーター。グリッチ演出や音声エフェクト搭載。</p>
+						</div>
+
+										<div class="work-item" data-glow="models">
+							<div class="work-header">
+								<div class="work-title-wrap">
+									<img src="/models/favicon.svg" alt="" class="work-icon" />
+									<h3 class="work-title"><a href="/models/">AIモデル解説ガイド ↗</a></h3>
+								</div>
+								<span class="work-tech">HTML5 / CSS3 / Vanilla JS</span>
+							</div>
+							<p class="work-desc">Antigravityで使える全8モデル（Gemini・Claude・GPT-OSS）の特性、速度、思考深度を徹底解説する静的リファレンスページ。</p>
 						</div>
 
 						<div class="work-item" data-glow="blog">
