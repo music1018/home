@@ -1,0 +1,778 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import { getCollection } from 'astro:content';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const ticks = Array.from({ length: 31 }, (_, i) => i);
+const posts = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title="海斗 | Kaito - Portfolio" description="名は海斗。けれど仕事の本質は、いつも水面の下にある。潜水するポートフォリオサイト。" />
+		<style>
+			/* 固有スタイル */
+			main {
+				margin-right: 84px; /* 右端ダイブメーターの領域確保 */
+				position: relative;
+				z-index: 2;
+			}
+
+			@media (max-width: 720px) {
+				main {
+					margin-right: 56px;
+				}
+			}
+
+			/* 各セクションレイアウト */
+			section {
+				min-height: 100vh;
+				padding: 14vh 12vw 14vh 10vw;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: flex-start;
+				position: relative;
+			}
+
+			@media (max-width: 720px) {
+				section {
+					padding: 10vh 8vw 10vh 6vw;
+				}
+			}
+
+			.content-wrapper {
+				max-width: 760px;
+				width: 100%;
+			}
+
+			/* 太陽光レイ */
+			.sunlight-ray {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: 100vh;
+				background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+				pointer-events: none;
+				z-index: 1;
+				opacity: 1;
+			}
+
+			/* マリンスノーキャンバス */
+			.marine-snow {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100vw;
+				height: 100vh;
+				pointer-events: none;
+				z-index: 1;
+				opacity: 0;
+				transition: opacity 1s ease;
+			}
+
+			/* ダイブメーター (固定) */
+			.dive-meter {
+				position: fixed;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				width: 84px;
+				z-index: 10;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				align-items: center;
+				padding: 2rem 0;
+				border-left: 1px solid var(--gray-border);
+				background: rgba(4, 102, 200, 0.05);
+				backdrop-filter: blur(4px);
+			}
+
+			@media (max-width: 720px) {
+				.dive-meter {
+					width: 56px;
+				}
+			}
+
+			.meter-ticks {
+				position: absolute;
+				top: 15%;
+				bottom: 15%;
+				left: 0;
+				width: 100%;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				pointer-events: none;
+			}
+
+			.tick {
+				height: 1px;
+				background-color: var(--gray-border);
+				width: 12px;
+				align-self: flex-start;
+				transition: width 0.2s ease;
+			}
+
+			.tick.major {
+				width: 24px;
+				background-color: var(--gray-label);
+			}
+
+			@media (max-width: 720px) {
+				.tick {
+					width: 8px;
+				}
+				.tick.major {
+					width: 16px;
+				}
+			}
+
+			/* 発光ドットマーカー */
+			.meter-marker {
+				position: absolute;
+				left: -5px;
+				top: 15%;
+				width: 9px;
+				height: 9px;
+				background-color: var(--ink);
+				border-radius: 50%;
+				box-shadow: 0 0 10px 3px rgba(234, 241, 248, 0.8);
+				transform: translateY(-50%);
+				transition: top 0.1s linear;
+			}
+
+			.meter-display {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				letter-spacing: 0.2em;
+				color: var(--gray-label);
+				writing-mode: vertical-rl;
+				text-orientation: mixed;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				align-items: center;
+			}
+
+			.meter-value {
+				color: var(--ink);
+				font-weight: 500;
+			}
+
+			/* タイポグラフィ修飾 */
+			.section-kicker {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				letter-spacing: 0.3em;
+				color: var(--gray-label);
+				text-transform: uppercase;
+				margin-bottom: 1rem;
+				display: block;
+			}
+
+			.section-title {
+				font-size: clamp(26px, 3.4vw, 38px);
+				letter-spacing: 0.06em;
+				margin-bottom: 2rem;
+				font-weight: 600;
+			}
+
+			/* 各セクション固有デザイン */
+			/* Sky */
+			.sky-content {
+				text-align: left;
+			}
+			.sky-title {
+				font-size: clamp(32px, 5vw, 64px);
+				font-weight: 800;
+				margin-bottom: 1.5rem;
+			}
+			.sky-desc {
+				color: var(--ink-sub);
+			}
+
+			/* Hero */
+			.hero-title {
+				font-size: clamp(44px, 8vw, 104px);
+				font-weight: 800;
+				letter-spacing: 0.04em;
+				line-height: 1.2;
+				margin-bottom: 1.5rem;
+			}
+			.hero-sub {
+				font-family: var(--font-mono);
+				font-size: clamp(15px, 1.6vw, 20px);
+				letter-spacing: 0.55em;
+				color: var(--ink-sub);
+				text-transform: uppercase;
+				display: block;
+				margin-bottom: 3rem;
+			}
+
+			/* DIVE誘導アニメーション */
+			.dive-indicator {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+				margin-top: 2rem;
+			}
+			.dive-line {
+				width: 1px;
+				height: 80px;
+				background: linear-gradient(to bottom, var(--ink), transparent);
+				position: relative;
+				overflow: hidden;
+			}
+			.dive-dot {
+				position: absolute;
+				top: 0;
+				left: -2px;
+				width: 5px;
+				height: 5px;
+				background-color: var(--ink);
+				border-radius: 50%;
+				animation: diveDrop 2s infinite cubic-bezier(0.4, 0, 1, 1);
+				box-shadow: 0 0 8px var(--ink);
+			}
+
+			@keyframes diveDrop {
+				0% { top: 0; opacity: 1; }
+				80% { opacity: 1; }
+				100% { top: 80px; opacity: 0; }
+			}
+
+			/* About */
+			.profile-text {
+				max-width: 58ch;
+				color: var(--ink-body);
+			}
+
+			/* Skills - 3地層構成 */
+			.skills-grid {
+				display: grid;
+				grid-template-columns: 1fr;
+				gap: 3rem;
+				width: 100%;
+			}
+			.skill-layer {
+				border-left: 2px solid var(--gray-border);
+				padding-left: 1.5rem;
+			}
+			.layer-title {
+				font-family: var(--font-display);
+				font-size: 20px;
+				color: var(--ink);
+				margin-bottom: 1rem;
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+			}
+			.layer-depth {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				color: var(--gray-label);
+			}
+			.layer-tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.75rem;
+				margin-top: 1rem;
+			}
+			.tag {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				letter-spacing: 0.1em;
+				padding: 0.25rem 0.75rem;
+				border: 1px solid var(--gray-border);
+				border-radius: 20px;
+				color: var(--ink-sub);
+			}
+
+			/* Works */
+			.works-list {
+				display: flex;
+				flex-direction: column;
+				gap: 4rem;
+				width: 100%;
+			}
+			.work-item {
+				border-bottom: 1px solid var(--gray-lowest);
+				padding-bottom: 2rem;
+			}
+			.work-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				margin-bottom: 1rem;
+				flex-wrap: wrap;
+				gap: 1rem;
+			}
+			.work-title {
+				font-size: 22px;
+				font-family: var(--font-display);
+			}
+			.work-tech {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				color: var(--gray-label);
+			}
+
+			/* Contact */
+			.contact-desc {
+				font-size: 18px;
+				font-family: var(--font-display);
+				margin-bottom: 3rem;
+				color: var(--ink);
+			}
+			.contact-links {
+				display: flex;
+				gap: 2rem;
+				font-family: var(--font-mono);
+				font-size: 14px;
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.dive-dot {
+					animation: none;
+					display: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+
+		<!-- 太陽光レイ (海面〜浅瀬) -->
+		<div class="sunlight-ray" id="sunlightRay"></div>
+
+		<!-- マリンスノー (中深層〜深海底) -->
+		<canvas class="marine-snow" id="marineSnowCanvas"></canvas>
+
+		<!-- ダイブメーター -->
+		<aside class="dive-meter" aria-hidden="true">
+			<div class="meter-display">
+				<span>SURFACE</span>
+				<span class="meter-value" id="depthValue">0000M</span>
+				<span>DEPTH</span>
+			</div>
+			
+			<div class="meter-ticks">
+				{ticks.map((i) => (
+					<div class={`tick ${i % 5 === 0 ? 'major' : ''}`}></div>
+				))}
+				<!-- 位置マーカー -->
+				<div class="meter-marker" id="meterMarker"></div>
+			</div>
+
+			<div class="meter-display">
+				<span>DIVE</span>
+			</div>
+		</aside>
+
+		<main>
+			<!-- SKY (上方向の隠しページ) [+120m] -->
+			<section id="sky" data-depth="120" class="reveal">
+				<div class="content-wrapper sky-content">
+					<span class="section-kicker">ALTITUDE +120M / SKY</span>
+					<h2 class="sky-title">見上げれば、まだ光が残っている。</h2>
+					<p class="sky-desc">
+						水面を越えて、はるか上空へ。ここには遮るもののない風と光がある。<br>
+						しかし、私の本質的な探求は、常にここから潜り始めた先の、深い場所にある。
+					</p>
+				</div>
+			</section>
+
+			<!-- HERO [0m] -->
+			<section id="hero" data-depth="0">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH 0M / SURFACE</span>
+					<h1 class="hero-title">海斗 — 本質は、水面の下に。</h1>
+					<span class="hero-sub">UNDERWATER EXPLORATION</span>
+					
+					<div class="dive-indicator">
+						<span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; color: var(--gray-label);">SCROLL TO DIVE</span>
+						<div class="dive-line">
+							<div class="dive-dot"></div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ABOUT [-200m] -->
+			<section id="about" data-depth="-200" class="reveal">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH -200M / PHOTIC ZONE</span>
+					<h2 class="section-title">有光層</h2>
+					<div class="profile-text">
+						<p>
+							光が十分に届き、多様な生命が息づく海面直下。私たちは目に見えるデザインや、手触りのあるインターフェースを通して、最初にこの層に触れます。
+						</p>
+						<p>
+							私は、ユーザーが快適に呼吸し、迷わず探索できる美しく直感的なフロントエンド開発を得意としています。しかし、本当に強固でスケールするシステムを構築するには、光の届かないより深い層への理解が不可欠です。
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- SKILLS [-650m] -->
+			<section id="skills" data-depth="-650" class="reveal">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH -650M / MESOPELAGIC</span>
+					<h2 class="section-title">中深層</h2>
+					
+					<div class="skills-grid">
+						<!-- 表層 -->
+						<div class="skill-layer">
+							<div class="layer-title">
+								<span>表層（UI / Interaction）</span>
+								<span class="layer-depth">0m – 200m</span>
+							</div>
+							<p>視覚的な美しさと、滑らかなユーザビリティの融合。感覚に直接響くデザイン設計。</p>
+							<div class="layer-tags">
+								<span class="tag">HTML5</span>
+								<span class="tag">CSS3 (Vanilla)</span>
+								<span class="tag">JavaScript (ES6+)</span>
+								<span class="tag">Responsive Design</span>
+							</div>
+						</div>
+
+						<!-- 中層 -->
+						<div class="skill-layer">
+							<div class="layer-title">
+								<span>中層（Logic / Architecture）</span>
+								<span class="layer-depth">200m – 1000m</span>
+							</div>
+							<p>堅牢なコンポーネント設計と、無駄のない状態管理。パフォーマンスの最適化。</p>
+							<div class="layer-tags">
+								<span class="tag">React / Next.js</span>
+								<span class="tag">Astro</span>
+								<span class="tag">TypeScript</span>
+								<span class="tag">TailwindCSS</span>
+							</div>
+						</div>
+
+						<!-- 深層 -->
+						<div class="skill-layer">
+							<div class="layer-title">
+								<span>深層（Data / Infrastructure）</span>
+								<span class="layer-depth">1000m – 3000m</span>
+							</div>
+							<p>バックエンドシステム、クラウドインフラ、自動化スクリプトによる強固な基盤。</p>
+							<div class="layer-tags">
+								<span class="tag">Node.js</span>
+								<span class="tag">Cloudflare Pages</span>
+								<span class="tag">Firebase</span>
+								<span class="tag">Git / GitHub Actions</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- WORKS [-1500m] -->
+			<section id="works" data-depth="-1500" class="reveal">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH -1500M / BATHYAL ZONE</span>
+					<h2 class="section-title">漸深層</h2>
+					
+					<div class="works-list">
+						<div class="work-item">
+							<div class="work-header">
+								<h3 class="work-title">AI CopyCraft</h3>
+								<span class="work-tech">HTML5 / Vanilla CSS / Gemini API</span>
+							</div>
+							<p>ブログ・SNS向けの下書きテキストを直感的なUIで瞬時に自動生成する高機能AIアシスタントツール。</p>
+						</div>
+
+						<div class="work-item">
+							<div class="work-header">
+								<h3 class="work-title">超高速静的ブログ (本サイト)</h3>
+								<span class="work-tech">Astro / Cloudflare Pages / GitHub</span>
+							</div>
+							<p>表示速度を極限まで高めた静的サイト。Markdownによる記事管理と自動デプロイシステムを統合。</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- BLOG [-2200m] -->
+			<section id="blog" data-depth="-2200" class="reveal">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH -2200M / ABYSSOPELAGIC</span>
+					<h2 class="section-title">水面下の思考（ブログ）</h2>
+					<div class="works-list">
+						{posts.map((post) => (
+							<div class="work-item">
+								<a href={`/blog/${post.id}/`} style="text-decoration: none; display: block;">
+									<div class="work-header" style="margin-bottom: 0.5rem;">
+										<h3 class="work-title" style="text-decoration: underline; color: var(--ink);">{post.data.title}</h3>
+										<span class="work-tech" style="font-family: var(--font-mono); color: var(--gray-label);">{post.data.pubDate.toLocaleDateString('ja-JP')}</span>
+									</div>
+									<p style="color: var(--ink-body); margin: 0;">{post.data.description}</p>
+								</a>
+							</div>
+						))}
+					</div>
+					<div style="margin-top: 3rem;">
+						<a href="/blog/" class="tag" style="padding: 0.5rem 1.5rem; text-decoration: none; display: inline-block;">すべてのログを読む →</a>
+					</div>
+				</div>
+			</section>
+
+			<!-- CONTACT [-3000m] -->
+			<section id="contact" data-depth="-3000" class="reveal">
+				<div class="content-wrapper">
+					<span class="section-kicker">DEPTH -3000M / ABYSSAL ZONE</span>
+					<h2 class="section-title">深海底</h2>
+					<p class="contact-desc">
+						ここまで潜ってくれた人とは、きっといい仕事ができる。
+					</p>
+					<div class="contact-links">
+						<a href="mailto:riku@example.com">EMAIL</a>
+						<a href="https://github.com" target="_blank">GITHUB</a>
+						<a href="#hero">SURFACE (浮上する)</a>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<!-- スクロール制御＆演出用スクリプト -->
+		<script>
+			// 深度カラーのカラーパレット定義
+			const stops = [
+				{ p: 0.00, r: 4,   g: 102, b: 200 }, // #0466C8
+				{ p: 0.14, r: 3,   g: 83,  b: 164 }, // #0353A4
+				{ p: 0.30, r: 2,   g: 62,  b: 125 }, // #023E7D
+				{ p: 0.50, r: 0,   g: 40,  b: 85 },  // #002855
+				{ p: 0.72, r: 0,   g: 24,  b: 69 },  // #001845
+				{ p: 1.00, r: 0,   g: 18,  b: 51 }   // #001233
+			];
+
+			// RGB線形補間
+			function interpolateColor(percent) {
+				if (percent <= 0) return `rgb(${stops[0].r}, ${stops[0].g}, ${stops[0].b})`;
+				if (percent >= 1) return `rgb(${stops[stops.length-1].r}, ${stops[stops.length-1].g}, ${stops[stops.length-1].b})`;
+				
+				let i = 0;
+				for (; i < stops.length - 1; i++) {
+					if (percent >= stops[i].p && percent <= stops[i+1].p) {
+						break;
+					}
+				}
+				
+				const s1 = stops[i];
+				const s2 = stops[i+1];
+				
+				const range = s2.p - s1.p;
+				const factor = (percent - s1.p) / range;
+				
+				const r = Math.round(s1.r + (s2.r - s1.r) * factor);
+				const g = Math.round(s1.g + (s2.g - s1.g) * factor);
+				const b = Math.round(s1.b + (s2.b - s1.b) * factor);
+				
+				return `rgb(${r}, ${g}, ${b})`;
+			}
+
+			// スクロール制御
+			let scrollY = 0;
+			let documentHeight = 0;
+			let windowHeight = 0;
+			let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			const body = document.body;
+			const depthValueEl = document.getElementById('depthValue');
+			const meterMarkerEl = document.getElementById('meterMarker');
+			const sunlightRayEl = document.getElementById('sunlightRay');
+			const canvas = document.getElementById('marineSnowCanvas') as HTMLCanvasElement;
+			const ctx = canvas ? canvas.getContext('2d') : null;
+
+			// 初期スクロール位置を Hero セクション（水深0m）に合わせる
+			window.addEventListener('load', () => {
+				const heroSection = document.getElementById('hero');
+				if (heroSection) {
+					heroSection.scrollIntoView({ behavior: 'auto' });
+				}
+				updateMetrics();
+				onScroll();
+			});
+
+			window.addEventListener('resize', () => {
+				updateMetrics();
+				if (canvas) {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+				}
+			});
+
+			function updateMetrics() {
+				documentHeight = document.documentElement.scrollHeight;
+				windowHeight = window.innerHeight;
+			}
+
+			// requestAnimationFrameによるスロットリング
+			let ticking = false;
+
+			window.addEventListener('scroll', () => {
+				if (!ticking) {
+					window.requestAnimationFrame(() => {
+						onScroll();
+						ticking = false;
+					});
+					ticking = true;
+				}
+			}, { passive: true });
+
+			function onScroll() {
+				scrollY = window.scrollY;
+				const maxScroll = documentHeight - windowHeight;
+				if (maxScroll <= 0) return;
+
+				// 全体のスクロールパーセント (Skyを含む)
+				let percent = scrollY / maxScroll;
+				percent = Math.max(0, Math.min(1, percent));
+
+				// 1. 背景色の変更
+				const currentBg = interpolateColor(percent);
+				body.style.setProperty('--bg-deep', currentBg);
+
+				// 2. ダイブメーター水深の数値計算 (Skyセクションより上が0以上、下がマイナス方向)
+				// 全体のスクロール可能領域に対する各セクションの位置からマッピング
+				// 0m (Hero) のスクロール位置を取得
+				const heroEl = document.getElementById('hero');
+				const contactEl = document.getElementById('contact');
+				
+				if (heroEl && contactEl) {
+					const heroTop = heroEl.offsetTop;
+					const contactTop = contactEl.offsetTop;
+					const activeRange = contactTop - heroTop;
+					
+					let relativeScroll = scrollY - heroTop;
+					let divePercent = relativeScroll / activeRange;
+					divePercent = Math.max(0, Math.min(1, divePercent));
+					
+					// 水深 0 〜 3000m に変換
+					const currentDepth = Math.round(divePercent * 3000);
+					
+					// 上空（Sky）領域にいる場合、高度表示
+					if (scrollY < heroTop) {
+						const skyPercent = (heroTop - scrollY) / heroTop;
+						const altitude = Math.round(skyPercent * 120);
+						depthValueEl.textContent = `+${altitude.toString().padStart(3, '0')}M`;
+					} else {
+						depthValueEl.textContent = `-${currentDepth.toString().padStart(4, '0')}M`;
+					}
+
+					// マーカーの縦位置変更 (メーター領域の15%から85%の間で移動)
+					const markerTop = 15 + (percent * 70);
+					meterMarkerEl.style.top = `${markerTop}%`;
+					
+					// 3. 太陽光レイの不透明度（表層0.14付近でフェードアウト）
+					if (sunlightRayEl) {
+						if (percent < 0.14) {
+							sunlightRayEl.style.opacity = (1 - (percent / 0.14)).toString();
+							sunlightRayEl.style.display = 'block';
+						} else {
+							sunlightRayEl.style.opacity = '0';
+							sunlightRayEl.style.display = 'none';
+						}
+					}
+
+					// 4. マリンスノーの不透明度（およそ-500m / スクロール率0.17以上でフェードイン）
+					if (canvas) {
+						if (percent > 0.17) {
+							canvas.style.opacity = Math.min(1, (percent - 0.17) * 4).toString();
+						} else {
+							canvas.style.opacity = '0';
+						}
+					}
+				}
+			}
+
+			// 5. リビールアニメーションのIntersectionObserver
+			const revealElements = document.querySelectorAll('.reveal');
+			const observerOptions = {
+				root: null,
+				threshold: 0.1,
+				rootMargin: '0px 0px -50px 0px'
+			};
+
+			const revealObserver = new IntersectionObserver((entries, observer) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('active');
+						observer.unobserve(entry.target);
+					}
+				});
+			}, observerOptions);
+
+			if (!prefersReducedMotion) {
+				revealElements.forEach(el => revealObserver.observe(el));
+			} else {
+				// モーション軽減時はすべて最初から表示
+				revealElements.forEach(el => el.classList.add('active'));
+			}
+
+			// 6. マリンスノー Canvasアニメーション
+			if (canvas && ctx && !prefersReducedMotion) {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				const numParticles = 90;
+				const particles = [];
+
+				for (let i = 0; i < numParticles; i++) {
+					particles.push({
+						x: Math.random() * canvas.width,
+						y: Math.random() * canvas.height,
+						r: Math.random() * 2 + 0.5, // 粒子サイズ
+						d: Math.random() * numParticles, // 揺らぎの度合い
+						speedY: Math.random() * 0.5 + 0.2, // 降下速度
+						speedX: Math.random() * 0.2 - 0.1 // 横揺れ
+					});
+				}
+
+				let angle = 0;
+				function drawParticles() {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.fillStyle = 'rgba(234, 241, 248, 0.4)';
+					ctx.beginPath();
+					
+					for (let i = 0; i < numParticles; i++) {
+						const p = particles[i];
+						ctx.moveTo(p.x, p.y);
+						ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+						// 位置のアップデート
+						p.y += p.speedY;
+						p.x += Math.sin(angle + p.d) * 0.3 + p.speedX;
+
+						// 画面外に出た粒子を上部に戻す
+						if (p.y > canvas.height) {
+							particles[i] = {
+								x: Math.random() * canvas.width,
+								y: -10,
+								r: p.r,
+								d: p.d,
+								speedY: p.speedY,
+								speedX: p.speedX
+							};
+						}
+					}
+					ctx.fill();
+					angle += 0.005;
+					requestAnimationFrame(drawParticles);
+				}
+
+				drawParticles();
+			}
+		</script>
+	</body>
+</html>

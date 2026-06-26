@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:ital,wght@0,500;0,600;0,800;1,500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+
+:root {
+	/* 深度カラーのプレースホルダー（JSで動的変更されるが、初期値） */
+	--bg-deep: #0466C8;
+
+	/* グレースケールパレット */
+	--gray-lowest: #33415C;
+	--gray-border: #5C677D;
+	--gray-secondary: #7D8597;
+	--gray-label: #979DAC;
+
+	/* テキストトークン */
+	--ink: #EAF1F8;
+	--ink-body: rgba(234, 241, 248, 0.86);
+	--ink-sub: rgba(234, 241, 248, 0.72);
+
+	/* フォント定義 */
+	--font-display: 'Shippori Mincho', serif;
+	--font-body: 'Zen Kaku Gothic New', sans-serif;
+	--font-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	scroll-behavior: auto; /* スムーズスクロールはJS制御の邪魔になるため無効化 */
+}
+
+body {
+	font-family: var(--font-body);
+	background-color: var(--bg-deep);
+	color: var(--ink-body);
+	min-height: 100vh;
+	line-height: 1.9;
+	font-size: 15.5px;
+	overflow-x: hidden;
+	position: relative;
+	transition: background-color 0.1s ease-out; /* 背景の補間をより滑らかにするため */
+}
+
+/* タイポグラフィ基本 */
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-display);
+	color: var(--ink);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+p {
+	margin-bottom: 1.5em;
+	max-width: 58ch; /* 本文の最大幅制限 */
+}
+
+a {
+	color: var(--ink);
+	text-decoration: underline;
+	text-underline-offset: 4px;
+	transition: opacity 0.2s ease;
+}
+
+a:hover {
+	opacity: 0.8;
+}
+
+/* キーボードフォーカスの可視化 */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 4px;
+}
+
+/* 共通スクロールリビール効果 */
+.reveal {
+	opacity: 0;
+	transform: translateY(28px);
+	transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* モーション軽減対応 */
+@media (prefers-reduced-motion: reduce) {
+	.reveal {
+		opacity: 1 !important;
+		transform: none !important;
+		transition: none !important;
+	}
+	body {
+		transition: none !important;
+	}
+}
+
+/* スクロールバーのカスタマイズ (メーター領域の確保のため非表示にするか、馴染ませる) */
+::-webkit-scrollbar {
+	width: 6px;
+}
+::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+	background: var(--gray-border);
+	border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--gray-label);
+}

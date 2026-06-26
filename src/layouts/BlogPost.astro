@@ -1,0 +1,283 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+---
+
+<html lang="ja">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style is:global>
+			/* 記事本文内のHTML要素に対する厳密なタイポグラフィ指定 */
+			.prose p {
+				margin-bottom: 1.8rem;
+				font-size: 16px;
+				line-height: 2.0;
+				color: rgba(234, 241, 248, 0.88);
+			}
+			.prose h2 {
+				font-family: var(--font-display) !important;
+				font-size: 24px !important;
+				font-weight: 700 !important;
+				color: var(--ink) !important;
+				margin-top: 3.5rem !important;
+				margin-bottom: 1.5rem !important;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+				padding-bottom: 0.5rem !important;
+				letter-spacing: 0.05em !important;
+			}
+			.prose h3 {
+				font-family: var(--font-display) !important;
+				font-size: 20px !important;
+				font-weight: 600 !important;
+				color: var(--ink) !important;
+				margin-top: 2.5rem !important;
+				margin-bottom: 1rem !important;
+				letter-spacing: 0.04em !important;
+			}
+			.prose ul, .prose ol {
+				margin-bottom: 1.8rem;
+				padding-left: 2rem;
+			}
+			.prose li {
+				margin-bottom: 0.6rem;
+				font-size: 16px;
+				line-height: 1.8;
+				color: rgba(234, 241, 248, 0.88);
+			}
+			.prose strong {
+				color: var(--ink);
+				font-weight: 700;
+			}
+			.prose blockquote {
+				border-left: 4px solid var(--gray-label) !important;
+				background: rgba(255, 255, 255, 0.03);
+				padding: 1.2rem 1.5rem !important;
+				margin: 2rem 0 !important;
+				border-radius: 0 8px 8px 0;
+			}
+			.prose blockquote p {
+				margin-bottom: 0;
+				font-style: italic;
+				color: var(--ink-sub);
+			}
+			.prose table {
+				width: 100%;
+				border-collapse: collapse;
+				margin: 2rem 0;
+				font-size: 14px;
+			}
+			.prose th, .prose td {
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				padding: 0.75rem 1rem;
+				text-align: left;
+			}
+			.prose th {
+				background: rgba(255, 255, 255, 0.05);
+				color: var(--ink);
+				font-weight: 600;
+			}
+			.prose hr {
+				border: none;
+				border-top: 1px solid rgba(255, 255, 255, 0.1);
+				margin: 3rem 0;
+			}
+		</style>
+		<style>
+			body {
+				background-color: #001845; /* 漸深層 */
+				color: var(--ink-body);
+			}
+			.marine-snow {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100vw;
+				height: 100vh;
+				pointer-events: none;
+				z-index: 1;
+				opacity: 0.4;
+			}
+			main {
+				width: 100%;
+				max-width: 860px;
+				margin: 0 auto;
+				padding: 120px 1.5rem 4rem 1.5rem; /* 固定ヘッダー分のパディングトップ */
+				position: relative;
+				z-index: 2;
+			}
+			article {
+				background: rgba(15, 23, 42, 0.4);
+				backdrop-filter: blur(16px);
+				-webkit-backdrop-filter: blur(16px);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 16px;
+				overflow: hidden;
+				padding: 3rem;
+				box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+			}
+			@media (max-width: 720px) {
+				article {
+					padding: 1.2rem;
+					border-radius: 12px;
+				}
+				main {
+					padding: 90px 0.5rem 3rem 0.5rem; /* モバイルでは外側の余白を減らし、記事の幅を最大化 */
+				}
+			}
+			.hero-image {
+				width: 100%;
+				margin-bottom: 3rem;
+				border-radius: 12px;
+				overflow: hidden;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+			}
+			.hero-image img {
+				display: block;
+				width: 100%;
+				height: auto;
+				object-fit: cover;
+			}
+			.prose {
+				width: 100%;
+				max-width: 680px; /* 本文の横幅を読みやすい最適サイズに設定 */
+				margin: 0 auto;
+				font-family: var(--font-body);
+			}
+			.prose img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 8px;
+			}
+			.title {
+				margin-bottom: 2.5rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+				padding-bottom: 2rem;
+			}
+			.title h1 {
+				font-family: var(--font-display);
+				font-size: clamp(26px, 4.5vw, 38px);
+				font-weight: 800;
+				color: var(--ink);
+				line-height: 1.35;
+				margin-bottom: 0.75rem;
+				letter-spacing: 0.03em;
+			}
+			.date {
+				font-family: var(--font-mono);
+				font-size: 12px;
+				letter-spacing: 0.1em;
+				color: var(--gray-label);
+				margin-bottom: 1rem;
+				display: flex;
+				gap: 1rem;
+			}
+			.last-updated-on {
+				font-style: italic;
+				color: var(--gray-secondary);
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header />
+		
+		<canvas class="marine-snow" id="articleSnowCanvas"></canvas>
+
+		<main>
+			<article>
+				{heroImage && (
+					<div class="hero-image">
+						<Image width={1020} height={510} src={heroImage} alt="" />
+					</div>
+				)}
+				<div class="prose">
+					<div class="title">
+						<div class="date">
+							<FormattedDate date={pubDate} />
+							{
+								updatedDate && (
+									<div class="last-updated-on">
+										(Last updated on <FormattedDate date={updatedDate} />)
+									</div>
+								)
+							}
+						</div>
+						<h1>{title}</h1>
+					</div>
+					<slot />
+				</div>
+			</article>
+		</main>
+		<Footer />
+
+		<script>
+			const canvas = document.getElementById('articleSnowCanvas') as HTMLCanvasElement;
+			const ctx = canvas ? canvas.getContext('2d') : null;
+			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			if (canvas && ctx && !prefersReducedMotion) {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				window.addEventListener('resize', () => {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+				});
+
+				const numParticles = 35;
+				const particles = [];
+
+				for (let i = 0; i < numParticles; i++) {
+					particles.push({
+						x: Math.random() * canvas.width,
+						y: Math.random() * canvas.height,
+						r: Math.random() * 1.5 + 0.5,
+						d: Math.random() * numParticles,
+						speedY: Math.random() * 0.3 + 0.1,
+						speedX: Math.random() * 0.2 - 0.1
+					});
+				}
+
+				let angle = 0;
+				function drawParticles() {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.fillStyle = 'rgba(234, 241, 248, 0.25)';
+					ctx.beginPath();
+					
+					for (let i = 0; i < numParticles; i++) {
+						const p = particles[i];
+						ctx.moveTo(p.x, p.y);
+						ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+						p.y += p.speedY;
+						p.x += Math.sin(angle + p.d) * 0.2 + p.speedX;
+
+						if (p.y > canvas.height) {
+							particles[i] = {
+								x: Math.random() * canvas.width,
+								y: -10,
+								r: p.r,
+								d: p.d,
+								speedY: p.speedY,
+								speedX: p.speedX
+							};
+						}
+					}
+					ctx.fill();
+					angle += 0.005;
+					requestAnimationFrame(drawParticles);
+				}
+
+				drawParticles();
+			}
+		</script>
+	</body>
+</html>

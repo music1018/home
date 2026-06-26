@@ -1,0 +1,337 @@
+---
+import { Image } from 'astro:assets';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+
+// 生成した高品質アンビエントグラフィックをインポート
+import deepSeaAiAmbient from '../assets/deep_sea_ai_ambient.png';
+import underwaterNeonBubble from '../assets/underwater_neon_bubble.png';
+import abyssalCreativeLight from '../assets/abyssal_creative_light.png';
+
+const people = [
+	{
+		name: "IT菩薩モロー (毛呂 淳一朗)",
+		role: "IT Career & Engineer Recruitment Specialist",
+		description: "株式会社キッカケクリエイション取締役副社長。慶應法卒、エンジニア採用の現場での実務経験をベースに、IT業界の転職事情やエージェントの裏表、ウェブ系のキャリアパスをYouTube等で非常にわかりやすく発信しているインフルエンサー。転職活動の最前線の目線を泥臭く伝えてくれます（※入社後の現場の実態はこれからに期待！）。",
+		tags: ["IT転職", "キャリアハック", "エンジニア採用"],
+		link: "https://www.youtube.com/@it_bosatsu_moro",
+		image: deepSeaAiAmbient
+	},
+	{
+		name: "ここなのAI大学",
+		role: "AI Educator & Community Organizer",
+		description: "YouTubeチャンネルおよびオープンチャットコミュニティ「ここなのAI勉強部屋」を運営するAI活用エデュケーター。Claude、Cursor、Gemini等の最新AIツールを副業や日常業務に活かす方法を、抜群のスピード感とテンポの良さで初心者向けに解説。YouTuberの方の魅力的な語り口も見ていて刺激になります。",
+		tags: ["AI副業", "Cursor / Claude", "AI初心者向け"],
+		link: "https://www.youtube.com/@cocona_ai_school",
+		image: underwaterNeonBubble
+	},
+	{
+		name: "AI駆動開発勉強会",
+		role: "Developer Tech Community",
+		description: "GitHub CopilotやCursorといった生成AIを駆使した開発プロセス・効率化、およびAI駆動のビジネス変革をテーマにした勉強会コミュニティ。多くの開発者が登壇し、最新のアイデアから失敗談、合っている考え方や古い情報まで多角的な視点を提供してくれるため、AI時代の現場のリアルを広く学べます。",
+		tags: ["AI駆動開発", "エンジニアコミュニティ", "技術共有"],
+		link: "https://www.ai-driven.dev/",
+		image: deepSeaAiAmbient
+	},
+	{
+		name: "クウキデザイン (Rio / 松元 良介)",
+		role: "UX Design Studio & Ambient Tech Evangelist",
+		description: "元Google・Amazon・Ciscoのシニアデザイナーである松元良介（Rio）氏によるスタジオおよび活動。Googleや米国発の最先端のUX思考を取り入れ、AIをツールではなく、日常やプロダクトに自然と溶け込む『空気』のようなユーザー体験（アンビエント体験）としてどう構築すべきか、日本で最も最先端で体現・発信している注目ソースです。",
+		tags: ["UXデザイン", "Google思考", "アンビエントAI"],
+		link: "https://www.youtube.com/@KuukiDesign",
+		image: abyssalCreativeLight
+	},
+	{
+		name: "安野貴博の自由研究",
+		role: "AI Engineer, SF Writer & Politician",
+		description: "AIエンジニアでありSF作家、そしてデジタルを駆使した都知事選などの活動でも話題を呼んだ安野貴博氏のYouTubeチャンネル。最新のAIモデルの「ゆる解説」や、テクノロジーが変える社会構造に関する深いゲスト対談など、知的好奇心を刺激する『自由研究』が配信されています。",
+		tags: ["AI解説", "SF作家", "デジタル民主主義"],
+		link: "https://www.youtube.com/@takahiroanno",
+		image: abyssalCreativeLight
+	},
+	{
+		name: "ソフトバンクグループ株式会社",
+		role: "Global AI Investment Giant",
+		description: "孫正義会長率いる、世界で最も影響力を持つAI投資・推進グループ。AGI（汎用人工知能）やASI（人工超知能）の実現に向けた超巨額投資、Arm社を中心としたハードウェアからAIロボティクスまでのエコシステム構築など、テクノロジーの未来を物理的に加速させている最大の巨人。",
+		tags: ["孫正義", "AGI / ASI", "AI投資"],
+		link: "https://group.softbank/",
+		image: deepSeaAiAmbient
+	},
+	{
+		name: "池田 朋弘 (いけともch)",
+		role: "AI Native Group CEO & Tech Influencer",
+		description: "複数のスタートアップ起業を経て、現在は「AI-Native」を率いる起業家・池田朋弘氏のYouTubeチャンネル。ChatGPTやClaude、音声AIなどの「即実践できるビジネス活用ノウハウ」を、非常にクリアで論理的なステップで解説。AI時代に必要な新しい働き方の指針を学べます。",
+		tags: ["AIビジネス活用", "生産性向上", "いけともch"],
+		link: "https://www.youtube.com/@iketomo-ch",
+		image: underwaterNeonBubble
+	}
+];
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`勝手に紹介 | ${SITE_TITLE}`} description="水面下でキャッチアップし、インスピレーションを受けている人々を紹介するコーナー。" />
+		<style>
+			body {
+				background-color: #001233; /* 最深海底 */
+				color: var(--ink-body);
+			}
+			/* マリンスノー背景 */
+			.marine-snow {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100vw;
+				height: 100vh;
+				pointer-events: none;
+				z-index: 1;
+				opacity: 0.6;
+			}
+			main {
+				width: 100%;
+				max-width: 1000px; /* 人数が増えたので少し幅を広げる */
+				margin: 0 auto;
+				padding: 120px 1.5rem 4rem 1.5rem;
+				position: relative;
+				z-index: 2;
+			}
+			.page-header {
+				margin-bottom: 4rem;
+				text-align: center;
+			}
+			.page-header h1 {
+				font-family: var(--font-display);
+				font-size: clamp(28px, 4.5vw, 48px);
+				font-weight: 800;
+				letter-spacing: 0.04em;
+				margin-bottom: 1rem;
+				color: var(--ink);
+			}
+			.page-header p {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				color: var(--gray-label);
+				letter-spacing: 0.3em;
+				text-transform: uppercase;
+				max-width: 50ch;
+				margin: 0 auto;
+				line-height: 1.6;
+			}
+			.intro-text {
+				max-width: 60ch;
+				margin: 0 auto 3rem auto;
+				text-align: center;
+				font-size: 15px;
+				color: var(--ink-sub);
+				line-height: 1.8;
+			}
+			.people-list {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr); /* 2カラムグリッドで魅力的に配置 */
+				gap: 2.5rem;
+				width: 100%;
+			}
+			.person-card {
+				background: rgba(15, 23, 42, 0.3);
+				backdrop-filter: blur(12px);
+				-webkit-backdrop-filter: blur(12px);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 16px;
+				padding: 2rem;
+				transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+			}
+			.person-card:hover {
+				transform: translateY(-6px);
+				border-color: rgba(255, 255, 255, 0.2);
+			}
+			.card-image-wrapper {
+				width: 100%;
+				height: 180px;
+				overflow: hidden;
+				border-radius: 8px;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				background-color: rgba(0, 0, 0, 0.2);
+			}
+			.card-art {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				opacity: 0.75;
+				transition: transform 0.5s ease, opacity 0.3s ease;
+			}
+			.person-card:hover .card-art {
+				transform: scale(1.04);
+				opacity: 1;
+			}
+			.person-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				padding-bottom: 0.75rem;
+			}
+			.person-name {
+				font-family: var(--font-display);
+				font-size: 20px;
+				color: var(--ink);
+				font-weight: 600;
+			}
+			.person-role {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				color: var(--gray-label);
+				letter-spacing: 0.1em;
+			}
+			.person-desc {
+				font-size: 14.5px;
+				line-height: 1.8;
+				color: var(--ink-body);
+				flex-grow: 1;
+			}
+			.person-tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+				margin-top: 0.5rem;
+			}
+			.tag {
+				font-family: var(--font-mono);
+				font-size: 10px;
+				padding: 0.2rem 0.6rem;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				border-radius: 20px;
+				color: var(--gray-label);
+			}
+			.visit-link {
+				font-family: var(--font-mono);
+				font-size: 11px;
+				color: var(--ink);
+				text-decoration: underline;
+				text-underline-offset: 4px;
+				align-self: flex-start;
+				margin-top: 0.5rem;
+			}
+			@media (max-width: 768px) {
+				.people-list {
+					grid-template-columns: 1fr;
+					gap: 1.5rem;
+				}
+				.person-card {
+					padding: 1.5rem;
+				}
+				main {
+					padding: 90px 1rem 3rem 1rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+
+		<canvas class="marine-snow" id="peopleSnowCanvas"></canvas>
+
+		<main>
+			<div class="page-header">
+				<h1>勝手に紹介</h1>
+				<p>Connections / Depth -2800M</p>
+			</div>
+			
+			<p class="intro-text">
+				水面下に潜り、密かにキャッチアップしている優れたクリエイター、インフルエンサー、コミュニティ、そして企業の「勝手に紹介」コーナー。彼らの発信やビジョンから、日々多くのインスピレーションを得ています。
+			</p>
+
+			<section class="people-list">
+				{people.map((person) => (
+					<div class="person-card">
+						<div class="card-image-wrapper">
+							<Image src={person.image} alt={person.name} class="card-art" width={480} height={180} />
+						</div>
+						<div class="person-header">
+							<h2 class="person-name">{person.name}</h2>
+							<span class="person-role">{person.role}</span>
+						</div>
+						<p class="person-desc">{person.description}</p>
+						<div class="person-tags">
+							{person.tags.map((tag) => (
+								<span class="tag">#{tag}</span>
+							))}
+						</div>
+						<a href={person.link} target="_blank" class="visit-link">VISIT PROFILE →</a>
+					</div>
+				))}
+			</section>
+		</main>
+
+		<Footer />
+
+		<script>
+			const canvas = document.getElementById('peopleSnowCanvas') as HTMLCanvasElement;
+			const ctx = canvas ? canvas.getContext('2d') : null;
+			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			if (canvas && ctx && !prefersReducedMotion) {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				window.addEventListener('resize', () => {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+				});
+
+				const numParticles = 55;
+				const particles = [];
+
+				for (let i = 0; i < numParticles; i++) {
+					particles.push({
+						x: Math.random() * canvas.width,
+						y: Math.random() * canvas.height,
+						r: Math.random() * 1.8 + 0.5,
+						d: Math.random() * numParticles,
+						speedY: Math.random() * 0.35 + 0.1,
+						speedX: Math.random() * 0.2 - 0.1
+					});
+				}
+
+				let angle = 0;
+				function drawParticles() {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					ctx.fillStyle = 'rgba(234, 241, 248, 0.3)';
+					ctx.beginPath();
+					
+					for (let i = 0; i < numParticles; i++) {
+						const p = particles[i];
+						ctx.moveTo(p.x, p.y);
+						ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+						p.y += p.speedY;
+						p.x += Math.sin(angle + p.d) * 0.22 + p.speedX;
+
+						if (p.y > canvas.height) {
+							particles[i] = {
+								x: Math.random() * canvas.width,
+								y: -10,
+								r: p.r,
+								d: p.d,
+								speedY: p.speedY,
+								speedX: p.speedX
+							};
+						}
+					}
+					ctx.fill();
+					angle += 0.005;
+					requestAnimationFrame(drawParticles);
+				}
+
+				drawParticles();
+			}
+		</script>
+	</body>
+</html>

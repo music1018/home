@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI CopyCraft - ブログ記事やSNS投稿の下書きを瞬時に自動生成する高機能AIアシスタントツールです。">
+    <title>AI CopyCraft | ブログ＆SNS下書き自動生成ツール</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Marked.js (Markdown Parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #080B11;
+            --bg-surface: rgba(17, 24, 39, 0.7);
+            --bg-card: rgba(31, 41, 55, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-focus: #6366f1;
+            
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.3);
+            --secondary: #34d399;
+            --secondary-glow: rgba(52, 211, 153, 0.3);
+            --accent: #f43f5e;
+            
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --text-inverse: #0f172a;
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景グラデーション球 */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(8, 11, 17, 0) 70%);
+            top: -200px;
+            left: -100px;
+            z-index: -1;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .bg-glow-alt {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--secondary-glow) 0%, rgba(8, 11, 17, 0) 70%);
+            bottom: -100px;
+            right: -100px;
+            z-index: -1;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        header {
+            padding: 2rem 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .api-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .api-badge:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .api-badge.configured i {
+            color: var(--secondary);
+        }
+
+        .api-badge.missing i {
+            color: var(--accent);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 共通パネルカード */
+        .panel {
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        h2 i {
+            color: var(--primary);
+        }
+
+        /* フォーム要素 */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-tip {
+            font-size: 0.75rem;
+            color: var(--primary);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .mode-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .mode-btn i {
+            font-size: 1.2rem;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .mode-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--border-focus) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* プレビューエリア */
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-content {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            min-height: 350px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .placeholder-text {
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .placeholder-text i {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Markdown スタイル */
+        .preview-content h1, .preview-content h2, .preview-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+        }
+        .preview-content h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; }
+        .preview-content h2 { font-size: 1.3rem; }
+        .preview-content h3 { font-size: 1.1rem; }
+        
+        .preview-content p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .preview-content ul, .preview-content ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .preview-content li {
+            margin-bottom: 0.25rem;
+        }
+
+        .preview-content code {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .preview-content pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-content pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .preview-content blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        /* APIキー設定モーダル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 1.5rem;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--text-main);
+        }
+
+        /* ローディングアニメーション */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .generating .spinner {
+            display: block;
+        }
+
+        .generating .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--secondary);
+            color: var(--text-inverse);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(52, 211, 153, 0.3);
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+        
+        /* 履歴セクション */
+        .history-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+        
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+        }
+        
+        .history-item .title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80%;
+        }
+        
+        .history-item .date {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-glow-alt"></div>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>AI CopyCraft</span>
+        </div>
+        <div class="api-badge missing" id="apiBadge" onclick="openApiModal()">
+            <i class="fa-solid fa-key"></i>
+            <span id="apiBadgeText">APIキー未設定</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- 左側入力フォーム -->
+        <section class="panel">
+            <h2><i class="fa-solid fa-sliders"></i> 下書き設定</h2>
+            
+            <div class="form-group">
+                <label>生成モード</label>
+                <div class="mode-selector">
+                    <button type="button" class="mode-btn active" data-mode="blog">
+                        <i class="fa-solid fa-newspaper"></i>
+                        <span>ブログ記事</span>
+                    </button>
+                    <button type="button" class="mode-btn" data-mode="x">
+                        <i class="fa-brands fa-x-twitter"></i>
+                        <span>X (Twitter)</span>
+                    </button>
+                    <button type="button" class="mode-btn" data-mode="insta">
+                        <i class="fa-solid fa-image"></i>
+                        <span>Instagram</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="topic">テーマ・キーワード
+                    <span class="info-tip">記事や投稿の主旨を詳しく入力</span>
+                </label>
+                <textarea id="topic" rows="4" placeholder="例: 「サラリーマンが週末3時間でできる確実な副業5選。スキル不要で月1万円稼ぐロードマップ」"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="persona">ターゲット読者（ペルソナ）</label>
+                <input type="text" id="persona" placeholder="例: 将来に不安があるが忙しくて時間がない20代サラリーマン">
+            </div>
+
+            <div class="form-group">
+                <label for="tone">文章のトーン＆マナー</label>
+                <select id="tone">
+                    <option value="friendly">親しみやすく分かりやすい（初心者向け）</option>
+                    <option value="professional">論理的で信頼感がある（ビジネス向け）</option>
+                    <option value="inspiring">やる気を引き出す・エモーショナル</option>
+                    <option value="catchy">キャッチーで目を惹く（バズ重視）</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="wordCountGroup">
+                <label for="wordCount">目標文字数（ブログ用）</label>
+                <select id="wordCount">
+                    <option value="1000">1000字程度（手軽な解説）</option>
+                    <option value="2000" selected>2000字程度（標準的な解説）</option>
+                    <option value="3500">3500字程度（網羅的で詳細な解説）</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn-submit" id="generateBtn" onclick="generateDraft()">
+                <div class="spinner" id="spinner"></div>
+                <span class="btn-text" id="btnText"><i class="fa-solid fa-paper-plane"></i> AI下書きを生成する</span>
+            </button>
+            
+            <!-- 履歴機能 -->
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>最近の生成履歴</label>
+                <div class="history-list" id="historyList">
+                    <div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">履歴はありません</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右側プレビュー画面 -->
+        <section class="panel">
+            <div class="preview-header">
+                <h2><i class="fa-solid fa-file-lines"></i> 生成された下書き</h2>
+                <div class="preview-actions">
+                    <button class="btn-action" id="copyBtn" onclick="copyResult()" disabled>
+                        <i class="fa-regular fa-copy"></i> コピー
+                    </button>
+                </div>
+            </div>
+
+            <div class="preview-content" id="previewArea">
+                <div class="placeholder-text" id="placeholder">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <p>設定を入力して「AI下書きを生成する」ボタンを押すと、ここに結果がMarkdown形式で出力されます。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- APIキーモーダル -->
+    <div class="modal" id="apiModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeApiModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem;"><i class="fa-solid fa-key" style="color: var(--primary);"></i> Gemini APIキーの設定</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                本ツールはGoogleのGemini APIを直接呼び出します。キーはブラウザ内(LocalStorage)のみに保存され、第三者のサーバーに送信されることはありません。
+            </p>
+            <div class="form-group">
+                <label for="apiKey">APIキーを入力</label>
+                <input type="password" id="apiKey" placeholder="AIzaSy...">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    APIキーは <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary); text-decoration: underline;">Google AI Studio</a> から無料で取得できます。
+                </p>
+            </div>
+            <button class="btn-submit" onclick="saveApiKey()">キーを保存する</button>
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastText">コピーしました</span>
+    </div>
+
+    <script>
+        let currentMode = 'blog';
+        let generatedRawText = '';
+        let history = [];
+
+        // 初期ロード
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            updateApiBadge(savedKey);
+            
+            // モードボタンの切り替えロジック
+            const modeBtns = document.querySelectorAll('.mode-btn');
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    modeBtns.forEach(b => b.classList.remove('active'));
+                    const targetBtn = e.currentTarget;
+                    targetBtn.classList.add('active');
+                    currentMode = targetBtn.dataset.mode;
+                    
+                    // モードに応じて文字数選択肢の表示/非表示
+                    const wordCountGroup = document.getElementById('wordCountGroup');
+                    if (currentMode === 'blog') {
+                        wordCountGroup.style.display = 'flex';
+                    } else {
+                        wordCountGroup.style.display = 'none';
+                    }
+                });
+            });
+
+            // 履歴の読み込み
+            loadHistory();
+        });
+
+        function updateApiBadge(key) {
+            const badge = document.getElementById('apiBadge');
+            const text = document.getElementById('apiBadgeText');
+            if (key && key.trim() !== '') {
+                badge.className = 'api-badge configured';
+                text.textContent = 'APIキー設定済み';
+            } else {
+                badge.className = 'api-badge missing';
+                text.textContent = 'APIキー未設定';
+            }
+        }
+
+        function openApiModal() {
+            const modal = document.getElementById('apiModal');
+            const input = document.getElementById('apiKey');
+            input.value = localStorage.getItem('gemini_api_key') || '';
+            modal.classList.add('active');
+        }
+
+        function closeApiModal() {
+            document.getElementById('apiModal').classList.remove('active');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (key === '') {
+                localStorage.removeItem('gemini_api_key');
+                showToast('APIキーを消去しました');
+            } else {
+                localStorage.setItem('gemini_api_key', key);
+                showToast('APIキーを保存しました');
+            }
+            updateApiBadge(key);
+            closeApiModal();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        function getPrompt() {
+            const topic = document.getElementById('topic').value.trim();
+            const persona = document.getElementById('persona').value.trim();
+            const toneSelect = document.getElementById('tone');
+            const toneText = toneSelect.options[toneSelect.selectedIndex].text;
+            const wordCount = document.getElementById('wordCount').value;
+
+            if (!topic) return null;
+
+            let prompt = '';
+            if (currentMode === 'blog') {
+                prompt = `あなたはプロのSEOライターおよびアフィリエイトマーケターです。以下の条件に基づいて、高品質なブログ記事の下書き（マークダウン形式）を生成してください。
+
+■テーマ・キーワード:
+${topic}
+
+■ターゲット読者（ペルソナ）:
+${persona ? persona : 'この情報を求めている一般の読者'}
+
+■文章のトーン＆マナー:
+${toneText}
+
+■想定文字数:
+${wordCount}文字程度
+
+■構成指示:
+1. 読者の目を惹く魅力的な記事タイトル（H1）
+2. 導入文（読者の悩みに共感し、この記事を読むメリットを説明）
+3. 見出し構成（H2, H3）に沿った本文。具体例や、読者が次に取るべきアクション（行動の促し）を含めること
+4. まとめ（要約と最後の一押し）
+
+出力はマークダウンのみで返してください。`;
+            } else if (currentMode === 'x') {
+                prompt = `あなたは人気のSNSインフルエンサーおよびSNSマーケターです。以下の条件に基づいて、X (旧Twitter) 用の非常に魅力的な投稿の下書きを「3パターン」作成してください。
+
+■テーマ・内容:
+${topic}
+
+■ターゲット読者（ペルソナ）:
+${persona ? persona : 'フォロワー一般'}
+
+■文章のトーン＆マナー:
+${toneText}
+
+■作成指示:
+- 140文字以内に収まる（または少し長文スレッドの最初の1ツイートとして機能する）投稿にすること。
+- 改行や絵文字を効果的に使い、スクロール中の目を引く構成にすること。
+- フック（最初の1文）、本論、アクションへの誘導（クリックや保存、リプなど）、関連ハッシュタグを含めること。
+- パターンA（ノウハウ提示型）、パターンB（共感・マインド型）、パターンC（箇条書きまとめ型）の3種類を提示してください。
+
+出力はマークダウン形式で返してください。`;
+            } else if (currentMode === 'insta') {
+                prompt = `あなたはInstagramの運用代行およびコンテンツプランナーです。以下の条件に基づいて、Instagramの「カルーセル投稿の構成案」および「キャプション（本文）下書き」を作成してください。
+
+■テーマ・内容:
+${topic}
+
+■ターゲット読者（ペルソナ）:
+${persona ? persona : 'ターゲット層'}
+
+■文章のトーン＆マナー:
+${toneText}
+
+■構成指示:
+1. 【スライド構成案 (1〜6枚程度)】
+   各スライドに記載する「タイトル」と「簡単な説明（要約）」を提示してください。
+2. 【キャプション本文（投稿テキスト）】
+   - 最初の3行でユーザーを引き込むキャッチコピー。
+   - 本文（読みやすさを重視し、適度な改行と絵文字を交えること）。
+   - コメントやプロフィールリンクへの誘導（CTA）。
+   - 適切なハッシュタグ（最大15個）。
+
+出力はマークダウン形式で返してください。`;
+            }
+
+            return prompt;
+        }
+
+        async function generateDraft() {
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                openApiModal();
+                showToast('最初にAPIキーを設定してください');
+                return;
+            }
+
+            const prompt = getPrompt();
+            if (!prompt) {
+                showToast('テーマ・キーワードを入力してください');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const previewArea = document.getElementById('previewArea');
+            const placeholder = document.getElementById('placeholder');
+            const copyBtn = document.getElementById('copyBtn');
+
+            // UI状態を「生成中」へ
+            btn.disabled = true;
+            btn.classList.add('generating');
+            previewArea.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-circle-notch fa-spin"></i><p>AIが文章を作成しています。しばらくお待ちください（通常10〜20秒程度）...</p></div>`;
+
+            try {
+                // Gemini API リクエスト
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error?.message || 'APIリクエストに失敗しました');
+                }
+
+                const data = await response.json();
+                const rawText = data.candidates[0].content.parts[0].text;
+                
+                // 結果の反映
+                generatedRawText = rawText;
+                previewArea.innerHTML = marked.parse(rawText);
+                copyBtn.disabled = false;
+                
+                // 履歴に追加
+                saveToHistory(document.getElementById('topic').value.trim().substring(0, 30), rawText);
+
+            } catch (error) {
+                console.error(error);
+                previewArea.innerHTML = `
+                    <div class="placeholder-text" style="color: var(--accent);">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>エラーが発生しました: ${error.message}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">APIキーが正しいか、ネットワーク接続を確認してください。</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('generating');
+            }
+        }
+
+        function copyResult() {
+            if (!generatedRawText) return;
+            navigator.clipboard.writeText(generatedRawText).then(() => {
+                showToast('クリップボードにコピーしました！');
+            }).catch(err => {
+                console.error('コピー失敗:', err);
+                showToast('コピーに失敗しました');
+            });
+        }
+        
+        // 履歴管理機能
+        function saveToHistory(title, text) {
+            if (!title) title = "無題の生成";
+            const date = new Date();
+            const timeString = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            
+            history.unshift({ title, text, date: timeString });
+            
+            // 最大5件保存
+            if (history.length > 5) {
+                history.pop();
+            }
+            
+            localStorage.setItem('generation_history', JSON.stringify(history));
+            renderHistoryList();
+        }
+        
+        function loadHistory() {
+            const saved = localStorage.getItem('generation_history');
+            if (saved) {
+                try {
+                    history = JSON.parse(saved);
+                    renderHistoryList();
+                } catch(e) {
+                    console.error("履歴読み込み失敗:", e);
+                }
+            }
+        }
+        
+        function renderHistoryList() {
+            const listContainer = document.getElementById('historyList');
+            if (history.length === 0) {
+                listContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">履歴はありません</div>`;
+                return;
+            }
+            
+            listContainer.innerHTML = history.map((item, index) => `
+                <div class="history-item" onclick="loadHistoryItem(${index})">
+                    <span class="title">${escapeHTML(item.title)}</span>
+                    <span class="date">${item.date}</span>
+                </div>
+            `).join('');
+        }
+        
+        function loadHistoryItem(index) {
+            if (history[index]) {
+                const item = history[index];
+                generatedRawText = item.text;
+                document.getElementById('previewArea').innerHTML = marked.parse(item.text);
+                document.getElementById('copyBtn').disabled = false;
+                showToast('履歴から復元しました');
+            }
+        }
+        
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
