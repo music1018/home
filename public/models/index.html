@@ -511,7 +511,22 @@
       opacity: 1;
       transform: translateY(0);
     }
-  </style>
+      .model-map {
+      margin: 3rem 0;
+      text-align: center;
+    }
+    .model-map .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .model-map .map-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+</style>
 </head>
 
 <body>
@@ -1029,7 +1044,13 @@
 
     </div>
 
-    <!-- Footer note -->
+    <!-- 2D Model Map -->
+<section class="model-map reveal">
+  <h2 class="section-title">モデル 2D マップ</h2>
+  <img src="/models/models_2d_map.png" alt="AIモデル 2Dマップ" class="map-image" />
+</section>
+
+<!-- Footer note -->
     <div class="footer-note reveal">
       <p>このページは <a href="/">r のポートフォリオ</a> の一部です。</p>
       <p style="margin-top:0.5rem">モデルの仕様は Antigravity の実装に依存します。最新情報は公式ドキュメントを参照してください。</p>
