@@ -3,6 +3,7 @@ title: "AI駆動開発ガイド"
 description: "AIを活用した開発プロセス全体像と実践手順を解説します。"
 pubDate: 2026-06-27
 slug: "ai-driven-development"
+heroImage: '/assets/blog-placeholder-2.jpg'
 ---
 
 ## 背景・目的
