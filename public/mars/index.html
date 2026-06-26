@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mars Colonization Simulator - 火星に居住区を構築し、酸素、水、食料、エネルギー、資金を管理して人口100人の自立都市を目指すサバイバル資源管理シミュレーションゲーム。">
+    <title>Mars Colonization Simulator | 火星移住シミュレーター</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #0f0505; /* 火星の赤黒い夜 */
+            --bg-surface: rgba(26, 12, 12, 0.8);
+            --bg-card: rgba(45, 20, 20, 0.45);
+            --border-color: rgba(240, 90, 40, 0.15); /* 錆びたオレンジ */
+            --primary: #f05a28; /* 火星オレンジ */
+            --primary-glow: rgba(240, 90, 40, 0.35);
+            --secondary: #e63946; /* レッド */
+            --accent: #4cc9f0; /* サイバーシアン（水の象徴） */
+            --accent-glow: rgba(76, 201, 240, 0.25);
+            --text-main: #faeae6;
+            --text-muted: #a68f8a;
+            --success: #38b000; /* 水耕栽培グリーン */
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 火星の砂嵐背景グロー */
+        .bg-mars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(240, 90, 40, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(230, 57, 70, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(26, 12, 12, 0.6) 0%, var(--bg-base) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 戻るリンク */
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        /* コロニーダッシュボード */
+        .dashboard {
+            width: 100%;
+            max-width: 860px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 80px rgba(240, 90, 40, 0.03);
+            z-index: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: panelEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes panelEntrance {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ヘッダー */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        header h1 i {
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .sol-counter {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            background: rgba(240, 90, 40, 0.1);
+            border: 1px solid var(--primary);
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+            font-weight: 600;
+        }
+
+        /* 住民・基本ステータス */
+        .colony-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .colony-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .colony-card i {
+            font-size: 1.75rem;
+            color: var(--primary);
+        }
+
+        .colony-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .colony-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .colony-val {
+            font-family: var(--font-mono);
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        /* 資源グリッド */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+
+        .res-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 1.25rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .res-card:hover {
+            border-color: var(--border-color);
+            background: rgba(240, 90, 40, 0.02);
+        }
+
+        .res-icon {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .res-card.warning .res-icon {
+            color: var(--secondary);
+            animation: pulse 1s infinite alternate;
+        }
+
+        .res-card.warning {
+            border-color: rgba(230, 57, 70, 0.3);
+            background: rgba(230, 57, 70, 0.05);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .res-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .res-amount {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .res-delta {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .res-delta.positive { color: var(--success); }
+        .res-delta.negative { color: var(--secondary); }
+        .res-delta.neutral { color: var(--text-muted); }
+
+        /* メインゲームボード：建築とイベント */
+        .board-main {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* 建築パネル */
+        .build-section h2, .event-section h2 {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(240, 90, 40, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .build-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            max-height: 330px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .build-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        .build-grid::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .build-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .build-card:hover {
+            background: rgba(45, 20, 20, 0.65);
+        }
+
+        .build-desc {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .build-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .build-name span {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--primary);
+            background: rgba(240, 90, 40, 0.1);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .build-detail {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .build-costs {
+            display: flex;
+            gap: 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .build-costs span i {
+            margin-right: 0.2rem;
+        }
+
+        .build-btn {
+            background: var(--primary);
+            border: none;
+            color: #0f0505;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .build-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .build-btn:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border: 1px solid var(--border-color);
+        }
+
+        /* イベント・ニュースフィード */
+        .event-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-container {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 250px;
+        }
+
+        .event-card {
+            border-left: 2px solid var(--primary);
+            padding-left: 0.75rem;
+            animation: eventAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes eventAppear {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .event-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .event-text {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        /* コントロール・ターン送り */
+        .actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .next-turn-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #0f0505;
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 800;
+            padding: 0.85rem 2.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(240, 90, 40, 0.25);
+        }
+
+        .next-turn-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(240, 90, 40, 0.45);
+        }
+
+        .next-turn-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ポップアップ・ダイアログ */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(240, 90, 40, 0.2);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .modal-icon.success { color: var(--success); text-shadow: 0 0 15px rgba(56, 176, 0, 0.3); }
+        .modal-icon.danger { color: var(--secondary); text-shadow: 0 0 15px rgba(230, 57, 70, 0.3); }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .modal-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .modal-btn {
+            background: var(--primary);
+            border: none;
+            color: #0f0505;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--primary-glow);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 1.5rem;
+            }
+            .colony-stats-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .resources-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .board-main {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-mars"></div>
+
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> RETURN TO PORTFOLIO
+    </a>
+
+    <div class="dashboard">
+        <!-- ヘッダー部 -->
+        <header>
+            <h1><i class="fa-solid fa-rocket"></i> Ares Base</h1>
+            <div class="sol-counter" id="solCounter">SOL 1</div>
+        </header>
+
+        <!-- コロニー主要ステータス -->
+        <section class="colony-stats-row">
+            <!-- 人口 -->
+            <div class="colony-card">
+                <i class="fa-solid fa-users"></i>
+                <div class="colony-info">
+                    <span class="colony-label">Population</span>
+                    <span class="colony-val" id="valPopulation">15 / 20</span>
+                </div>
+            </div>
+
+            <!-- 幸福度 -->
+            <div class="colony-card">
+                <i class="fa-solid fa-heart-pulse"></i>
+                <div class="colony-info">
+                    <span class="colony-label">Happiness</span>
+                    <span class="colony-val" id="valHappiness">80 %</span>
+                </div>
+            </div>
+
+            <!-- 自立目標進捗 -->
+            <div class="colony-card">
+                <i class="fa-solid fa-flag-checkered"></i>
+                <div class="colony-info">
+                    <span class="colony-label">Victory Goal</span>
+                    <span class="colony-val" id="valGoal">15%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 資源モニター -->
+        <section class="resources-grid">
+            <!-- 資金 -->
+            <div class="res-card" id="resCredits">
+                <i class="res-icon fa-solid fa-circle-dollar-to-slot"></i>
+                <span class="res-name">Credits</span>
+                <span class="res-amount" id="amtCredits">1000</span>
+                <span class="res-delta positive" id="dCredits">+100</span>
+            </div>
+
+            <!-- 酸素 -->
+            <div class="res-card" id="resOxygen">
+                <i class="res-icon fa-solid fa-wind"></i>
+                <span class="res-name">Oxygen</span>
+                <span class="res-amount" id="amtOxygen">300</span>
+                <span class="res-delta positive" id="dOxygen">+10</span>
+            </div>
+
+            <!-- 水 -->
+            <div class="res-card" id="resWater">
+                <i class="res-icon fa-solid fa-droplet"></i>
+                <span class="res-name">Water</span>
+                <span class="res-amount" id="amtWater">400</span>
+                <span class="res-delta positive" id="dWater">+5</span>
+            </div>
+
+            <!-- 食料 -->
+            <div class="res-card" id="resFood">
+                <i class="res-icon fa-solid fa-wheat-awn"></i>
+                <span class="res-name">Food</span>
+                <span class="res-amount" id="amtFood">500</span>
+                <span class="res-delta positive" id="dFood">+0</span>
+            </div>
+
+            <!-- 電力 -->
+            <div class="res-card" id="resEnergy">
+                <i class="res-icon fa-solid fa-bolt"></i>
+                <span class="res-name">Energy</span>
+                <span class="res-amount" id="amtEnergy">50</span>
+                <span class="res-delta positive" id="dEnergy">+10</span>
+            </div>
+        </section>
+
+        <!-- メインパネル -->
+        <div class="board-main">
+            <!-- 建築エリア -->
+            <section class="build-section">
+                <h2>Infrastructure Construction (施設建設)</h2>
+                <div class="build-grid" id="buildGrid">
+                    <!-- 施設カードはJSで生成 -->
+                </div>
+            </section>
+
+            <!-- イベントログエリア -->
+            <section class="event-section">
+                <h2>Mission Control Logs (ログフィード)</h2>
+                <div class="feed-container" id="feedContainer">
+                    <div class="event-card">
+                        <div class="event-title">システム起動</div>
+                        <div class="event-text">火星アレス基地、生命維持システムがオンラインになりました。開拓者15名の命があなたの管理に委ねられています。目標は人口100人の突破です。</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- アクションバー -->
+        <footer class="actions-row">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">ARES COMMAND CENTER v1.0.4</span>
+            <button class="next-turn-btn" onclick="nextSol()">
+                <span>NEXT SOL (次ターンへ)</span> <i class="fa-solid fa-forward-step"></i>
+            </button>
+        </footer>
+    </div>
+
+    <!-- モーダルダイアログ (ゲームオーバー / 勝利用) -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="modal-title" id="modalTitle">警告</div>
+            <div class="modal-text" id="modalText">テキスト</div>
+            <button class="modal-btn" onclick="restartGame()">RESTART SYSTEM</button>
+        </div>
+    </div>
+
+    <script>
+        // ゲームデータ
+        let sol = 1;
+        
+        // 資源
+        const resources = {
+            credits: 1000,
+            oxygen: 400,
+            water: 350,
+            food: 450,
+            energy: 60
+        };
+
+        // コロニー基本値
+        let population = 15;
+        let happiness = 80;
+        let maxPopulation = 20;
+
+        // 施設データベース
+        const buildings = [
+            {
+                id: 'solar',
+                name: '太陽光発電アレイ',
+                count: 1,
+                cost: 200,
+                desc: 'クリーンな電力を生産します。',
+                effect: '毎ターン 電力 +20',
+                costResource: 'credits',
+                runEffect: () => { resources.energy += 20; },
+                deltaDesc: { energy: 20 }
+            },
+            {
+                id: 'moxie',
+                name: '酸素精製プラント',
+                count: 1,
+                cost: 250,
+                desc: '二酸化炭素から酸素を抽出。',
+                effect: '酸素 +15、電力 -8',
+                costResource: 'credits',
+                runEffect: () => { resources.oxygen += 15; resources.energy -= 8; },
+                deltaDesc: { oxygen: 15, energy: -8 }
+            },
+            {
+                id: 'extractor',
+                name: '氷採掘リグ',
+                count: 1,
+                cost: 300,
+                desc: '極地の氷を溶かして水に変換。',
+                effect: '水 +20、電力 -10',
+                costResource: 'credits',
+                runEffect: () => { resources.water += 20; resources.energy -= 10; },
+                deltaDesc: { water: 20, energy: -10 }
+            },
+            {
+                id: 'hydro',
+                name: '水耕栽培ドーム',
+                count: 1,
+                cost: 350,
+                desc: '開拓者向けの新鮮な食料を生産。',
+                effect: '食料 +30、水 -15、電力 -5',
+                costResource: 'credits',
+                runEffect: () => { resources.food += 30; resources.water -= 15; resources.energy -= 5; },
+                deltaDesc: { food: 30, water: -15, energy: -5 }
+            },
+            {
+                id: 'hab',
+                name: '居住モジュール',
+                count: 1,
+                cost: 400,
+                desc: 'コロニーの最大収容人数を増やします。',
+                effect: '最大収容人数 +15',
+                costResource: 'credits',
+                runEffect: () => { maxPopulation += 15; },
+                deltaDesc: {} // 生産・消費には影響しない
+            },
+            {
+                id: 'bio',
+                name: 'バイオドーム',
+                count: 0,
+                cost: 500,
+                desc: '心の安らぎを与える緑地。幸福度を維持。',
+                effect: '幸福度 +5%/Sol、水 -10、電力 -8',
+                costResource: 'credits',
+                runEffect: () => { happiness = Math.min(100, happiness + 5); resources.water -= 10; resources.energy -= 8; },
+                deltaDesc: { water: -10, energy: -8 }
+            }
+        ];
+
+        // 状態異常イベントトラッキング
+        let sandstormSol = 0; // 砂嵐の残りSol数
+
+        // 施設建設表示の更新
+        function renderBuildings() {
+            const grid = document.getElementById('buildGrid');
+            grid.innerHTML = '';
+
+            buildings.forEach(b => {
+                const canBuild = resources.credits >= b.cost;
+                const card = document.createElement('div');
+                card.className = 'build-card';
+                card.innerHTML = `
+                    <div class="build-desc">
+                        <div class="build-name">${b.name} <span>建設数: ${b.count}</span></div>
+                        <div class="build-detail">${b.desc}</div>
+                        <div class="build-detail" style="color: var(--primary); font-weight: 500;">効果: ${b.effect}</div>
+                        <div class="build-costs">
+                            <span><i class="fa-solid fa-circle-dollar-to-slot"></i> ${b.cost} Cr</span>
+                        </div>
+                    </div>
+                    <button class="build-btn" ${canBuild ? '' : 'disabled'} onclick="buildStructure('${b.id}')">建設する</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 施設建設実行
+        function buildStructure(id) {
+            const b = buildings.find(item => item.id === id);
+            if (b && resources.credits >= b.cost) {
+                resources.credits -= b.cost;
+                b.count++;
+                b.cost = Math.round(b.cost * 1.25); // コスト増加
+
+                // 居住モジュールの場合その場で上限アップ
+                if (b.id === 'hab') {
+                    maxPopulation += 15;
+                }
+
+                addLog('建設完了', `${b.name}の建設が完了しました。(Cr -${b.cost})`);
+                updateUI();
+            }
+        }
+
+        // UI情報の更新
+        function updateUI() {
+            // SOL
+            document.getElementById('solCounter').textContent = `SOL ${sol}`;
+
+            // コロニー基本値
+            document.getElementById('valPopulation').textContent = `${population} / ${maxPopulation}`;
+            document.getElementById('valHappiness').textContent = `${happiness} %`;
+            
+            // 勝利目標パーセント
+            const goalPercent = Math.min(100, Math.round((population / 100) * 100));
+            document.getElementById('valGoal').textContent = `${goalPercent}%`;
+
+            // 資源
+            document.getElementById('amtCredits').textContent = Math.round(resources.credits);
+            document.getElementById('amtOxygen').textContent = Math.round(resources.oxygen);
+            document.getElementById('amtWater').textContent = Math.round(resources.water);
+            document.getElementById('amtFood').textContent = Math.round(resources.food);
+            document.getElementById('amtEnergy').textContent = Math.round(resources.energy);
+
+            // 収支予測(Delta)の計算と表示
+            const deltas = calculateDeltas();
+
+            updateDeltaUI('Credits', deltas.credits);
+            updateDeltaUI('Oxygen', deltas.oxygen);
+            updateDeltaUI('Water', deltas.water);
+            updateDeltaUI('Food', deltas.food);
+            updateDeltaUI('Energy', deltas.energy);
+
+            // 警告アラート背景の変更 (資源が枯渇しかけている時)
+            checkWarning('Credits', resources.credits);
+            checkWarning('Oxygen', resources.oxygen);
+            checkWarning('Water', resources.water);
+            checkWarning('Food', resources.food);
+            checkWarning('Energy', resources.energy);
+
+            renderBuildings();
+        }
+
+        function updateDeltaUI(name, val) {
+            const el = document.getElementById(`d${name}`);
+            const rounded = Math.round(val);
+            if (rounded > 0) {
+                el.textContent = `+${rounded}`;
+                el.className = 'res-delta positive';
+            } else if (rounded < 0) {
+                el.textContent = `${rounded}`;
+                el.className = 'res-delta negative';
+            } else {
+                el.textContent = `±0`;
+                el.className = 'res-delta neutral';
+            }
+        }
+
+        function checkWarning(name, amount) {
+            const card = document.getElementById(`res${name}`);
+            if (amount <= 50 && name !== 'Energy') {
+                card.classList.add('warning');
+            } else if (name === 'Energy' && amount <= 10) {
+                card.classList.add('warning');
+            } else {
+                card.classList.remove('warning');
+            }
+        }
+
+        // 毎ターンの収支・Delta算出
+        function calculateDeltas() {
+            const deltas = { credits: 0, oxygen: 0, water: 0, food: 0, energy: 0 };
+
+            // 基礎収入/生命維持消費
+            // 基礎資金収入: 開拓者数に応じて増える
+            deltas.credits = population * 8; 
+            
+            // 生命維持：一人あたり酸素 -2、水 -2.5、食料 -3
+            deltas.oxygen -= population * 2;
+            deltas.water -= population * 2.5;
+            deltas.food -= population * 3;
+
+            // 施設効果の累積
+            buildings.forEach(b => {
+                if (b.count > 0) {
+                    if (b.id === 'solar') {
+                        // 砂嵐中は発電量が半分
+                        const multiplier = sandstormSol > 0 ? 0.5 : 1.0;
+                        deltas.energy += b.deltaDesc.energy * b.count * multiplier;
+                    } else {
+                        // その他施設の生産
+                        for (let key in b.deltaDesc) {
+                            deltas[key] += b.deltaDesc[key] * b.count;
+                        }
+                    }
+                }
+            });
+
+            return deltas;
+        }
+
+        // ログメッセージの追加
+        function addLog(title, text) {
+            const container = document.getElementById('feedContainer');
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.innerHTML = `
+                <div class="event-title">[SOL ${sol}] ${title}</div>
+                <div class="event-text">${text}</div>
+            `;
+            container.insertBefore(card, container.firstChild);
+
+            // ログが多すぎたら古いものを消す
+            if (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // ターン（Sol）進行
+        function nextSol() {
+            const deltas = calculateDeltas();
+
+            // 1. 資源の適用
+            resources.credits += deltas.credits;
+            resources.oxygen += deltas.oxygen;
+            resources.water += deltas.water;
+            resources.food += deltas.food;
+            resources.energy += deltas.energy;
+
+            // コロニーの生存チェック
+            if (resources.oxygen < 0) resources.oxygen = 0;
+            if (resources.water < 0) resources.water = 0;
+            if (resources.food < 0) resources.food = 0;
+
+            // 2. 状態・幸福度計算
+            let happinessChange = 0;
+            let criticalLack = false;
+
+            if (resources.oxygen <= 0) { happinessChange -= 30; criticalLack = true; }
+            if (resources.water <= 0) { happinessChange -= 20; criticalLack = true; }
+            if (resources.food <= 0) { happinessChange -= 15; criticalLack = true; }
+            if (resources.energy < 0) {
+                happinessChange -= 10;
+                // 電力がマイナス＝全インフラ停止による資源損失
+                resources.oxygen = Math.max(0, resources.oxygen - 30);
+                resources.water = Math.max(0, resources.water - 30);
+                resources.food = Math.max(0, resources.food - 30);
+            }
+
+            // バイオドーム補正
+            const bioCount = buildings.find(b => b.id === 'bio').count;
+            if (bioCount > 0 && !criticalLack) {
+                happinessChange += bioCount * 4;
+            }
+
+            // 幸福度がマイナスの時、人が逃げ出す/死亡する
+            if (criticalLack) {
+                const deathCount = Math.min(population - 3, Math.round(population * 0.15) + 1);
+                population -= deathCount;
+                addLog('開拓者危篤', `深刻な生活物資の不足により、開拓者が ${deathCount} 名離脱または死亡しました。`);
+            } else if (happiness >= 75 && population < maxPopulation) {
+                // 幸福で住居に空きがあれば自然増加（移民）
+                const newColonists = Math.min(maxPopulation - population, Math.floor(Math.random() * 3) + 1);
+                population += newColonists;
+                addLog('開拓者合流', `コロニーが快適であるため、地球からの第2波開拓船から新住民 ${newColonists} 名が基地へ合流しました。`);
+            }
+
+            happiness = Math.max(0, Math.min(100, happiness + happinessChange));
+
+            // 3. 状態異常イベント効果減少
+            if (sandstormSol > 0) {
+                sandstormSol--;
+                if (sandstormSol === 0) {
+                    addLog('砂嵐通過', '火星の砂嵐が完全に通過し、太陽光パネルの発電効率が100%に回復しました。');
+                }
+            }
+
+            // 4. ランダムイベントの抽選 (25% の確率)
+            if (Math.random() < 0.25) {
+                triggerRandomEvent();
+            }
+
+            // 5. 終了・勝利判定
+            sol++;
+            updateUI();
+            checkGameStatus();
+        }
+
+        // ランダムイベントライブラリ
+        function triggerRandomEvent() {
+            const events = [
+                {
+                    title: '巨大砂嵐発生',
+                    text: 'コロニー周辺で巨大な砂嵐が発生。3SOLの間、太陽光パネルの発電効率が半減（50%低下）します。',
+                    action: () => {
+                        sandstormSol = 3;
+                    }
+                },
+                {
+                    title: '新技術の応用',
+                    text: '水耕ドームの自動肥料サイクルが完成。一時的に食料備蓄が +200 増加します。',
+                    action: () => {
+                        resources.food += 200;
+                    }
+                },
+                {
+                    title: '移民輸送艇の不時着',
+                    text: '軌道上からの貨物コンテナが付近に不時着。物資を回収しました (Cr +300、水 +100)。',
+                    action: () => {
+                        resources.credits += 300;
+                        resources.water += 100;
+                    }
+                },
+                {
+                    title: '居住区配管エラー',
+                    text: '水供給ラインの一部にひび割れが発覚。修理のために資金が消失します (Cr -200、水 -50)。',
+                    action: () => {
+                        resources.credits = Math.max(0, resources.credits - 200);
+                        resources.water = Math.max(0, resources.water - 50);
+                    }
+                }
+            ];
+
+            const ev = events[Math.floor(Math.random() * events.length)];
+            ev.action();
+            addLog(ev.title, ev.text);
+        }
+
+        // ゲームステータス確認
+        function checkGameStatus() {
+            const modal = document.getElementById('gameModal');
+            const icon = document.getElementById('modalIcon');
+            const title = document.getElementById('modalTitle');
+            const text = document.getElementById('modalText');
+
+            // 敗北：人口が0名、または幸福度が0
+            if (population <= 0) {
+                title.textContent = 'MISSION FAILED';
+                text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols)`;
+                icon.className = 'modal-icon danger';
+                icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
+                modal.classList.add('show');
+            } else if (happiness <= 0) {
+                title.textContent = 'COLONY RIOT';
+                text.textContent = `幸福度が0%になりました。過酷な労働と深刻な物資不足により住民の暴動が発生し、コロニーは放棄されました。`;
+                icon.className = 'modal-icon danger';
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                modal.classList.add('show');
+            }
+            // 勝利：人口が100人突破
+            else if (population >= 100) {
+                title.textContent = 'TERRAFORM SUCCESS';
+                text.textContent = `おめでとうございます！Ares Baseは人口100名を突破し、地球からの支援に頼らない完全自立型ドーム都市へと進化しました。火星が新しい人類の故郷になる第一歩です！`;
+                icon.className = 'modal-icon success';
+                icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                modal.classList.add('show');
+            }
+        }
+
+        function restartGame() {
+            sol = 1;
+            resources.credits = 1000;
+            resources.oxygen = 400;
+            resources.water = 350;
+            resources.food = 450;
+            resources.energy = 60;
+            population = 15;
+            happiness = 80;
+            maxPopulation = 20;
+
+            buildings.forEach(b => {
+                if (b.id === 'bio') b.count = 0;
+                else b.count = 1;
+                
+                // コストのリセット
+                if (b.id === 'solar') b.cost = 200;
+                if (b.id === 'moxie') b.cost = 250;
+                if (b.id === 'extractor') b.cost = 300;
+                if (b.id === 'hydro') b.cost = 350;
+                if (b.id === 'hab') b.cost = 400;
+                if (b.id === 'bio') b.cost = 500;
+            });
+
+            sandstormSol = 0;
+
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = `
+                <div class="event-card">
+                    <div class="event-title">システム再起動</div>
+                    <div class="event-text">火星アレス基地、生命維持システムが再起動されました。開拓者15名が到着しました。再びミッション開始です。</div>
+                </div>
+            `;
+
+            document.getElementById('gameModal').classList.remove('show');
+            updateUI();
+        }
+
+        // 初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+        });
+    </script>
+</body>
+
+</html>

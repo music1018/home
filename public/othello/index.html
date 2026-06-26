@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Intelligent Othello AI Simulator - ルールベースの最強AIアルゴリズムを可視化・対戦させ、戦略パラメータをリアルタイム調整できるシミュレーター。ミニマックス探索、アルファベータ枝刈り、評価ヒートマップ搭載。">
+    <title>Tactical Othello AI Simulator | 最強オセロAIシミュレーター</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #050a08; /* サイバーダークグリーン */
+            --bg-surface: rgba(10, 22, 18, 0.85);
+            --bg-card: rgba(15, 35, 28, 0.45);
+            --border-color: rgba(0, 255, 102, 0.15); /* ネオングリーン */
+            --primary: #00ff66; /* サイバーグリーン */
+            --primary-glow: rgba(0, 255, 102, 0.35);
+            --secondary: #00e5ff; /* ネオンシアン */
+            --secondary-glow: rgba(0, 229, 255, 0.25);
+            --accent: #ff007f; /* ネオンピンク（警告・対戦相手） */
+            --accent-glow: rgba(255, 0, 127, 0.25);
+            --text-main: #e2f5ee;
+            --text-muted: #85a396;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景グリッド＆ネオングロー */
+        .bg-cyber {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 102, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 229, 255, 0.04) 0%, transparent 50%),
+                linear-gradient(rgba(10, 22, 18, 0.6) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 22, 18, 0.6) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 戻るリンク */
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* メインコンテナ */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 100px rgba(0, 255, 102, 0.02);
+            z-index: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: panelEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes panelEntrance {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ヘッダー */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        header h1 i {
+            color: var(--primary);
+            text-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            background: rgba(0, 255, 102, 0.08);
+            border: 1px solid var(--primary);
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+            color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* メイングリッドレイアウト */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.8fr 1.3fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* カードの共通構造 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--primary);
+            border-bottom: 1px solid rgba(0, 255, 102, 0.1);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title i {
+            margin-right: 0.5rem;
+        }
+
+        /* 1. ボードエリア */
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* オセロ盤面 */
+        .othello-board {
+            width: 100%;
+            max-width: 440px;
+            aspect-ratio: 1;
+            background: #0a1712;
+            border: 4px solid #00ff66;
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 2px;
+            padding: 4px;
+            position: relative;
+        }
+
+        .board-cell {
+            background: rgba(15, 35, 28, 0.8);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .board-cell:hover {
+            background: rgba(0, 255, 102, 0.08);
+        }
+
+        /* 石の描画 */
+        .disc {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            position: absolute;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) , background-color 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transform: scale(0);
+        }
+
+        /* 黒石（プレイヤー / AI 1） */
+        .disc.black {
+            background: radial-gradient(circle at 30% 30%, #00ff66 0%, #02471d 80%, #000 100%);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: scale(1);
+        }
+
+        /* 白石（AI / AI 2） */
+        .disc.white {
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #a3c4f3 70%, #4a5d78 100%);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transform: scale(1);
+        }
+
+        /* 石の裏返りアニメーション用クラス */
+        .disc.flip {
+            transform: scale(1) rotateY(180deg);
+        }
+
+        /* 着手可能なセルのインジケータ */
+        .cell-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary);
+            background: transparent;
+            box-shadow: 0 0 8px var(--secondary-glow);
+            opacity: 0.65;
+            pointer-events: none;
+            animation: indicatorPulse 1.5s infinite alternate;
+        }
+
+        @keyframes indicatorPulse {
+            0% { transform: scale(0.9); opacity: 0.4; }
+            100% { transform: scale(1.15); opacity: 0.9; }
+        }
+
+        /* セル上の評価スコア表示 */
+        .cell-score {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            opacity: 0.75;
+            font-weight: 500;
+        }
+
+        /* 評価ヒートマップオーバーレイ */
+        .heatmap-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.15;
+            mix-blend-mode: screen;
+            transition: var(--transition);
+        }
+
+        /* ゲーム情報表示 */
+        .game-status-panel {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .status-item span:first-child {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .status-item span:last-child {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .status-item.p1 span:last-child {
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .status-item.p2 span:last-child {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255,255,255,0.4);
+        }
+
+        /* 2. コントロールパネル */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .btn {
+            background: rgba(0, 255, 102, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.65rem 1rem;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #050a08;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn.primary-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #050a08;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 255, 102, 0.2);
+        }
+
+        .btn.primary-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(0, 255, 102, 0.4);
+        }
+
+        .toggle-switch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.65rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 102, 0.05);
+        }
+
+        .toggle-switch label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* スイッチスタイル */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .3s;
+            border-radius: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(0, 255, 102, 0.2);
+            border-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* スライダーインプット */
+        .param-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: rgba(0,0,0,0.15);
+            padding: 0.85rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .param-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .param-header span:first-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .param-header span:last-child {
+            color: var(--secondary);
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* 3. シミュレーション設定 ＆ 結果 */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        .settings-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        .settings-grid::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .strategy-select {
+            background: rgba(10, 22, 18, 0.9);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .strategy-select option {
+            background: #0a1712;
+            color: var(--text-main);
+        }
+
+        /* 統計表示 */
+        .stats-dashboard {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.4rem;
+        }
+
+        .stats-row:last-child {
+            border: none;
+            padding: 0;
+        }
+
+        .stats-label {
+            color: var(--text-muted);
+        }
+
+        .stats-value {
+            font-weight: 700;
+        }
+
+        .win-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            position: relative;
+        }
+
+        .win-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .win-bar.p1 {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .win-bar.p2 {
+            background: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+        }
+
+        /* ログフィード */
+        .console-log {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #55ff77;
+            height: 170px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .console-log::-webkit-scrollbar {
+            width: 4px;
+        }
+        .console-log::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .log-entry {
+            line-height: 1.4;
+            border-left: 2px solid rgba(0, 255, 102, 0.2);
+            padding-left: 0.5rem;
+            animation: entryFade 0.2s ease forwards;
+        }
+
+        @keyframes entryFade {
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-time {
+            color: var(--secondary);
+            margin-right: 0.4rem;
+        }
+
+        .log-info {
+            color: var(--text-muted);
+        }
+
+        /* 評価ゲージ（チェスのようなサイドバー） */
+        .eval-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+
+        .eval-bar-fill {
+            width: 100%;
+            background: #fff;
+            position: absolute;
+            bottom: 0;
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .eval-bar-marker {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 5px var(--primary);
+            z-index: 2;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* タブメニュー（AIパラメータ切り替え） */
+        .tab-menu {
+            display: flex;
+            border-bottom: 1px solid rgba(0, 255, 102, 0.1);
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-cyber"></div>
+
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> RETURN TO PORTFOLIO
+    </a>
+
+    <div class="container">
+        <!-- ヘッダー部 -->
+        <header>
+            <h1><i class="fa-solid fa-brain"></i> Neural Tactical Analyzer</h1>
+            <div class="status-badge" id="statusBadge">
+                <i class="fa-solid fa-microchip"></i> SYSTEM READY
+            </div>
+        </header>
+
+        <!-- メイングリッド -->
+        <main class="main-grid">
+            <!-- 1. ゲームボード ＆ 情報 -->
+            <section class="card board-container">
+                <div class="card-title">
+                    <span><i class="fa-solid fa-gamepad"></i> Simulation Board</span>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; width: 100%; justify-content: center; align-items: stretch; height: 360px; max-width: 400px;">
+                    <!-- 評価アドバンテージバー -->
+                    <div class="eval-bar-wrapper" title="盤面評価アドバンテージ">
+                        <div class="eval-bar-fill" id="evalBarFill" style="height: 50%;"></div>
+                        <div class="eval-bar-marker" id="evalBarMarker" style="top: 50%;"></div>
+                    </div>
+
+                    <!-- オセロ盤 -->
+                    <div class="othello-board" id="othelloBoard">
+                        <!-- セルはJSによって動的生成 -->
+                    </div>
+                </div>
+
+                <div class="game-status-panel">
+                    <div class="status-item p1">
+                        <span>Black (P1)</span>
+                        <span id="discCountBlack">2</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Turn</span>
+                        <span id="currentTurnColor" style="color: var(--primary);">BLACK</span>
+                    </div>
+                    <div class="status-item p2">
+                        <span>White (AI)</span>
+                        <span id="discCountWhite">2</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. AI詳細パラメータ ＆ アルゴリズムチューナー -->
+            <section class="card">
+                <div class="card-title">
+                    <span><i class="fa-solid fa-sliders"></i> Strategy Configuration</span>
+                </div>
+
+                <div class="tab-menu">
+                    <button class="tab-btn active" onclick="switchTab('ai1-params')">Black AI (P1)</button>
+                    <button class="tab-btn" onclick="switchTab('ai2-params')">White AI (P2)</button>
+                </div>
+
+                <!-- Black AIの戦略パラメータ -->
+                <div class="tab-content active" id="ai1-params">
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">基本戦略アルゴリズム</label>
+                        <select class="strategy-select" id="ai1Strategy" onchange="updateStrategies()">
+                            <option value="player">MANUAL PLAYER (人間操作)</option>
+                            <option value="minimax" selected>最強 MINIMAX + ALPHA-BETA (探索AI)</option>
+                            <option value="greedy">GREEDY (目先の最大獲得重視)</option>
+                            <option value="random">RANDOM (ランダム着手)</option>
+                        </select>
+                    </div>
+
+                    <!-- パラメータスライダー群 -->
+                    <div class="settings-grid">
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>探索の深さ (Depth)</span>
+                                <span id="lbl-ai1-depth">4 手先</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-depth" min="1" max="5" value="4" oninput="updateParamLabel('ai1-depth', this.value, ' 手先')">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>角の評価ウェイト (Corner Weight)</span>
+                                <span id="lbl-ai1-corner">100</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-corner" min="0" max="200" value="100" oninput="updateParamLabel('ai1-corner', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>X打ちペナルティ (X-Square Weight)</span>
+                                <span id="lbl-ai1-xsquare">-40</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-xsquare" min="-150" max="0" value="-40" oninput="updateParamLabel('ai1-xsquare', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>C打ちペナルティ (C-Square Weight)</span>
+                                <span id="lbl-ai1-csquare">-20</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-csquare" min="-100" max="0" value="-20" oninput="updateParamLabel('ai1-csquare', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>辺の評価ウェイト (Edge Weight)</span>
+                                <span id="lbl-ai1-edge">30</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-edge" min="0" max="100" value="30" oninput="updateParamLabel('ai1-edge', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>開放度（相手の着手可能数減）重視</span>
+                                <span id="lbl-ai1-mobility">15</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-mobility" min="0" max="100" value="15" oninput="updateParamLabel('ai1-mobility', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>確定石（Stability）ボーナス</span>
+                                <span id="lbl-ai1-stability">25</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai1-stability" min="0" max="100" value="25" oninput="updateParamLabel('ai1-stability', this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- White AIの戦略パラメータ -->
+                <div class="tab-content" id="ai2-params">
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">基本戦略アルゴリズム</label>
+                        <select class="strategy-select" id="ai2Strategy" onchange="updateStrategies()">
+                            <option value="minimax" selected>最強 MINIMAX + ALPHA-BETA (探索AI)</option>
+                            <option value="greedy">GREEDY (目先の最大獲得重視)</option>
+                            <option value="random">RANDOM (ランダム着手)</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>探索の深さ (Depth)</span>
+                                <span id="lbl-ai2-depth">4 手先</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-depth" min="1" max="5" value="4" oninput="updateParamLabel('ai2-depth', this.value, ' 手先')">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>角の評価ウェイト (Corner Weight)</span>
+                                <span id="lbl-ai2-corner">100</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-corner" min="0" max="200" value="100" oninput="updateParamLabel('ai2-corner', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>X打ちペナルティ (X-Square Weight)</span>
+                                <span id="lbl-ai2-xsquare">-40</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-xsquare" min="-150" max="0" value="-40" oninput="updateParamLabel('ai2-xsquare', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>C打ちペナルティ (C-Square Weight)</span>
+                                <span id="lbl-ai2-csquare">-20</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-csquare" min="-100" max="0" value="-20" oninput="updateParamLabel('ai2-csquare', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>辺の評価ウェイト (Edge Weight)</span>
+                                <span id="lbl-ai2-edge">30</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-edge" min="0" max="100" value="30" oninput="updateParamLabel('ai2-edge', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>開放度（相手の着手可能数減）重視</span>
+                                <span id="lbl-ai2-mobility">15</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-mobility" min="0" max="100" value="15" oninput="updateParamLabel('ai2-mobility', this.value)">
+                        </div>
+
+                        <div class="param-control">
+                            <div class="param-header">
+                                <span>確定石（Stability）ボーナス</span>
+                                <span id="lbl-ai2-stability">25</span>
+                            </div>
+                            <input type="range" class="range-slider" id="ai2-stability" min="0" max="100" value="25" oninput="updateParamLabel('ai2-stability', this.value)">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. コントローラ ＆ シミュレーションモード -->
+            <section class="card">
+                <div class="card-title">
+                    <span><i class="fa-solid fa-gears"></i> Engine Controls</span>
+                </div>
+
+                <!-- 手動対戦/単発シミュレーション操作 -->
+                <div class="btn-group">
+                    <button class="btn primary-btn" id="startBtn" onclick="togglePlayState()">
+                        <i class="fa-solid fa-play"></i> START / RUN
+                    </button>
+                    <button class="btn" onclick="resetSimulator()">
+                        <i class="fa-solid fa-rotate-left"></i> RESET
+                    </button>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" id="undoBtn" onclick="undoMove()">
+                        <i class="fa-solid fa-backward"></i> UNDO
+                    </button>
+                    <button class="btn" id="stepBtn" onclick="executeStep()">
+                        <i class="fa-solid fa-forward-step"></i> STEP
+                    </button>
+                </div>
+
+                <div class="toggle-switch">
+                    <label for="showHeatmap">評価値ヒートマップ</label>
+                    <span class="switch">
+                        <input type="checkbox" id="showHeatmap" onchange="toggleHeatmap(this.checked)">
+                        <span class="slider"></span>
+                    </span>
+                </div>
+
+                <!-- 連続シミュレーションモード設定 -->
+                <div style="border-top: 1px solid rgba(0,255,102,0.1); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Bulk Game Simulator</span>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div>
+                            <label style="font-size: 0.65rem; color: var(--text-muted);">対戦回数</label>
+                            <select class="strategy-select" id="simCount">
+                                <option value="1">1 回</option>
+                                <option value="10">10 回</option>
+                                <option value="50">50 回</option>
+                                <option value="100" selected>100 回 (統計取得)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.65rem; color: var(--text-muted);">対戦スピード</label>
+                            <select class="strategy-select" id="simSpeed">
+                                <option value="500">遅い (500ms)</option>
+                                <option value="100">速い (100ms)</option>
+                                <option value="0" selected>超高速 (0ms - 統計向け)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn primary-btn" id="bulkRunBtn" onclick="runBulkSimulation()">
+                        <i class="fa-solid fa-network-wired"></i> RUN BULK SIMULATION
+                    </button>
+
+                    <!-- 統計情報 -->
+                    <div class="stats-dashboard">
+                        <div class="stats-row">
+                            <span class="stats-label">実行済み対戦数</span>
+                            <span class="stats-value" id="statsGames">0 / 0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Black AI 勝利数</span>
+                            <span class="stats-value" id="statsBlackWins">0 (0.0%)</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">White AI 勝利数</span>
+                            <span class="stats-value" id="statsWhiteWins">0 (0.0%)</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">引き分け数</span>
+                            <span class="stats-value" id="statsDraws">0</span>
+                        </div>
+                        <div class="win-bar-container">
+                            <div class="win-bar p1" id="statsP1WinBar" style="width: 50%;"></div>
+                            <div class="win-bar p2" id="statsP2WinBar" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- コンソールログ -->
+        <section class="card" style="gap: 0.75rem;">
+            <div class="card-title" style="border: none; padding: 0;">
+                <span><i class="fa-solid fa-terminal"></i> Tactical Analysis Logs</span>
+                <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="clearLogs()"><i class="fa-solid fa-trash"></i> CLEAR</span>
+            </div>
+            <div class="console-log" id="consoleLog">
+                <div class="log-entry">
+                    <span class="log-time">[SYSTEM]</span>
+                    <span>タクティカルAIシミュレーター初期化完了。黒(P1)の戦略を設定して開始してください。</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- アクションバー -->
+        <footer style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">NEURAL TACTICAL ANALYZER v2.0.2</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">AESTHETIC DEEP OCEAN MATRIX</span>
+        </footer>
+    </div>
+
+    <script>
+        // --- オセロエンジン変数 ＆ 定数 ---
+        const BLACK = 1;
+        const WHITE = -1;
+        const EMPTY = 0;
+
+        // ボード表現: 8x8の2次元配列
+        let board = Array(8).fill(null).map(() => Array(8).fill(EMPTY));
+        let currentTurn = BLACK;
+        let history = []; // アンドゥ用の盤面履歴
+
+        // シミュレータ状態
+        let isRunning = false;
+        let timeoutId = null;
+        let heatmapEnabled = false;
+
+        // 統計データ
+        let statCount = {
+            totalGames: 0,
+            blackWins: 0,
+            whiteWins: 0,
+            draws: 0,
+            targetGames: 0
+        };
+
+        // --- 静的評価テーブル (Static Weight Maps) ---
+        // 基本の評価マップ
+        const BOARD_WEIGHTS = [
+            [100, -40,  20,   5,   5,  20, -40, 100],
+            [-40, -60,  -5,  -5,  -5,  -5, -60, -40],
+            [ 20,  -5,  15,   3,   3,  15,  -5,  20],
+            [  5,  -5,   3,   3,   3,   3,  -5,   5],
+            [  5,  -5,   3,   3,   3,   3,  -5,   5],
+            [ 20,  -5,  15,   3,   3,  15,  -5,  20],
+            [-40, -60,  -5,  -5,  -5,  -5, -60, -40],
+            [100, -40,  20,   5,   5,  20, -40, 100]
+        ];
+
+        // 各マスの座標分類
+        function getCellType(r, c) {
+            if ((r === 0 || r === 7) && (c === 0 || c === 7)) return 'corner';
+            
+            // X-Square: 角の対角線隣
+            if ((r === 1 && c === 1) || (r === 1 && c === 6) || (r === 6 && c === 1) || (r === 6 && c === 6)) return 'xsquare';
+            
+            // C-Square: 角の縦横隣
+            if (
+                ((r === 0 || r === 7) && (c === 1 || c === 6)) ||
+                ((r === 1 || r === 6) && (c === 0 || c === 7))
+            ) return 'csquare';
+            
+            // Edge: その他外周
+            if (r === 0 || r === 7 || c === 0 || c === 7) return 'edge';
+            
+            return 'inner';
+        }
+
+        // --- オセロゲームロジック ---
+
+        // 初期化
+        function initBoard() {
+            board = Array(8).fill(null).map(() => Array(8).fill(EMPTY));
+            board[3][3] = WHITE;
+            board[3][4] = BLACK;
+            board[4][3] = BLACK;
+            board[4][4] = WHITE;
+            currentTurn = BLACK;
+            history = [];
+        }
+
+        // コピー作成
+        function cloneBoard(b) {
+            return b.map(row => [...row]);
+        }
+
+        // 盤面内の境界チェック
+        function isValidCoords(r, c) {
+            return r >= 0 && r < 8 && c >= 0 && c < 8;
+        }
+
+        // 特定マスに石を置いた場合にひっくり返る石を取得
+        function getFlipsForMove(b, r, c, player) {
+            if (b[r][c] !== EMPTY) return [];
+            
+            const opponent = -player;
+            const flips = [];
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],           [0, 1],
+                [1, -1],  [1, 0],  [1, 1]
+            ];
+
+            for (const [dr, dc] of directions) {
+                let currR = r + dr;
+                let currC = c + dc;
+                const path = [];
+
+                while (isValidCoords(currR, currC) && b[currR][currC] === opponent) {
+                    path.push([currR, currC]);
+                    currR += dr;
+                    currC += dc;
+                }
+
+                if (isValidCoords(currR, currC) && b[currR][currC] === player && path.length > 0) {
+                    flips.push(...path);
+                }
+            }
+
+            return flips;
+        }
+
+        // 全ての有効な着手を取得
+        function getValidMoves(b, player) {
+            const moves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const flips = getFlipsForMove(b, r, c, player);
+                    if (flips.length > 0) {
+                        moves.push({ r, c, flips });
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // 着手実行
+        function executeMove(b, r, c, player, flips) {
+            const nextBoard = cloneBoard(b);
+            nextBoard[r][c] = player;
+            flips.forEach(([fr, fc]) => {
+                nextBoard[fr][fc] = player;
+            });
+            return nextBoard;
+        }
+
+        // 石の数をカウント
+        function countDiscs(b) {
+            let black = 0;
+            let white = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (b[r][c] === BLACK) black++;
+                    if (b[r][c] === WHITE) white++;
+                }
+            }
+            return { black, white };
+        }
+
+        // --- ルールベース評価エンジン & AI ---
+
+        // AI設定の読み込み
+        function getAISettings(player) {
+            const prefix = player === BLACK ? 'ai1' : 'ai2';
+            
+            // アルゴリズム
+            const algoSelect = document.getElementById(`${prefix}Strategy`);
+            const algo = algoSelect ? algoSelect.value : 'minimax';
+
+            return {
+                algo,
+                depth: parseInt(document.getElementById(`${prefix}-depth`).value),
+                corner: parseFloat(document.getElementById(`${prefix}-corner`).value),
+                xsquare: parseFloat(document.getElementById(`${prefix}-xsquare`).value),
+                csquare: parseFloat(document.getElementById(`${prefix}-csquare`).value),
+                edge: parseFloat(document.getElementById(`${prefix}-edge`).value),
+                mobility: parseFloat(document.getElementById(`${prefix}-mobility`).value),
+                stability: parseFloat(document.getElementById(`${prefix}-stability`).value)
+            };
+        }
+
+        // 確定石 (Stability) の検出
+        function detectStableDiscs(b, player) {
+            const stable = Array(8).fill(null).map(() => Array(8).fill(false));
+            const corners = [[0, 0], [0, 7], [7, 0], [7, 7]];
+            
+            // 角に自分の石があれば確定石の起点とする
+            corners.forEach(([cr, cc]) => {
+                if (b[cr][cc] === player) {
+                    stable[cr][cc] = true;
+                }
+            });
+
+            // 水平/垂直に確定石から接続する石を繰り返し検出
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (b[r][c] === player && !stable[r][c]) {
+                            // 角からの接続度、または全方位が埋まっている、または既に確定石で守られているかを判定
+                            // 簡略化した確定石チェック: 4つの端辺において角と隣接し、かつ同色の連続
+                            const isEdge = r === 0 || r === 7 || c === 0 || c === 7;
+                            if (isEdge) {
+                                // 辺の隣接セルが既に確定石である場合
+                                const neighbors = [
+                                    [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]
+                                ];
+                                for (const [nr, nc] of neighbors) {
+                                    if (isValidCoords(nr, nc) && (nr === r || nc === c) && stable[nr][nc]) {
+                                        stable[r][c] = true;
+                                        changed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            let count = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (stable[r][c]) count++;
+                }
+            }
+            return count;
+        }
+
+        // 盤面評価関数
+        function evaluateBoard(b, player, settings) {
+            let score = 0;
+            const opponent = -player;
+
+            // 1. 位置のウェイト (静的マップウェイトの動的調整値)
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (b[r][c] === EMPTY) continue;
+
+                    const type = getCellType(r, c);
+                    let weight = 0;
+
+                    switch (type) {
+                        case 'corner': weight = settings.corner; break;
+                        case 'xsquare': weight = settings.xsquare; break;
+                        case 'csquare': weight = settings.csquare; break;
+                        case 'edge': weight = settings.edge; break;
+                        default: weight = 3; // 内側のデフォルト値
+                    }
+
+                    if (b[r][c] === player) {
+                        score += weight;
+                    } else {
+                        score -= weight;
+                    }
+                }
+            }
+
+            // 2. 着手可能数 (Mobility)
+            if (settings.mobility > 0) {
+                const myMoves = getValidMoves(b, player).length;
+                const opponentMoves = getValidMoves(b, opponent).length;
+                score += (myMoves - opponentMoves) * settings.mobility;
+            }
+
+            // 3. 確定石 (Stability)
+            if (settings.stability > 0) {
+                const myStable = detectStableDiscs(b, player);
+                const opponentStable = detectStableDiscs(b, opponent);
+                score += (myStable - opponentStable) * settings.stability;
+            }
+
+            // 4. 石の総数 (終盤に重要度を上げる)
+            const count = countDiscs(b);
+            const totalDiscs = count.black + count.white;
+            if (totalDiscs > 50) {
+                // 終盤は石の数が勝敗に直結するため
+                const discDiff = player === BLACK ? (count.black - count.white) : (count.white - count.black);
+                score += discDiff * 15;
+            }
+
+            return score;
+        }
+
+        // アルファベータ法を伴うミニマックス探索
+        let nodesVisited = 0; // デバッグ用
+
+        function minimax(b, depth, alpha, beta, isMaximizing, player, settings) {
+            nodesVisited++;
+            const activePlayer = isMaximizing ? player : -player;
+            const validMoves = getValidMoves(b, activePlayer);
+
+            // ゲーム終了または限界深度到達
+            if (depth === 0 || (validMoves.length === 0 && getValidMoves(b, -activePlayer).length === 0)) {
+                return { score: evaluateBoard(b, player, settings), move: null };
+            }
+
+            // パス処理
+            if (validMoves.length === 0) {
+                return { 
+                    score: minimax(b, depth - 1, alpha, beta, !isMaximizing, player, settings).score,
+                    move: null 
+                };
+            }
+
+            let bestMove = null;
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                // コーナーや良い評価を優先して探索速度を上げる（簡単なムーブソート）
+                validMoves.sort((a, b) => {
+                    const weightA = BOARD_WEIGHTS[a.r][a.c];
+                    const weightB = BOARD_WEIGHTS[b.r][b.c];
+                    return weightB - weightA;
+                });
+
+                for (const move of validMoves) {
+                    const nextBoard = executeMove(b, move.r, move.c, activePlayer, move.flips);
+                    const evaluation = minimax(nextBoard, depth - 1, alpha, beta, false, player, settings).score;
+                    if (evaluation > maxEval) {
+                        maxEval = evaluation;
+                        bestMove = move;
+                    }
+                    alpha = Math.max(alpha, evaluation);
+                    if (beta <= alpha) break; // βカット
+                }
+                return { score: maxEval, move: bestMove };
+            } else {
+                let minEval = Infinity;
+                validMoves.sort((a, b) => {
+                    const weightA = BOARD_WEIGHTS[a.r][a.c];
+                    const weightB = BOARD_WEIGHTS[b.r][b.c];
+                    return weightB - weightA;
+                });
+
+                for (const move of validMoves) {
+                    const nextBoard = executeMove(b, move.r, move.c, activePlayer, move.flips);
+                    const evaluation = minimax(nextBoard, depth - 1, alpha, beta, true, player, settings).score;
+                    if (evaluation < minEval) {
+                        minEval = evaluation;
+                        bestMove = move;
+                    }
+                    beta = Math.min(beta, evaluation);
+                    if (beta <= alpha) break; // αカット
+                }
+                return { score: minEval, move: bestMove };
+            }
+        }
+
+        // AIの意思決定
+        function getAIMove(b, player) {
+            const settings = getAISettings(player);
+            const moves = getValidMoves(b, player);
+            if (moves.length === 0) return null;
+
+            if (settings.algo === 'random') {
+                return moves[Math.floor(Math.random() * moves.length)];
+            }
+
+            if (settings.algo === 'greedy') {
+                // 最も多く石をひっくり返せる手
+                return moves.reduce((best, m) => m.flips.length > best.flips.length ? m : best, moves[0]);
+            }
+
+            // ミニマックス探索
+            nodesVisited = 0;
+            const startTime = performance.now();
+            const result = minimax(b, settings.depth, -Infinity, Infinity, true, player, settings);
+            const endTime = performance.now();
+
+            const timeTaken = Math.round(endTime - startTime);
+            addLog('AI思考ログ', `${player === BLACK ? 'Black' : 'White'} (Depth:${settings.depth}) | 評価値: ${result.score.toFixed(0)} | ノード数: ${nodesVisited} | 所要時間: ${timeTaken}ms`);
+
+            return result.move;
+        }
+
+        // --- UIレンダリング ＆ イベント ---
+
+        // 盤面を描画
+        function renderBoard() {
+            const boardEl = document.getElementById('othelloBoard');
+            boardEl.innerHTML = '';
+
+            const validMoves = getValidMoves(board, currentTurn);
+            const isManualPlayer = (currentTurn === BLACK && getAISettings(BLACK).algo === 'player');
+
+            // 評価マップヒートマップ計算用
+            let heatmapWeights = [];
+            if (heatmapEnabled) {
+                const settings = getAISettings(currentTurn);
+                for (let r = 0; r < 8; r++) {
+                    heatmapWeights[r] = [];
+                    for (let c = 0; c < 8; c++) {
+                        let w = BOARD_WEIGHTS[r][c];
+                        const type = getCellType(r, c);
+                        if (type === 'corner') w = settings.corner;
+                        if (type === 'xsquare') w = settings.xsquare;
+                        if (type === 'csquare') w = settings.csquare;
+                        if (type === 'edge') w = settings.edge;
+                        heatmapWeights[r][c] = w;
+                    }
+                }
+            }
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'board-cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    // 石の追加
+                    if (board[r][c] !== EMPTY) {
+                        const disc = document.createElement('div');
+                        disc.className = `disc ${board[r][c] === BLACK ? 'black' : 'white'}`;
+                        cell.appendChild(disc);
+                    }
+
+                    // 有効な移動インジケータ（人間の手番かつ手動モード時）
+                    const validMove = validMoves.find(m => m.r === r && m.c === c);
+                    if (validMove && isManualPlayer) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'cell-indicator';
+                        cell.appendChild(indicator);
+                        
+                        cell.onclick = () => handleCellClick(r, c, validMove.flips);
+                    } else {
+                        cell.onclick = null;
+                    }
+
+                    // 評価値表示 & ヒートマップの適用
+                    if (heatmapEnabled) {
+                        const w = heatmapWeights[r][c];
+                        const scoreEl = document.createElement('span');
+                        scoreEl.className = 'cell-score';
+                        scoreEl.textContent = w;
+                        cell.appendChild(scoreEl);
+
+                        // 色によるヒートマップ
+                        const overlay = document.createElement('div');
+                        overlay.className = 'heatmap-overlay';
+                        if (w > 50) {
+                            overlay.style.backgroundColor = 'rgba(0, 255, 102, 0.4)'; // 安全グリーン
+                        } else if (w < -20) {
+                            overlay.style.backgroundColor = 'rgba(255, 0, 127, 0.4)'; // 危険ピンク/レッド
+                        } else {
+                            overlay.style.backgroundColor = 'rgba(0, 229, 255, 0.15)'; // シアン
+                        }
+                        cell.appendChild(overlay);
+                    }
+
+                    boardEl.appendChild(cell);
+                }
+            }
+
+            // ステータス更新
+            updateStatusUI();
+        }
+
+        // 石数と評価ゲージの更新
+        function updateStatusUI() {
+            const counts = countDiscs(board);
+            document.getElementById('discCountBlack').textContent = counts.black;
+            document.getElementById('discCountWhite').textContent = counts.white;
+
+            // ターンインジケータ
+            const turnEl = document.getElementById('currentTurnColor');
+            if (currentTurn === BLACK) {
+                turnEl.textContent = 'BLACK';
+                turnEl.style.color = 'var(--primary)';
+            } else {
+                turnEl.textContent = 'WHITE';
+                turnEl.style.color = '#fff';
+            }
+
+            // 評価ゲージ更新
+            const total = counts.black + counts.white;
+            let ratio = 50;
+            if (total > 0) {
+                ratio = (counts.white / total) * 100;
+            }
+            document.getElementById('evalBarFill').style.height = `${ratio}%`;
+            document.getElementById('evalBarMarker').style.top = `${100 - ratio}%`;
+        }
+
+        // マスクリック時の手動着手
+        function handleCellClick(r, c, flips) {
+            if (isRunning) return; // 自動実行中は無視
+            
+            // 履歴保存
+            history.push({
+                board: cloneBoard(board),
+                currentTurn: currentTurn
+            });
+
+            board = executeMove(board, r, c, currentTurn, flips);
+            addLog('プレイヤー着手', `黒 (Player) が ${String.fromCharCode(65 + c)}${r + 1} に着手しました。`);
+
+            // ターン交代
+            passOrSwitchTurn();
+            renderBoard();
+
+            // AIのターンであればトリガー
+            if (!isGameOver() && currentTurn === WHITE && getAISettings(WHITE).algo !== 'player') {
+                setTimeout(executeAIMove, 400);
+            }
+        }
+
+        // AIの着手を実行
+        function executeAIMove() {
+            const aiMove = getAIMove(board, currentTurn);
+            if (aiMove) {
+                // 履歴保存
+                history.push({
+                    board: cloneBoard(board),
+                    currentTurn: currentTurn
+                });
+
+                board = executeMove(board, aiMove.r, aiMove.c, currentTurn, aiMove.flips);
+                addLog('AI着手', `${currentTurn === BLACK ? '黒 (AI1)' : '白 (AI2)'} が ${String.fromCharCode(65 + aiMove.c)}${aiMove.r + 1} に着手しました。`);
+            } else {
+                addLog('AIパス', `${currentTurn === BLACK ? '黒' : '白'} に有効な着手がありません。パスします。`);
+            }
+
+            passOrSwitchTurn();
+            renderBoard();
+
+            // 終了判定
+            if (isGameOver()) {
+                handleGameOver();
+            } else {
+                // 次がまたAIの場合は自動進行フラグがあれば続行
+                if (isRunning) {
+                    const delay = parseInt(document.getElementById('simSpeed').value);
+                    if (delay === 0) {
+                        executeStep();
+                    } else {
+                        timeoutId = setTimeout(executeStep, delay);
+                    }
+                }
+            }
+        }
+
+        // アンドゥ処理
+        function undoMove() {
+            if (history.length === 0) return;
+            const lastState = history.pop();
+            board = lastState.board;
+            currentTurn = lastState.currentTurn;
+            addLog('UNDO', '一手戻しました。');
+            renderBoard();
+        }
+
+        // ターン切り替えまたはパス処理
+        function passOrSwitchTurn() {
+            const nextPlayer = -currentTurn;
+            const nextMoves = getValidMoves(board, nextPlayer);
+            const currentMoves = getValidMoves(board, currentTurn);
+
+            if (nextMoves.length > 0) {
+                currentTurn = nextPlayer;
+            } else if (currentMoves.length > 0) {
+                addLog('SYSTEM', `${nextPlayer === BLACK ? '黒' : '白'} は着手不可能のためパスします。`);
+            } else {
+                // 両者着手不可能
+                addLog('SYSTEM', 'ゲーム終了。両者着手可能なマスがありません。');
+            }
+        }
+
+        // ゲームオーバー判定
+        function isGameOver() {
+            return getValidMoves(board, BLACK).length === 0 && getValidMoves(board, WHITE).length === 0;
+        }
+
+        // ゲーム終了処理
+        function handleGameOver() {
+            isRunning = false;
+            document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-play"></i> START / RUN`;
+            document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-flag"></i> GAME OVER`;
+            document.getElementById('statusBadge').style.borderColor = 'var(--accent)';
+            document.getElementById('statusBadge').style.color = 'var(--accent)';
+            document.getElementById('statusBadge').style.boxShadow = '0 0 12px var(--accent-glow)';
+
+            const counts = countDiscs(board);
+            let winnerText = '';
+            if (counts.black > counts.white) {
+                winnerText = `BLACKの勝利！ (${counts.black} vs ${counts.white})`;
+                statCount.blackWins++;
+            } else if (counts.white > counts.black) {
+                winnerText = `WHITEの勝利！ (${counts.white} vs ${counts.black})`;
+                statCount.whiteWins++;
+            } else {
+                winnerText = `引き分け！ (${counts.black} vs ${counts.white})`;
+                statCount.draws++;
+            }
+
+            addLog('対戦結果', winnerText);
+            
+            // 連続シミュレーション中なら次のゲームを開始
+            if (statCount.totalGames < statCount.targetGames) {
+                statCount.totalGames++;
+                updateStatsUI();
+                if (statCount.totalGames < statCount.targetGames) {
+                    initBoard();
+                    isRunning = true;
+                    const delay = parseInt(document.getElementById('simSpeed').value);
+                    if (delay === 0) {
+                        setTimeout(runFastSimulationStep, 0);
+                    } else {
+                        timeoutId = setTimeout(executeStep, delay);
+                    }
+                } else {
+                    addLog('シミュレーション完了', `連続 ${statCount.targetGames} 回のAI対戦シミュレーションが完了しました。`);
+                }
+            }
+        }
+
+        // --- 連続シミュレーション実行 ---
+        
+        function runBulkSimulation() {
+            const countSelect = document.getElementById('simCount');
+            const target = parseInt(countSelect.value);
+            
+            // 統計情報リセット
+            statCount = {
+                totalGames: 1,
+                blackWins: 0,
+                whiteWins: 0,
+                draws: 0,
+                targetGames: target
+            };
+
+            addLog('シミュレーション開始', `AI同士の ${target} 回連続対戦シミュレーションを開始します...`);
+            resetSimulator();
+            
+            isRunning = true;
+            document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-pause"></i> PAUSE`;
+            document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> RUNNING SIM`;
+            
+            const delay = parseInt(document.getElementById('simSpeed').value);
+            if (delay === 0) {
+                // 超高速モード：レンダリングを省いてJSループで高速処理
+                setTimeout(runFastSimulationStep, 0);
+            } else {
+                executeStep();
+            }
+        }
+
+        // 高速シミュレーションの1ステップ（再帰的）
+        function runFastSimulationStep() {
+            if (!isRunning) return;
+
+            while (!isGameOver()) {
+                const aiMove = getAIMove(board, currentTurn);
+                if (aiMove) {
+                    board = executeMove(board, aiMove.r, aiMove.c, currentTurn, aiMove.flips);
+                }
+                passOrSwitchTurn();
+            }
+            
+            handleGameOver();
+        }
+
+        // 統計表示の更新
+        function updateStatsUI() {
+            const total = statCount.totalGames - 1;
+            document.getElementById('statsGames').textContent = `${total} / ${statCount.targetGames}`;
+            
+            let bPct = 0;
+            let wPct = 0;
+            if (total > 0) {
+                bPct = ((statCount.blackWins / total) * 100).toFixed(1);
+                wPct = ((statCount.whiteWins / total) * 100).toFixed(1);
+            }
+
+            document.getElementById('statsBlackWins').textContent = `${statCount.blackWins} (${bPct}%)`;
+            document.getElementById('statsWhiteWins').textContent = `${statCount.whiteWins} (${wPct}%)`;
+            document.getElementById('statsDraws').textContent = statCount.draws;
+
+            // バーの長さ比率
+            const bBar = document.getElementById('statsP1WinBar');
+            const wBar = document.getElementById('statsP2WinBar');
+            if (statCount.blackWins === 0 && statCount.whiteWins === 0) {
+                bBar.style.width = '50%';
+                wBar.style.width = '50%';
+            } else {
+                const sum = statCount.blackWins + statCount.whiteWins;
+                bBar.style.width = `${(statCount.blackWins / sum) * 100}%`;
+                wBar.style.width = `${(statCount.whiteWins / sum) * 100}%`;
+            }
+        }
+
+        // --- シミュレーションコントロール ---
+
+        function togglePlayState() {
+            if (isRunning) {
+                // 一時停止
+                isRunning = false;
+                if (timeoutId) clearTimeout(timeoutId);
+                document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-play"></i> RESUME`;
+                document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-circle-pause"></i> PAUSED`;
+                document.getElementById('statusBadge').style.borderColor = 'var(--secondary)';
+                document.getElementById('statusBadge').style.color = 'var(--secondary)';
+                document.getElementById('statusBadge').style.boxShadow = '0 0 12px var(--secondary-glow)';
+            } else {
+                // 再開 / 開始
+                isRunning = true;
+                document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-pause"></i> PAUSE`;
+                document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-microchip"></i> RUNNING`;
+                document.getElementById('statusBadge').style.borderColor = 'var(--primary)';
+                document.getElementById('statusBadge').style.color = 'var(--primary)';
+                document.getElementById('statusBadge').style.boxShadow = '0 0 12px var(--primary-glow)';
+                
+                executeStep();
+            }
+        }
+
+        // 1ステップ進行
+        function executeStep() {
+            if (isGameOver()) {
+                handleGameOver();
+                return;
+            }
+
+            const currentAlgo = getAISettings(currentTurn).algo;
+            if (currentAlgo === 'player') {
+                addLog('SYSTEM', 'プレイヤーの入力待ちです。');
+                isRunning = false;
+                document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-play"></i> START / RUN`;
+                document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-user"></i> YOUR TURN`;
+                return;
+            }
+
+            executeAIMove();
+        }
+
+        function resetSimulator() {
+            if (timeoutId) clearTimeout(timeoutId);
+            isRunning = false;
+            initBoard();
+            renderBoard();
+            
+            document.getElementById('startBtn').innerHTML = `<i class="fa-solid fa-play"></i> START / RUN`;
+            document.getElementById('statusBadge').innerHTML = `<i class="fa-solid fa-microchip"></i> SYSTEM READY`;
+            document.getElementById('statusBadge').style.borderColor = 'var(--primary)';
+            document.getElementById('statusBadge').style.color = 'var(--primary)';
+            document.getElementById('statusBadge').style.boxShadow = '0 0 12px var(--primary-glow)';
+            
+            addLog('SYSTEM', 'シミュレータ初期盤面をセットしました。');
+        }
+
+        // ヒートマップ切り替え
+        function toggleHeatmap(enabled) {
+            heatmapEnabled = enabled;
+            renderBoard();
+        }
+
+        // スライダーパラメータのラベル更新
+        function updateParamLabel(id, val, suffix = '') {
+            document.getElementById(`lbl-${id}`).textContent = val + suffix;
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            // アクティブなボタンの切り替え
+            const isAI2 = tabId === 'ai2-params';
+            const buttons = document.querySelectorAll('.tab-btn');
+            if (isAI2) {
+                buttons[1].classList.add('active');
+            } else {
+                buttons[0].classList.add('active');
+            }
+        }
+
+        function updateStrategies() {
+            resetSimulator();
+        }
+
+        // ログ出力用
+        function addLog(tag, message) {
+            const consoleEl = document.getElementById('consoleLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span><span class="log-info">[${tag}]</span> ${message}`;
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+
+            // ログ制限
+            if (consoleEl.children.length > 50) {
+                consoleEl.removeChild(consoleEl.firstChild);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('consoleLog').innerHTML = '';
+        }
+
+        // 初期化実行
+        window.addEventListener('DOMContentLoaded', () => {
+            initBoard();
+            renderBoard();
+        });
+    </script>
+</body>
+
+</html>
