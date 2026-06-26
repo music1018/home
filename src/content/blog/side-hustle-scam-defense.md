@@ -2,7 +2,7 @@
 title: '「スマホで簡単に月30万」の甘い罠？副業詐欺に騙されないための3つの防衛策'
 description: '副業を始めたいけれど、詐欺が怖くて一歩踏み出せない方へ。よくある詐欺の手口と、本当に安全で確実な副業を見分けるための3つの防衛策を教えます。'
 pubDate: '2026-06-26'
-heroImage: '../../assets/blog-placeholder-4.jpg'
+heroImage: '/assets/blog-placeholder-4.jpg'
 ---
 
 「収入を増やしたいけれど、副業詐欺のニュースを見て怖くなった」

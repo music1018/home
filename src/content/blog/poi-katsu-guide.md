@@ -2,7 +2,7 @@
 title: '【リスクゼロ】スマホ1台で安全に月5,000円！ポイ活のおすすめサイトと賢い稼ぎ方'
 description: 'お小遣い稼ぎの定番「ポイ活」。初心者でも安全に月5,000円を稼ぐためのコツや、信頼できるおすすめのポイントサイトを徹底比較して紹介します。'
 pubDate: '2026-06-26'
-heroImage: '../../assets/blog-placeholder-2.jpg'
+heroImage: '/assets/blog-placeholder-2.jpg'
 ---
 
 「少しでも生活費の足しにお小遣いを稼ぎたい」

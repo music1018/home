@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AI CopyCraft - ブログ記事やSNS投稿の下書きを瞬時に自動生成する高機能AIアシスタントツールです。">
     <title>AI CopyCraft | ブログ＆SNS下書き自動生成ツール</title>
-    
+
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Marked.js (Markdown Parser) -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -22,17 +25,17 @@
             --bg-card: rgba(31, 41, 55, 0.4);
             --border-color: rgba(255, 255, 255, 0.08);
             --border-focus: #6366f1;
-            
+
             --primary: #818cf8;
             --primary-glow: rgba(129, 140, 248, 0.3);
             --secondary: #34d399;
             --secondary-glow: rgba(52, 211, 153, 0.3);
             --accent: #f43f5e;
-            
+
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
             --text-inverse: #0f172a;
-            
+
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -359,22 +362,36 @@
         }
 
         /* Markdown スタイル */
-        .preview-content h1, .preview-content h2, .preview-content h3 {
+        .preview-content h1,
+        .preview-content h2,
+        .preview-content h3 {
             margin-top: 1.5rem;
             margin-bottom: 0.75rem;
             font-family: 'Outfit', sans-serif;
             color: var(--primary);
         }
-        .preview-content h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; }
-        .preview-content h2 { font-size: 1.3rem; }
-        .preview-content h3 { font-size: 1.1rem; }
-        
+
+        .preview-content h1 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .preview-content h2 {
+            font-size: 1.3rem;
+        }
+
+        .preview-content h3 {
+            font-size: 1.1rem;
+        }
+
         .preview-content p {
             margin-bottom: 1rem;
             line-height: 1.7;
         }
 
-        .preview-content ul, .preview-content ol {
+        .preview-content ul,
+        .preview-content ol {
             margin-bottom: 1rem;
             padding-left: 1.5rem;
         }
@@ -484,12 +501,21 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         /* トースト通知 */
@@ -514,7 +540,7 @@
         .toast.show {
             transform: translateY(0);
         }
-        
+
         /* 履歴セクション */
         .history-list {
             margin-top: 1rem;
@@ -524,7 +550,7 @@
             max-height: 150px;
             overflow-y: auto;
         }
-        
+
         .history-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
@@ -537,25 +563,26 @@
             align-items: center;
             transition: var(--transition);
         }
-        
+
         .history-item:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--primary);
         }
-        
+
         .history-item .title {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 80%;
         }
-        
+
         .history-item .date {
             color: var(--text-muted);
             font-size: 0.7rem;
         }
     </style>
 </head>
+
 <body>
 
     <div class="bg-glow"></div>
@@ -576,7 +603,7 @@
         <!-- 左側入力フォーム -->
         <section class="panel">
             <h2><i class="fa-solid fa-sliders"></i> 下書き設定</h2>
-            
+
             <div class="form-group">
                 <label>生成モード</label>
                 <div class="mode-selector">
@@ -630,12 +657,13 @@
                 <div class="spinner" id="spinner"></div>
                 <span class="btn-text" id="btnText"><i class="fa-solid fa-paper-plane"></i> AI下書きを生成する</span>
             </button>
-            
+
             <!-- 履歴機能 -->
             <div class="form-group" style="margin-top: 1rem;">
                 <label>最近の生成履歴</label>
                 <div class="history-list" id="historyList">
-                    <div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">履歴はありません</div>
+                    <div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">
+                        履歴はありません</div>
                 </div>
             </div>
         </section>
@@ -664,7 +692,8 @@
     <div class="modal" id="apiModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeApiModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem;"><i class="fa-solid fa-key" style="color: var(--primary);"></i> Gemini APIキーの設定</h3>
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem;"><i class="fa-solid fa-key"
+                    style="color: var(--primary);"></i> Gemini APIキーの設定</h3>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
                 本ツールはGoogleのGemini APIを直接呼び出します。キーはブラウザ内(LocalStorage)のみに保存され、第三者のサーバーに送信されることはありません。
             </p>
@@ -672,7 +701,8 @@
                 <label for="apiKey">APIキーを入力</label>
                 <input type="password" id="apiKey" placeholder="AIzaSy...">
                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-                    APIキーは <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary); text-decoration: underline;">Google AI Studio</a> から無料で取得できます。
+                    APIキーは <a href="https://aistudio.google.com/" target="_blank"
+                        style="color: var(--primary); text-decoration: underline;">Google AI Studio</a> から無料で取得できます。
                 </p>
             </div>
             <button class="btn-submit" onclick="saveApiKey()">キーを保存する</button>
@@ -694,7 +724,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('gemini_api_key');
             updateApiBadge(savedKey);
-            
+
             // モードボタンの切り替えロジック
             const modeBtns = document.querySelectorAll('.mode-btn');
             modeBtns.forEach(btn => {
@@ -703,7 +733,7 @@
                     const targetBtn = e.currentTarget;
                     targetBtn.classList.add('active');
                     currentMode = targetBtn.dataset.mode;
-                    
+
                     // モードに応じて文字数選択肢の表示/非表示
                     const wordCountGroup = document.getElementById('wordCountGroup');
                     if (currentMode === 'blog') {
@@ -889,12 +919,12 @@ ${toneText}
 
                 const data = await response.json();
                 const rawText = data.candidates[0].content.parts[0].text;
-                
+
                 // 結果の反映
                 generatedRawText = rawText;
                 previewArea.innerHTML = marked.parse(rawText);
                 copyBtn.disabled = false;
-                
+
                 // 履歴に追加
                 saveToHistory(document.getElementById('topic').value.trim().substring(0, 30), rawText);
 
@@ -922,43 +952,43 @@ ${toneText}
                 showToast('コピーに失敗しました');
             });
         }
-        
+
         // 履歴管理機能
         function saveToHistory(title, text) {
             if (!title) title = "無題の生成";
             const date = new Date();
-            const timeString = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            
+            const timeString = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
             history.unshift({ title, text, date: timeString });
-            
+
             // 最大5件保存
             if (history.length > 5) {
                 history.pop();
             }
-            
+
             localStorage.setItem('generation_history', JSON.stringify(history));
             renderHistoryList();
         }
-        
+
         function loadHistory() {
             const saved = localStorage.getItem('generation_history');
             if (saved) {
                 try {
                     history = JSON.parse(saved);
                     renderHistoryList();
-                } catch(e) {
+                } catch (e) {
                     console.error("履歴読み込み失敗:", e);
                 }
             }
         }
-        
+
         function renderHistoryList() {
             const listContainer = document.getElementById('historyList');
             if (history.length === 0) {
                 listContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">履歴はありません</div>`;
                 return;
             }
-            
+
             listContainer.innerHTML = history.map((item, index) => `
                 <div class="history-item" onclick="loadHistoryItem(${index})">
                     <span class="title">${escapeHTML(item.title)}</span>
@@ -966,7 +996,7 @@ ${toneText}
                 </div>
             `).join('');
         }
-        
+
         function loadHistoryItem(index) {
             if (history[index]) {
                 const item = history[index];
@@ -976,7 +1006,7 @@ ${toneText}
                 showToast('履歴から復元しました');
             }
         }
-        
+
         function escapeHTML(str) {
             return str
                 .replace(/&/g, "&amp;")
@@ -987,4 +1017,5 @@ ${toneText}
         }
     </script>
 </body>
+
 </html>
