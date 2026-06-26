@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NextGen Password Generator - 高度なランダム生成と、人間が記憶しやすい単語ベース生成（XKCD方式）を兼ね備えた、ローカル完結型のセキュアな次世代パスワード作成ツール。">
+    <title>NextGen Password Generator | 次世代パスワード作成ツール</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #000b18; /* 深海ディープブルー */
+            --bg-surface: rgba(10, 25, 47, 0.7);
+            --bg-card: rgba(15, 32, 67, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-focus: #64ffda; /* ネオンミントシアン */
+            --text-main: #eaf1f8;
+            --text-muted: #979dac;
+            --primary: #64ffda;
+            --primary-glow: rgba(100, 255, 218, 0.3);
+            --secondary: #00b4d8;
+            --danger: #ff5a5f;
+            --warning: #ffb703;
+            --success: #2ec4b6;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Outfit', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景グロー演出 */
+        .bg-glow {
+            position: fixed;
+            top: -20%;
+            left: -20%;
+            width: 140vw;
+            height: 140vh;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 180, 216, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(10, 25, 47, 0.5) 0%, var(--bg-base) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* メインコンテナ */
+        .container {
+            width: 100%;
+            max-width: 580px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            position: relative;
+            animation: containerReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes containerReveal {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ヘッダー */
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        header h1 i {
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* パスワード出力エリア */
+        .output-box {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem 3.5rem 1.25rem 1.25rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            min-height: 4.5rem;
+        }
+
+        .output-box:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        .password-display {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            word-break: break-all;
+            color: var(--text-main);
+            width: 100%;
+            line-height: 1.4;
+        }
+
+        .password-display.empty {
+            color: var(--text-muted);
+            font-style: italic;
+            font-family: var(--font-main);
+            font-size: 1rem;
+        }
+
+        /* 制御ボタン */
+        .output-actions {
+            position: absolute;
+            right: 0.75rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* パスワード強度メーター */
+        .strength-indicator {
+            margin-bottom: 2rem;
+        }
+
+        .strength-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .strength-label {
+            color: var(--text-muted);
+        }
+
+        .strength-status {
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: var(--transition);
+        }
+
+        .bar-container {
+            display: flex;
+            gap: 0.5rem;
+            height: 6px;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .strength-bar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+
+        /* パラメータ解析表示 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .metric-item span {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        /* タブ切り替え */
+        .tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.6rem 0;
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-surface);
+            color: var(--primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 設定パネル */
+        .settings-panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+            animation: panelFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .settings-panel.active {
+            display: flex;
+        }
+
+        @keyframes panelFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* コントロール群 */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .length-value {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* レンジスライダー */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-glow);
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* チェックボックスオプション */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 2rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            user-select: none;
+            transition: var(--transition);
+            min-height: 1.5rem;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 1.1rem;
+            width: 1.1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: rgba(255, 255, 255, 0.25);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid #000b18;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* 生成ボタン */
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #000b18;
+            padding: 1rem 0;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.2);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.35);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        /* フッターセキュア注意 */
+        .security-badge {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .security-badge i {
+            color: var(--success);
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            background: rgba(10, 25, 47, 0.9);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.2);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+        }
+
+        /* 戻るリンク */
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> RETURN TO PORTFOLIO
+    </a>
+
+    <div class="container">
+        <header>
+            <h1><i class="fa-solid fa-shield-halved"></i> NextGen Pass</h1>
+            <p>完全ローカルで安全に生成される次世代暗号鍵ジェネレーター</p>
+        </header>
+
+        <!-- パスワード表示領域 -->
+        <div class="output-box">
+            <div class="password-display empty" id="passwordDisplay">パスワードを生成してください...</div>
+            <div class="output-actions">
+                <button class="action-btn" id="copyBtn" title="クリップボードにコピー" disabled>
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 強度インジケーター -->
+        <div class="strength-indicator">
+            <div class="strength-header">
+                <span class="strength-label">SECURITY LEVEL</span>
+                <span class="strength-status" id="strengthStatus">IDLE</span>
+            </div>
+            <div class="bar-container">
+                <div class="strength-bar" id="bar1"></div>
+                <div class="strength-bar" id="bar2"></div>
+                <div class="strength-bar" id="bar3"></div>
+                <div class="strength-bar" id="bar4"></div>
+            </div>
+            <!-- メトリクス -->
+            <div class="metrics-grid">
+                <div class="metric-item">エントロピー: <span id="entropyVal">-</span> bits</div>
+                <div class="metric-item">文字プール: <span id="poolVal">-</span> 種類</div>
+                <div class="metric-item" style="grid-column: span 2;">推定解読時間 (秒間100億回試行): <span id="crackTimeVal">-</span></div>
+            </div>
+        </div>
+
+        <!-- タブ切り替え -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('random')">ランダム文字列</button>
+            <button class="tab-btn" onclick="switchTab('xkcd')">覚えやすい単語 (XKCD)</button>
+        </div>
+
+        <!-- ランダム設定パネル -->
+        <div class="settings-panel active" id="randomPanel">
+            <div class="control-group">
+                <div class="control-header">
+                    <span>パスワードの長さ</span>
+                    <span class="length-value" id="randomLengthVal">16</span>
+                </div>
+                <input type="range" id="randomLengthSlider" min="8" max="64" value="16" oninput="updateLength('random', this.value)">
+            </div>
+            <div class="control-group">
+                <span class="control-header" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">文字種のカスタマイズ</span>
+                <div class="options-grid">
+                    <label class="checkbox-container">英大文字 (A-Z)
+                        <input type="checkbox" id="optUppercase" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">英小文字 (a-z)
+                        <input type="checkbox" id="optLowercase" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">数字 (0-9)
+                        <input type="checkbox" id="optNumbers" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">特殊記号 (!@#$等)
+                        <input type="checkbox" id="optSymbols" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container" style="grid-column: span 2;">類似文字を除外 (i, l, 1, O, 0 等)
+                        <input type="checkbox" id="optExcludeSimilar" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- XKCD設定パネル -->
+        <div class="settings-panel" id="xkcdPanel">
+            <div class="control-group">
+                <div class="control-header">
+                    <span>単語の個数</span>
+                    <span class="length-value" id="xkcdLengthVal">4</span>
+                </div>
+                <input type="range" id="xkcdLengthSlider" min="3" max="8" value="4" oninput="updateLength('xkcd', this.value)">
+            </div>
+            <div class="control-group">
+                <span class="control-header" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">オプション</span>
+                <div class="options-grid">
+                    <label class="checkbox-container">区切り記号を入れる (ハイフン)
+                        <input type="checkbox" id="optHyphen" checked onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">先頭を大文字にする
+                        <input type="checkbox" id="optCapitalize" onchange="triggerGenerate()">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成アクション -->
+        <button class="generate-btn" id="generateBtn" onclick="generatePassword()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 鍵を新規生成する
+        </button>
+
+        <div class="security-badge">
+            <i class="fa-solid fa-circle-check"></i> 安全性確保: 生成アルゴリズムはブラウザ内で完結し、外部送信されません。
+        </div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check"></i> クリップボードに安全にコピーされました！
+    </div>
+
+    <script>
+        // 英語のシンプルな単語リスト (XKCD用)
+        const wordList = [
+            'abyss', 'active', 'anchor', 'aqua', 'beacon', 'beast', 'black', 'blue', 'bubble', 'calm',
+            'canyon', 'cargo', 'channel', 'cloud', 'cold', 'coral', 'current', 'cyber', 'dark', 'deep',
+            'depth', 'digital', 'dive', 'diver', 'drift', 'echo', 'fathom', 'fish', 'fluid', 'ghost',
+            'giant', 'glow', 'harbor', 'heavy', 'helm', 'island', 'jelly', 'laser', 'light', 'liquid',
+            'marine', 'matrix', 'motion', 'navy', 'neon', 'ocean', 'pearl', 'pilot', 'polar', 'pulse',
+            'reef', 'ripple', 'salt', 'scuba', 'shadow', 'silent', 'sonar', 'storm', 'sub', 'trench',
+            'vector', 'vessel', 'wave', 'whale', 'wreck', 'zone'
+        ];
+
+        let activeTab = 'random';
+        let generatedPassword = '';
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+
+            const event = window.event;
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            document.getElementById(`${tab}Panel`).classList.add('active');
+            generatePassword();
+        }
+
+        function updateLength(type, val) {
+            document.getElementById(`${type}LengthVal`).textContent = val;
+            generatePassword();
+        }
+
+        // セキュアな乱数取得
+        function getRandomInt(max) {
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            return array[0] % max;
+        }
+
+        function triggerGenerate() {
+            generatePassword();
+        }
+
+        // パスワード生成メインロジック
+        function generatePassword() {
+            if (activeTab === 'random') {
+                generatedPassword = generateRandomPassword();
+            } else {
+                generatedPassword = generateXkcdPassword();
+            }
+
+            const displayEl = document.getElementById('passwordDisplay');
+            displayEl.textContent = generatedPassword;
+            displayEl.classList.remove('empty');
+
+            const copyBtn = document.getElementById('copyBtn');
+            copyBtn.disabled = false;
+
+            evaluateStrength(generatedPassword);
+        }
+
+        // ランダム文字列生成
+        function generateRandomPassword() {
+            const length = parseInt(document.getElementById('randomLengthSlider').value);
+            
+            const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lower = 'abcdefghijklmnopqrstuvwxyz';
+            const numbers = '0123456789';
+            const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            const similarUpper = 'ILO';
+            const similarLower = 'l';
+            const similarNumbers = '01';
+            const similarSymbols = '|';
+
+            let charPool = '';
+            
+            const useUpper = document.getElementById('optUppercase').checked;
+            const useLower = document.getElementById('optLowercase').checked;
+            const useNumbers = document.getElementById('optNumbers').checked;
+            const useSymbols = document.getElementById('optSymbols').checked;
+            const excludeSimilar = document.getElementById('optExcludeSimilar').checked;
+
+            if (useUpper) charPool += filterChars(upper, excludeSimilar, similarUpper);
+            if (useLower) charPool += filterChars(lower, excludeSimilar, similarLower);
+            if (useNumbers) charPool += filterChars(numbers, excludeSimilar, similarNumbers);
+            if (useSymbols) charPool += filterChars(symbols, excludeSimilar, similarSymbols);
+
+            if (charPool === '') {
+                return 'オプションを選択してください';
+            }
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charPool.charAt(getRandomInt(charPool.length));
+            }
+            return password;
+        }
+
+        function filterChars(source, exclude, targets) {
+            if (!exclude) return source;
+            let result = '';
+            for (let i = 0; i < source.length; i++) {
+                const char = source.charAt(i);
+                if (!targets.includes(char)) {
+                    result += char;
+                }
+            }
+            return result;
+        }
+
+        // XKCD覚えやすい単語生成
+        function generateXkcdPassword() {
+            const wordsCount = parseInt(document.getElementById('xkcdLengthSlider').value);
+            const useHyphen = document.getElementById('optHyphen').checked;
+            const capitalize = document.getElementById('optCapitalize').checked;
+
+            const selectedWords = [];
+            for (let i = 0; i < wordsCount; i++) {
+                let word = wordList[getRandomInt(wordList.length)];
+                if (capitalize) {
+                    word = word.charAt(0).toUpperCase() + word.slice(1);
+                }
+                selectedWords.push(word);
+            }
+
+            return selectedWords.join(useHyphen ? '-' : ' ');
+        }
+
+        // パスワード強度の検証
+        function evaluateStrength(pwd) {
+            if (!pwd || pwd.startsWith('オプションを選択してください') || pwd.startsWith('パスワードを生成')) {
+                updateBars(0);
+                setStrengthStatus('IDLE', 'var(--text-muted)');
+                setMetrics(0, 0, '-');
+                return;
+            }
+
+            let poolSize = 0;
+            if (activeTab === 'random') {
+                const useUpper = document.getElementById('optUppercase').checked;
+                const useLower = document.getElementById('optLowercase').checked;
+                const useNumbers = document.getElementById('optNumbers').checked;
+                const useSymbols = document.getElementById('optSymbols').checked;
+                const excludeSimilar = document.getElementById('optExcludeSimilar').checked;
+
+                if (useUpper) poolSize += excludeSimilar ? 23 : 26;
+                if (useLower) poolSize += excludeSimilar ? 25 : 26;
+                if (useNumbers) poolSize += excludeSimilar ? 8 : 10;
+                if (useSymbols) poolSize += excludeSimilar ? 25 : 26;
+            } else {
+                poolSize = wordList.length; // XKCDは単語プール全体
+            }
+
+            // エントロピー計算
+            // Random: E = L * log2(Pool)
+            // XKCD: E = N * log2(Pool)
+            const length = activeTab === 'random' 
+                ? parseInt(document.getElementById('randomLengthSlider').value)
+                : parseInt(document.getElementById('xkcdLengthSlider').value);
+
+            const entropy = Math.round(length * (Math.log(poolSize) / Math.log(2)));
+
+            // 解読予測時間の推定 (秒間100億回試行)
+            const guesses = Math.pow(2, entropy - 1);
+            const secondsToCrack = guesses / 1e10;
+            const formattedTime = formatTime(secondsToCrack);
+
+            // 強度の分類
+            let score = 0;
+            if (entropy < 40) {
+                score = 1; // 脆弱
+            } else if (entropy < 60) {
+                score = 2; // 普通
+            } else if (entropy < 80) {
+                score = 3; // 安全
+            } else {
+                score = 4; // 極めて強固
+            }
+
+            updateBars(score);
+            setMetrics(entropy, poolSize, formattedTime);
+
+            if (score === 1) {
+                setStrengthStatus('WEAK (脆弱)', 'var(--danger)');
+            } else if (score === 2) {
+                setStrengthStatus('MEDIUM (普通)', 'var(--warning)');
+            } else if (score === 3) {
+                setStrengthStatus('STRONG (安全)', 'var(--success)');
+            } else if (score === 4) {
+                setStrengthStatus('MILITARY-GRADE (強固)', 'var(--primary)');
+            }
+        }
+
+        function updateBars(score) {
+            const bars = [
+                document.getElementById('bar1'),
+                document.getElementById('bar2'),
+                document.getElementById('bar3'),
+                document.getElementById('bar4')
+            ];
+
+            let color = 'rgba(255, 255, 255, 0.05)';
+            if (score === 1) color = 'var(--danger)';
+            else if (score === 2) color = 'var(--warning)';
+            else if (score === 3) color = 'var(--success)';
+            else if (score === 4) color = 'var(--primary)';
+
+            bars.forEach((bar, index) => {
+                if (index < score) {
+                    bar.style.backgroundColor = color;
+                    if (score === 4) {
+                        bar.style.boxShadow = '0 0 8px var(--primary-glow)';
+                    } else {
+                        bar.style.boxShadow = 'none';
+                    }
+                } else {
+                    bar.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    bar.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        function setStrengthStatus(text, color) {
+            const statusEl = document.getElementById('strengthStatus');
+            statusEl.textContent = text;
+            statusEl.style.color = color;
+        }
+
+        function setMetrics(entropy, pool, crackTime) {
+            document.getElementById('entropyVal').textContent = entropy;
+            document.getElementById('poolVal').textContent = pool;
+            document.getElementById('crackTimeVal').textContent = crackTime;
+        }
+
+        function formatTime(seconds) {
+            if (seconds === Infinity || seconds > 1e30) return '宇宙滅亡までの期間より長大';
+            
+            const minutes = seconds / 60;
+            const hours = minutes / 60;
+            const days = hours / 24;
+            const years = days / 365.25;
+
+            if (years >= 1e9) return `${Math.round(years / 1e9)} 億年以上`;
+            if (years >= 1e6) return `${Math.round(years / 1e6)} 百万年以上`;
+            if (years >= 1) return `${Math.round(years)} 年以上`;
+            if (days >= 1) return `${Math.round(days)} 日以上`;
+            if (hours >= 1) return `${Math.round(hours)} 時間以上`;
+            if (minutes >= 1) return `${Math.round(minutes)} 分以上`;
+            return `${Math.round(seconds)} 秒以下`;
+        }
+
+        // コピー機能
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (!generatedPassword) return;
+            navigator.clipboard.writeText(generatedPassword).then(() => {
+                showToast();
+            }).catch(err => {
+                console.error('コピー失敗: ', err);
+            });
+        });
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 初期ロード時に1回自動生成
+        window.addEventListener('DOMContentLoaded', () => {
+            generatePassword();
+        });
+    </script>
+</body>
+
+</html>
