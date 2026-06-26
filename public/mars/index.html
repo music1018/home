@@ -112,6 +112,9 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            height: 90vh;
+            max-height: 750px;
+            min-height: 580px;
             animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
@@ -242,7 +245,8 @@
             display: grid;
             grid-template-columns: 1fr 1.6fr 1.2fr;
             gap: 1rem;
-            height: auto;
+            flex: 1;
+            min-height: 0;
         }
 
         @media (max-width: 1024px) {
@@ -257,6 +261,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            height: 100%;
+            min-height: 0;
         }
 
         /* 監視モニター・政策・取引・設定共通カード */
@@ -340,6 +346,7 @@
         /* 施設建設エリア (2列コンパクトグリッド) */
         .build-section {
             height: 100%;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
@@ -360,7 +367,8 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 0.5rem;
-            max-height: 310px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             padding-right: 0.25rem;
         }
@@ -644,6 +652,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
+            flex: 1;
+            min-height: 0;
         }
 
         .event-section h2 {
@@ -663,7 +673,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
-            max-height: 100px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
         }
 
