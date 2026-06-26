@@ -152,6 +152,42 @@
             }
         }
 
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem !important;
+                min-height: 0 !important;
+            }
+
+            main {
+                margin: 1rem auto !important;
+                padding: 0 0.5rem !important;
+                gap: 1.5rem !important;
+            }
+
+            .panel {
+                padding: 1.25rem !important;
+                border-radius: 12px !important;
+            }
+
+            .mode-selector {
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+            }
+
+            .back-link {
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
+            }
+
+            header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.75rem !important;
+                padding: 0.5rem !important;
+            }
+        }
+
         /* 共通パネルカード */
         .panel {
             background: var(--bg-surface);

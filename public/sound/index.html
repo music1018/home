@@ -402,19 +402,30 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                height: auto !important;
+                overflow-y: auto !important;
+                padding: 1.5rem 0.5rem !important;
+            }
+
             .soundboard {
-                padding: 1.5rem;
+                padding: 1.25rem !important;
+                border-radius: 12px !important;
             }
+
             .channel {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.75rem !important;
             }
+
             .slider-wrapper {
-                grid-column: span 2;
+                grid-column: span 2 !important;
             }
+
             .back-link {
-                top: 1rem;
-                left: 1rem;
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
             }
         }
     </style>

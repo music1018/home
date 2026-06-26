@@ -512,15 +512,29 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                height: auto !important;
+                overflow-y: auto !important;
+                padding: 1.5rem 0.5rem !important;
+            }
+
             .container {
-                padding: 1.5rem;
+                padding: 1rem !important;
+                border-radius: 12px !important;
             }
-            .options-grid {
-                grid-template-columns: 1fr;
+
+            .options-grid, .metrics-grid {
+                grid-template-columns: 1fr !important;
             }
+
+            .metric-item {
+                grid-column: auto !important;
+            }
+
             .back-link {
-                top: 1rem;
-                left: 1rem;
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
             }
         }
     </style>

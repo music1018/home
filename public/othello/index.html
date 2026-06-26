@@ -167,8 +167,48 @@
         }
 
         @media (max-width: 1024px) {
+            body {
+                height: auto !important;
+                overflow-y: auto !important;
+                padding: 1.5rem 0.5rem !important;
+            }
+
+            .back-link {
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
+            }
+
+            .container {
+                padding: 1rem !important;
+                border-radius: 12px !important;
+                gap: 1rem !important;
+            }
+
             .main-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .settings-grid {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .board-container > div {
+                height: auto !important;
+                max-width: 100% !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .othello-board {
+                max-width: 290px !important;
+            }
+            .game-status-panel {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+                align-items: center !important;
             }
         }
 

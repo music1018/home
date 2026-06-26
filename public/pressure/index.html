@@ -364,21 +364,31 @@
             color: var(--text-main);
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
+            body {
+                height: auto !important;
+                overflow-y: auto !important;
+                padding: 1.5rem 0.5rem !important;
+            }
+
             .dashboard {
-                grid-template-columns: 1fr;
-                padding: 1.5rem;
-                gap: 1.5rem;
+                grid-template-columns: 1fr !important;
+                padding: 1.25rem !important;
+                gap: 1.5rem !important;
+                border-radius: 12px !important;
             }
+
             .display-pane {
-                border-left: none;
-                padding-left: 0;
-                border-top: 1px solid var(--border-color);
-                padding-top: 1.5rem;
+                border-left: none !important;
+                padding-left: 0 !important;
+                border-top: 1px solid var(--border-color) !important;
+                padding-top: 1.5rem !important;
             }
+
             .back-link {
-                top: 1rem;
-                left: 1rem;
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
             }
         }
     </style>
