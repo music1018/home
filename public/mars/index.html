@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Mars Colonization Simulator - 火星に居住区を構築し、酸素、水、食料、エネルギー、資金を管理して人口100人の自立都市を目指すサバイバル資源管理シミュレーションゲーム。">
-    <title>Mars Colonization Simulator | 火星移住シミュレーター</title>
+    <meta name="description" content="Mars Colonization Simulator - 火星に居住区を構築し、タレント配置、異星人防衛、研究開発、強くてニューゲームシステムを備えた本格資源管理SFシミュレーション。">
+    <title>Ares Base: Mars Simulator | 火星移住防衛シミュレーター</title>
 
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,16 +17,18 @@
         :root {
             --bg-base: #0f0505; /* 火星の赤黒い夜 */
             --bg-surface: rgba(26, 12, 12, 0.85);
-            --bg-card: rgba(45, 20, 20, 0.45);
-            --border-color: rgba(240, 90, 40, 0.15); /* 錆びたオレンジ */
-            --primary: #f05a28; /* 火星オレンジ */
-            --primary-glow: rgba(240, 90, 40, 0.35);
-            --secondary: #e63946; /* レッド */
+            --bg-card: rgba(15, 15, 20, 0.9);
+            --border-color: rgba(240, 90, 40, 0.28); /* 錆びたオレンジ */
+            --primary: #ff6a3d; /* 火星オレンジ */
+            --primary-glow: rgba(255, 106, 61, 0.35);
+            --secondary: #ff4d5a; /* レッド */
             --accent: #4cc9f0; /* サイバーシアン（水の象徴） */
             --accent-glow: rgba(76, 201, 240, 0.25);
-            --text-main: #faeae6;
-            --text-muted: #a68f8a;
-            --success: #38b000; /* 水耕栽培グリーン */
+            --military: #ffb703; /* 警備・兵器 of ゴールド */
+            --military-glow: rgba(255, 183, 3, 0.25);
+            --text-main: #ffffff;
+            --text-muted: #d5c8c5;
+            --success: #39e600; /* 水耕栽培グリーン */
             --font-main: 'Inter', sans-serif;
             --font-display: 'Outfit', sans-serif;
             --font-mono: 'IBM Plex Mono', monospace;
@@ -98,8 +100,8 @@
 
         /* コロニーダッシュボード */
         .dashboard {
-            width: 100%;
-            max-width: 1160px;
+            width: 95%;
+            max-width: 1600px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: 20px;
@@ -112,8 +114,8 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            height: 90vh;
-            max-height: 750px;
+            height: 92vh;
+            max-height: 900px;
             min-height: 580px;
             animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -149,6 +151,12 @@
             text-shadow: 0 0 10px var(--primary-glow);
         }
 
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .sol-counter {
             font-family: var(--font-mono);
             font-size: 0.95rem;
@@ -161,10 +169,21 @@
             font-weight: 600;
         }
 
-        /* 資源グリッド (コンパクト上部配置) */
+        .ng-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            background: rgba(76, 201, 240, 0.1);
+            border: 1px solid var(--accent);
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 資源モニター (上部コンパクト配置 - 6列) */
         .resources-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 0.5rem;
         }
 
@@ -172,27 +191,22 @@
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 0.5rem 0.75rem;
+            padding: 0.5rem 0.65rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.5rem;
+            gap: 0.4rem;
             transition: var(--transition);
-        }
-
-        .res-card:hover {
-            border-color: var(--border-color);
-            background: rgba(240, 90, 40, 0.02);
         }
 
         .res-card-meta {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .res-icon {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-muted);
         }
 
@@ -212,7 +226,7 @@
         }
 
         .res-name {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -226,13 +240,13 @@
 
         .res-amount {
             font-family: var(--font-mono);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
         }
 
         .res-delta {
             font-family: var(--font-mono);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 600;
         }
 
@@ -243,7 +257,7 @@
         /* 3列フル画面ダッシュボードレイアウト */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1.6fr 1.2fr;
+            grid-template-columns: 1.1fr 1.6fr 1.6fr;
             gap: 1rem;
             flex: 1;
             min-height: 0;
@@ -267,23 +281,23 @@
 
         /* 監視モニター・政策・取引・設定共通カード */
         .dash-panel {
-            background: var(--bg-card);
+            background: rgba(12, 12, 16, 0.9);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 0.85rem;
+            padding: 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
+            gap: 0.5rem;
         }
 
         .dash-panel h3 {
             font-family: var(--font-display);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: var(--primary);
             letter-spacing: 0.05em;
             border-bottom: 1px solid rgba(240, 90, 40, 0.1);
-            padding-bottom: 0.3rem;
+            padding-bottom: 0.25rem;
             text-transform: uppercase;
             display: flex;
             justify-content: space-between;
@@ -294,16 +308,24 @@
         .monitor-grid {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .monitor-metric {
-            display: grid;
-            grid-template-columns: 1.1fr 1.2fr 0.7fr;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            width: 100%;
+        }
+
+        .metric-info {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
+            width: 100%;
             font-family: var(--font-mono);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
+            letter-spacing: -0.02em;
         }
 
         .metric-label {
@@ -311,7 +333,7 @@
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.2rem;
         }
 
         .metric-label i {
@@ -320,27 +342,114 @@
         }
 
         .metric-bar-wrapper {
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
             overflow: hidden;
+            width: 100%;
         }
 
         .metric-bar {
             height: 100%;
-            border-radius: 3px;
+            border-radius: 2px;
             transition: width 0.3s ease;
         }
 
         .bar-happiness { background: var(--primary); }
         .bar-health { background: #4cc9f0; }
         .bar-integrity { background: #ffb703; }
-        .bar-goal { background: #38b000; }
+        .bar-threat { background: #e63946; }
 
         .metric-val {
-            text-align: right;
             font-weight: 700;
             color: var(--text-main);
+        }
+
+        /* タレント人員配置パネル */
+        .talent-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .talent-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 12, 0.8);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(240, 90, 40, 0.12);
+        }
+
+        .talent-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .talent-role {
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .talent-role.eng { color: var(--accent); }
+        .talent-role.sci { color: var(--success); }
+        .talent-role.sol { color: var(--military); }
+
+        .talent-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .talent-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .talent-btn {
+            background: rgba(240, 90, 40, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+            transition: var(--transition);
+        }
+
+        .talent-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #0f0505;
+        }
+
+        .talent-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .unassigned-badge {
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            background: rgba(230, 57, 70, 0.15);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+            animation: pulse 1s infinite alternate;
         }
 
         /* 施設建設エリア (2列コンパクトグリッド) */
@@ -354,23 +463,29 @@
 
         .build-section h2 {
             font-family: var(--font-display);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--primary);
             letter-spacing: 0.05em;
             text-transform: uppercase;
             border-bottom: 1px solid rgba(240, 90, 40, 0.1);
-            padding-bottom: 0.3rem;
+            padding-bottom: 0.25rem;
         }
 
         .build-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            padding-right: 0.25rem;
+            padding-right: 0.2rem;
+        }
+
+        @media (max-width: 1280px) {
+            .build-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 640px) {
@@ -391,11 +506,11 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 0.6rem;
+            padding: 0.45rem 0.55rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 0.4rem;
+            gap: 0.25rem;
             transition: var(--transition);
         }
 
@@ -407,11 +522,11 @@
         .build-desc {
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
+            gap: 0.1rem;
         }
 
         .build-name {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -423,148 +538,74 @@
             font-size: 0.65rem;
             color: var(--primary);
             background: rgba(240, 90, 40, 0.1);
-            padding: 0.05rem 0.3rem;
+            padding: 0.05rem 0.25rem;
             border-radius: 3px;
         }
 
         .build-detail {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             line-height: 1.2;
         }
 
         .build-effect {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             color: var(--primary);
             font-weight: 600;
         }
 
         .build-costs {
             font-family: var(--font-mono);
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .build-btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), #ffa382);
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.35rem;
-            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.45rem;
+            border-radius: 6px;
             cursor: pointer;
             width: 100%;
             transition: var(--transition);
             text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(255, 106, 61, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .build-btn:hover:not(:disabled) {
-            box-shadow: 0 0 8px var(--primary-glow);
+            background: linear-gradient(135deg, #ff845e, #ffbca6);
+            box-shadow: 0 0 12px var(--primary-glow), 0 4px 12px rgba(255, 106, 61, 0.4);
+            transform: translateY(-1px);
         }
 
         .build-btn:disabled {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.2);
             cursor: not-allowed;
-            border: 1px solid var(--border-color);
-        }
-
-        /* 植民地政策・規制スライダー・ログ */
-        .policy-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .policy-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 0.4rem 0.6rem;
-            border-radius: 6px;
-            border: 1px solid rgba(240, 90, 40, 0.05);
-        }
-
-        .policy-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .policy-name {
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .policy-desc {
-            font-size: 0.6rem;
-            color: var(--text-muted);
-        }
-
-        /* トグルスイッチ */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 36px;
-            height: 18px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: .2s;
-            border-radius: 18px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 12px;
-            width: 12px;
-            left: 2px;
-            bottom: 2px;
-            background-color: var(--text-muted);
-            transition: .2s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: rgba(240, 90, 40, 0.2);
-            border-color: var(--primary);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(18px);
-            background-color: var(--primary);
-            box-shadow: 0 0 6px var(--primary-glow);
+            box-shadow: none;
         }
 
         /* 調整スライダー */
         .regulation-controls {
             display: flex;
             flex-direction: column;
-            gap: 0.45rem;
+            gap: 0.4rem;
         }
 
         .reg-control {
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
+            gap: 0.1rem;
             background: rgba(0,0,0,0.15);
-            padding: 0.4rem 0.6rem;
+            padding: 0.35rem 0.5rem;
             border-radius: 6px;
             border: 1px solid rgba(255,255,255,0.02);
         }
@@ -572,7 +613,7 @@
         .reg-header {
             display: flex;
             justify-content: space-between;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             font-family: var(--font-mono);
         }
 
@@ -593,7 +634,7 @@
             border-radius: 2px;
             background: rgba(255,255,255,0.1);
             outline: none;
-            margin: 0.2rem 0;
+            margin: 0.25rem 0;
         }
 
         .range-slider::-webkit-slider-thumb {
@@ -603,48 +644,96 @@
             border-radius: 50%;
             background: var(--primary);
             cursor: pointer;
-            box-shadow: 0 0 4px var(--primary-glow);
+            box-shadow: 0 0 3px var(--primary-glow);
         }
 
         .reg-desc {
-            font-size: 0.6rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
-            line-height: 1.2;
+            line-height: 1.35;
         }
 
-        /* 地球取引パネル */
-        .trade-grid {
+        /* テクノロジー研究開発 (R&D) */
+        .research-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.4rem;
+            gap: 0.35rem;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 0.1rem;
         }
 
-        .trade-btn {
-            background: rgba(240, 90, 40, 0.08);
+        .research-grid::-webkit-scrollbar {
+            width: 3px;
+        }
+        .research-grid::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 1.5px;
+        }
+
+        .research-card {
+            background: rgba(10, 10, 15, 0.85);
             border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.4rem 0.5rem;
-            font-family: var(--font-display);
-            font-size: 0.65rem;
-            font-weight: 600;
             border-radius: 6px;
+            padding: 0.3rem 0.45rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .research-desc-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .research-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .research-effect {
+            font-size: 0.7rem;
+            color: var(--success);
+        }
+
+        .research-btn {
+            background: linear-gradient(135deg, var(--success), #a2ff82);
+            border: none;
+            color: #000;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.4rem 0.75rem;
+            border-radius: 5px;
             cursor: pointer;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(57, 230, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        .trade-btn:hover:not(:disabled) {
-            background: var(--primary);
-            color: #0f0505;
-            box-shadow: 0 0 8px var(--primary-glow);
+        .research-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5cee22, #c2ffaa);
+            box-shadow: 0 0 10px rgba(57, 230, 0, 0.45);
+            transform: translateY(-1px);
         }
 
-        .trade-btn:disabled {
-            opacity: 0.3;
+        .research-btn:disabled {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.2);
             cursor: not-allowed;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: none;
+        }
+
+        .research-btn.researched {
+            background: rgba(56, 176, 0, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+            cursor: default;
+            box-shadow: none;
         }
 
         /* ログフィード (超コンパクト配置) */
@@ -658,7 +747,7 @@
 
         .event-section h2 {
             font-family: var(--font-display);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: var(--primary);
             letter-spacing: 0.05em;
@@ -666,7 +755,7 @@
         }
 
         .feed-container {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(10, 10, 12, 0.85);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 0.5rem;
@@ -688,7 +777,7 @@
 
         .event-card {
             border-left: 2px solid var(--primary);
-            padding-left: 0.5rem;
+            padding-left: 0.4rem;
             animation: eventAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
@@ -698,15 +787,15 @@
         }
 
         .event-title {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--primary);
             margin-bottom: 0.1rem;
         }
 
         .event-text {
-            font-size: 0.65rem;
-            line-height: 1.3;
+            font-size: 0.78rem;
+            line-height: 1.4;
             color: var(--text-main);
         }
 
@@ -724,9 +813,9 @@
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 800;
-            padding: 0.5rem 1.75rem;
+            padding: 0.45rem 1.5rem;
             border-radius: 8px;
             cursor: pointer;
             transition: var(--transition);
@@ -764,8 +853,8 @@
             background: var(--bg-surface);
             border: 2px solid var(--primary);
             border-radius: 20px;
-            padding: 2rem;
-            max-width: 440px;
+            padding: 1.75rem;
+            max-width: 460px;
             width: 90%;
             text-align: center;
             box-shadow: 0 0 50px rgba(240, 90, 40, 0.2);
@@ -778,9 +867,9 @@
         }
 
         .modal-icon {
-            font-size: 3rem;
+            font-size: 2.75rem;
             color: var(--primary);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             text-shadow: 0 0 12px var(--primary-glow);
         }
 
@@ -789,17 +878,51 @@
 
         .modal-title {
             font-family: var(--font-display);
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .modal-text {
-            font-size: 0.85rem;
-            line-height: 1.5;
+            font-size: 0.8rem;
+            line-height: 1.45;
             color: var(--text-muted);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             white-space: pre-line;
+        }
+
+        .ng-store-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1.25rem;
+            text-align: left;
+            font-size: 0.75rem;
+        }
+
+        .ng-store-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.4rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .ng-bonus-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .ng-bonus-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            padding-bottom: 0.2rem;
         }
 
         .modal-btn {
@@ -807,22 +930,287 @@
             border: none;
             color: #0f0505;
             font-family: var(--font-display);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            padding: 0.6rem 1.75rem;
+            padding: 0.55rem 1.5rem;
             border-radius: 6px;
             cursor: pointer;
             transition: var(--transition);
         }
 
         .modal-btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             box-shadow: 0 5px 15px var(--primary-glow);
+        }
+
+        /* タイトル画面オーバーレイ */
+        .title-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 5, 5, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+
+        .title-content {
+            background: var(--bg-surface);
+            border: 2px solid var(--primary);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 540px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(240, 90, 40, 0.15);
+            animation: modalPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .title-logo {
+            font-size: 3rem;
+            font-family: var(--font-display);
+            font-weight: 800;
+            color: var(--text-main);
+            text-shadow: 0 0 20px var(--primary-glow);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .title-logo i {
+            color: var(--primary);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .title-menu-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .menu-btn {
+            background: rgba(240, 90, 40, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .menu-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #0f0505;
+            box-shadow: 0 0 15px var(--primary-glow);
+            border-color: var(--primary);
+        }
+
+        .menu-btn.primary-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #0f0505;
+            border: none;
+        }
+
+        .menu-btn.primary-btn:hover {
+            box-shadow: 0 0 20px rgba(240, 90, 40, 0.4);
+        }
+
+        .menu-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            background: rgba(255,255,255,0.02);
+            color: var(--text-muted);
+            border-color: rgba(255,255,255,0.05);
+        }
+
+        .legacy-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .legacy-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 統合レスポンシブ対応 (スマートフォン・タブレット向け) */
+        @media (max-width: 1024px) {
+            body {
+                height: auto !important;
+                overflow-y: auto !important;
+                padding: 1.5rem 0.5rem !important;
+            }
+
+            .back-link {
+                position: static !important;
+                margin-bottom: 1rem;
+                display: inline-block;
+            }
+
+            .dashboard {
+                height: auto !important;
+                max-height: none !important;
+                min-height: 0 !important;
+                padding: 0.85rem !important;
+                border-radius: 12px !important;
+                width: 100% !important;
+                gap: 0.75rem !important;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+                height: auto !important;
+                gap: 1rem !important;
+            }
+
+            .dash-col {
+                height: auto !important;
+                min-height: 0 !important;
+                gap: 0.75rem !important;
+            }
+
+            /* インラインスタイルの高さを解除 */
+            .dash-panel {
+                height: auto !important;
+            }
+
+            .event-section {
+                height: auto !important;
+                min-height: 0 !important;
+            }
+
+            /* カードリストの内スクロールを解除し、折りたたまずに全展開してページスクロールに統合 */
+            .build-grid, .research-grid, .feed-container {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .resources-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 0.35rem !important;
+            }
+
+            .res-card {
+                padding: 0.4rem 0.5rem !important;
+            }
+
+            .res-amount {
+                font-size: 0.85rem !important;
+            }
+
+            /* キーボード操作説明はモバイルでは不要なので非表示 */
+            .actions-row div {
+                display: none !important;
+            }
+
+            .actions-row {
+                justify-content: center !important;
+                padding-top: 0.5rem !important;
+            }
+
+            .next-turn-btn {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 0.6rem !important;
+                font-size: 0.95rem !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .resources-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.35rem !important;
+            }
+
+            header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+            }
+
+            header h1 {
+                font-size: 1.15rem !important;
+            }
+
+            .research-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .build-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .regulation-controls {
+                gap: 0.6rem !important;
+            }
+
+            /* タレント人員配置の行をスマホ向けにコンパクト化 */
+            .talent-row {
+                padding: 0.35rem 0.5rem !important;
+            }
+
+            .talent-desc {
+                font-size: 0.65rem !important;
+            }
         }
     </style>
 </head>
 
 <body>
+    <!-- タイトル/スタート画面 -->
+    <div class="title-screen" id="titleScreen">
+        <div class="title-content">
+            <div>
+                <h1 class="title-logo"><i class="fa-solid fa-rocket"></i> Ares Base</h1>
+                <p class="title-subtitle">Mars Colonization & Defense Simulator</p>
+            </div>
+ 
+            <!-- 強くてニューゲーム (NG+) 遺伝子継承ステータス -->
+            <div class="legacy-box">
+                <div class="legacy-title">Alien Technology Legacy (遺伝子・技術継承)</div>
+                <div class="ng-bonus-list" id="titleNgBonusList">
+                    <!-- JSで動的に表示 -->
+                </div>
+            </div>
+ 
+            <div class="title-menu-btns">
+                <button class="menu-btn primary-btn" onclick="startNewGame()">NEW MISSION (新規開始)</button>
+                <button class="menu-btn" id="btnContinueGame" onclick="continueSavedGame()" disabled>CONTINUE MISSION (前回の続き)</button>
+            </div>
+        </div>
+    </div>
+ 
     <div class="bg-mars"></div>
 
     <a href="/" class="back-link">
@@ -833,10 +1221,13 @@
         <!-- ヘッダー部 -->
         <header>
             <h1><i class="fa-solid fa-rocket"></i> Ares Base</h1>
-            <div class="sol-counter" id="solCounter">SOL 1</div>
+            <div class="header-meta">
+                <span class="ng-badge" id="lblNgLevel">Alien Tech Lvl 0</span>
+                <div class="sol-counter" id="solCounter">SOL 1</div>
+            </div>
         </header>
 
-        <!-- 資源モニター (上部コンパクト配置) -->
+        <!-- 資源モニター (上部 6列) -->
         <section class="resources-grid">
             <!-- 資金 -->
             <div class="res-card" id="resCredits">
@@ -897,80 +1288,168 @@
                     <span class="res-delta positive" id="dEnergy">+10</span>
                 </div>
             </div>
+
+            <!-- 兵器 (防衛戦力) -->
+            <div class="res-card" id="resWeapons">
+                <div class="res-card-meta">
+                    <i class="res-icon fa-solid fa-shield-halved" style="color: var(--military);"></i>
+                    <span class="res-name" style="color: var(--military);">Weapons</span>
+                </div>
+                <div class="res-value-block">
+                    <span class="res-amount" id="amtWeapons" style="color: var(--military);">0</span>
+                    <span class="res-delta positive" id="dWeapons">+0</span>
+                </div>
+            </div>
         </section>
 
         <!-- メイングリッド (3列配置) -->
         <div class="dashboard-grid">
-            <!-- 1列目: 状態モニター & 地球取引 -->
+            <!-- 1列目: 状態モニター & タレント配置 & ログフィード (コロニー運営をコンパクトにして左列へ) -->
             <div class="dash-col">
                 <!-- 状態モニター -->
-                <div class="dash-panel">
-                    <h3>Colony Monitor (コロニー状態)</h3>
-                    <div class="monitor-grid">
+                <div class="dash-panel" style="flex: 0 0 auto; display: flex; flex-direction: column;">
+                    <h3 style="margin-bottom: 0.15rem;">Colony Monitor (コロニー状態)</h3>
+                    <div class="monitor-grid" style="flex: 1; display: flex; flex-direction: column; justify-content: space-around;">
                         <div class="monitor-metric">
-                            <span class="metric-label"><i class="fa-solid fa-users"></i> Population</span>
+                            <div class="metric-info">
+                                <span class="metric-label"><i class="fa-solid fa-users"></i> Population</span>
+                                <span class="metric-val" id="valPopulation">15 / 20</span>
+                            </div>
                             <div class="metric-bar-wrapper">
                                 <div class="metric-bar bar-goal" id="barPopulation" style="width: 15%;"></div>
                             </div>
-                            <span class="metric-val" id="valPopulation">15 / 20</span>
                         </div>
                         <div class="monitor-metric">
-                            <span class="metric-label"><i class="fa-solid fa-heart-pulse"></i> Happiness</span>
+                            <div class="metric-info">
+                                <span class="metric-label"><i class="fa-solid fa-heart-pulse"></i> Happiness</span>
+                                <span class="metric-val" id="valHappiness">80%</span>
+                            </div>
                             <div class="metric-bar-wrapper">
                                 <div class="metric-bar bar-happiness" id="barHappiness" style="width: 80%;"></div>
                             </div>
-                            <span class="metric-val" id="valHappiness">80%</span>
                         </div>
                         <div class="monitor-metric">
-                            <span class="metric-label"><i class="fa-solid fa-notes-medical"></i> Health</span>
+                            <div class="metric-info">
+                                <span class="metric-label"><i class="fa-solid fa-notes-medical"></i> Health</span>
+                                <span class="metric-val" id="valHealth">90%</span>
+                            </div>
                             <div class="metric-bar-wrapper">
                                 <div class="metric-bar bar-health" id="barHealth" style="width: 90%;"></div>
                             </div>
-                            <span class="metric-val" id="valHealth">90%</span>
                         </div>
                         <div class="monitor-metric">
-                            <span class="metric-label"><i class="fa-solid fa-shield-halved"></i> Base Integrity</span>
+                            <div class="metric-info">
+                                <span class="metric-label"><i class="fa-solid fa-shield-halved"></i> Base Integrity</span>
+                                <span class="metric-val" id="valIntegrity">95%</span>
+                            </div>
                             <div class="metric-bar-wrapper">
                                 <div class="metric-bar bar-integrity" id="barIntegrity" style="width: 95%;"></div>
                             </div>
-                            <span class="metric-val" id="valIntegrity">95%</span>
+                        </div>
+                        <div class="monitor-metric">
+                            <div class="metric-info">
+                                <span class="metric-label" style="color: var(--secondary);"><i class="fa-solid fa-skull" style="color: var(--secondary);"></i> Alien Threat</span>
+                                <span class="metric-val" id="valThreat" style="color: var(--secondary);">5%</span>
+                            </div>
+                            <div class="metric-bar-wrapper">
+                                <div class="metric-bar bar-threat" id="barThreat" style="width: 5%;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 地球交易 -->
-                <div class="dash-panel">
-                    <h3>Emergency Trade (緊急交易)</h3>
-                    <div class="trade-grid">
-                        <button class="trade-btn" id="buyOxygenBtn" onclick="tradeResource('oxygen')"><i class="fa-solid fa-wind"></i> O2購入 (Cr-150)</button>
-                        <button class="trade-btn" id="buyWaterBtn" onclick="tradeResource('water')"><i class="fa-solid fa-droplet"></i> 水購入 (Cr-150)</button>
-                        <button class="trade-btn" id="buyFoodBtn" onclick="tradeResource('food')"><i class="fa-solid fa-wheat-awn"></i> 食料購入 (Cr-150)</button>
-                        <button class="trade-btn" id="repairGridBtn" onclick="repairIntegrity()"><i class="fa-solid fa-wrench"></i> グリッド修復 (Cr-200)</button>
+                <!-- タレント最適配置 -->
+                <div class="dash-panel" style="flex: 0 0 auto; display: flex; flex-direction: column;">
+                    <h3 style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.15rem;">
+                        <span>Talent Allocation (人員配置) <span class="unassigned-badge" id="lblUnassigned">未配属: 0</span></span>
+                        <button class="trade-btn" style="padding:0.2rem 0.5rem; font-size:0.6rem; background:rgba(76,201,240,0.15); color:var(--accent); border:1px solid var(--accent); cursor:pointer; border-radius:4px; font-weight:700;" onclick="autoAllocateTalents()"><i class="fa-solid fa-bolt-lightning"></i> OPTIMIZE</button>
+                    </h3>
+                    <div class="talent-grid" style="flex: 1; display: flex; flex-direction: column; justify-content: space-around;">
+                        <div class="talent-row">
+                            <div class="talent-meta">
+                                <span class="talent-role eng"><i class="fa-solid fa-gears"></i> 生産エンジニア</span>
+                                <span class="talent-desc">資源（酸素・水・食料・資金）の生産率UP</span>
+                            </div>
+                            <div class="talent-control">
+                                <button class="talent-btn" onclick="adjustTalent('engineers', -1)">-</button>
+                                <span id="valEngineers">8</span>
+                                <button class="talent-btn" onclick="adjustTalent('engineers', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="talent-row">
+                            <div class="talent-meta">
+                                <span class="talent-role sci"><i class="fa-solid fa-flask"></i> 技術研究者</span>
+                                <span class="talent-desc">毎ターン研究ポイント (RP) を生成</span>
+                            </div>
+                            <div class="talent-control">
+                                <button class="talent-btn" onclick="adjustTalent('scientists', -1)">-</button>
+                                <span id="valScientists">4</span>
+                                <button class="talent-btn" onclick="adjustTalent('scientists', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="talent-row">
+                            <div class="talent-meta">
+                                <span class="talent-role sol"><i class="fa-solid fa-shield-halved"></i> 防衛警備隊</span>
+                                <span class="talent-desc">防衛用の兵器 (Weapons) を製造</span>
+                            </div>
+                            <div class="talent-control">
+                                <button class="talent-btn" onclick="adjustTalent('soldiers', -1)">-</button>
+                                <span id="valSoldiers">3</span>
+                                <button class="talent-btn" onclick="adjustTalent('soldiers', 1)">+</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- ログフィード (左列下部にずらす) -->
+                <section class="event-section" style="flex: 1 1 0%; display: flex; flex-direction: column; min-height: 120px;">
+                    <h2>Control Logs (ログフィード)</h2>
+                    <div class="feed-container" id="feedContainer" style="flex: 1; min-height: 0;">
+                        <div class="event-card">
+                            <div class="event-title">システム起動</div>
+                            <div class="event-text">火星アレス基地、防衛・開拓管制システムがオンラインになりました。異星人との戦いに備え、人員を適切に配置して兵器と技術の開発を進めてください。</div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <!-- 2列目: 施設建設エリア (2列グリッド) -->
-            <section class="build-section">
-                <h2>Infrastructure Construction (施設建設)</h2>
-                <div class="build-grid" id="buildGrid">
-                    <!-- 施設カードはJSで動的生成 -->
-                </div>
-            </section>
-
-            <!-- 3列目: 規制設定 & 植民地政策 & ログ -->
+            <!-- 2列目: 施設建設 (施設建設の領域を広げて高さ100%に) -->
             <div class="dash-col">
-                <!-- 調整スライダー -->
-                <div class="dash-panel">
-                    <h3>Colony Regulations (植民地規制)</h3>
-                    <div class="regulation-controls">
+                <!-- 施設建設エリア -->
+                <section class="build-section" style="height: 100%; display: flex; flex-direction: column;">
+                    <h2>Infrastructure Construction (施設建設)</h2>
+                    <div class="build-grid" id="buildGrid" style="flex: 1; min-height: 0;">
+                        <!-- 施設カードはJSで動的生成 -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- 3列目: 技術開発 ＆ 規制設定 (研究の領域を広げる) -->
+            <div class="dash-col">
+                <!-- テクノロジー研究開発 -->
+                <div class="dash-panel" style="flex: 1 1 0%; display: flex; flex-direction: column; min-height: 150px;">
+                    <h3>Tech R&D (研究開発) <span style="font-family: var(--font-mono); color: var(--success); font-size: 0.75rem;" id="lblResearchPoints">0 RP</span></h3>
+                    <div class="research-grid" id="researchGrid" style="flex: 1; min-height: 0;">
+                        <!-- 研究カードはJSで生成 -->
+                    </div>
+                </div>
+
+                <!-- 規制設定 & 修復 (少し小さく配置) -->
+                <div class="dash-panel" style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 0.35rem;">
+                    <h3 style="border:none; padding:0; margin:0; display:flex; justify-content:space-between; align-items:center;">
+                        <span>Colony Settings (コロニー運営)</span>
+                        <button class="trade-btn" style="padding:0.25rem 0.6rem; font-size:0.65rem;" id="repairGridBtn" onclick="repairIntegrity()"><i class="fa-solid fa-wrench"></i> 基地修復 (Cr-200)</button>
+                    </h3>
+                    <div class="regulation-controls" style="flex: 1; display: flex; flex-direction: column; justify-content: space-around;">
                         <div class="reg-control">
                             <div class="reg-header">
                                 <span>課税率 (Tax Rate)</span>
                                 <span id="lblTaxRate">10%</span>
                             </div>
                             <input type="range" class="range-slider" id="cfgTaxRate" min="0" max="40" value="10" oninput="changeTaxRate(this.value)">
-                            <span class="reg-desc">高税率はCredits収入を増やしますが、毎Sol幸福度が低下します。</span>
+                            <span class="reg-desc">課税はCreditsを増やしますが、毎Sol幸福度を下げます。</span>
                         </div>
                         <div class="reg-control">
                             <div class="reg-header">
@@ -978,54 +1457,19 @@
                                 <span id="lblFoodRation">100%</span>
                             </div>
                             <input type="range" class="range-slider" id="cfgFoodRation" min="50" max="150" value="100" step="10" oninput="changeFoodRation(this.value)">
-                            <span class="reg-desc">配給量を下げると食料を節約できますが、健康度と幸福度が低下します。</span>
+                            <span class="reg-desc">配給を下げると食料を節約できますが、健康度と幸福度が低下します。</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- 植民地政策 -->
-                <div class="dash-panel">
-                    <h3>Colony Policies (運営方針政策)</h3>
-                    <div class="policy-grid">
-                        <div class="policy-card">
-                            <div class="policy-text">
-                                <span class="policy-name">配給制限 (Rationing)</span>
-                                <span class="policy-desc">水・食料消費 -30% / 幸福度 -4%</span>
-                            </div>
-                            <span class="switch">
-                                <input type="checkbox" id="policyRationing" onchange="togglePolicy('rationing')">
-                                <span class="slider"></span>
-                            </span>
-                        </div>
-                        <div class="policy-card">
-                            <div class="policy-text">
-                                <span class="policy-name">発電増幅 (Overdrive)</span>
-                                <span class="policy-desc">太陽光発電 +30% / 毎Sol Cr -15</span>
-                            </div>
-                            <span class="switch">
-                                <input type="checkbox" id="policyOverdrive" onchange="togglePolicy('overdrive')">
-                                <span class="slider"></span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ログフィード -->
-                <section class="event-section">
-                    <h2>Control Logs (ログフィード)</h2>
-                    <div class="feed-container" id="feedContainer">
-                        <div class="event-card">
-                            <div class="event-title">システム起動</div>
-                            <div class="event-text">火星アレス基地、生命維持システムがオンラインになりました。開拓者15名の命があなたの管理に委ねられています。目標は人口100人の突破です。</div>
-                        </div>
-                    </div>
-                </section>
             </div>
         </div>
 
         <!-- アクションバー -->
         <footer class="actions-row">
-            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">ARES COMMAND CENTER v2.1.0</span>
+            <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">ARES DEFENSE PROTOCOL v3.0.0</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.95;">[Space/Enter]:次Sol | [q/w, a/s, z/x]:人員増減 | [o]:最適配分 | [r]:基地修復 | [1-6]:施設 | [t/g]:タレット/シールド | [7-9]:RPプロジェクト</span>
+            </div>
             <button class="next-turn-btn" onclick="nextSol()">
                 <span>NEXT SOL (次ターンへ)</span> <i class="fa-solid fa-forward-step"></i>
             </button>
@@ -1038,12 +1482,21 @@
             <div class="modal-icon" id="modalIcon"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="modal-title" id="modalTitle">警告</div>
             <div class="modal-text" id="modalText">テキスト</div>
+            
+            <!-- NG+ 永続アップグレードボーナスプレビュー -->
+            <div class="ng-store-box">
+                <div class="ng-store-title">Alien Technology Legacy (遺伝子・技術継承)</div>
+                <div class="ng-bonus-list" id="ngBonusList">
+                    <!-- レベルごとの解放ボーナス情報 -->
+                </div>
+            </div>
+
             <button class="modal-btn" onclick="restartGame()">RESTART SYSTEM</button>
         </div>
     </div>
 
     <script>
-        // ゲームデータ
+        // ゲーム基本データ
         let sol = 1;
         
         // 資源
@@ -1052,26 +1505,262 @@
             oxygen: 400,
             water: 350,
             food: 450,
-            energy: 60
+            energy: 60,
+            weapons: 0 // 兵器
         };
+
+        // 研究ポイント
+        let researchPoints = 0;
 
         // コロニー基本値
         let population = 15;
         let happiness = 80;
         let health = 90;
         let integrity = 95;
+        let threat = 5; // 異星人の脅威度 (0% - 100%)
         let maxPopulation = 20;
 
         let totalDeaths = 0;
+
+        // タレント最適配置データ
+        const workers = {
+            engineers: 8,  // 資源生産
+            scientists: 4, // RP生成
+            soldiers: 3    // 兵器製造
+        };
+        let unassignedPopulation = 0;
+ 
+        // 資源の連続増加ペナルティ管理用
+        const consecutiveIncreases = {
+            credits: 0,
+            oxygen: 0,
+            water: 0,
+            food: 0,
+            energy: 0,
+            weapons: 0
+        };
+        const previousResources = {
+            credits: 1000,
+            oxygen: 400,
+            water: 350,
+            food: 450,
+            energy: 60,
+            weapons: 0
+        };
+
+        // 100種類のSFランダムイベントデータベース
+        const randomEventsDatabase = [
+            { id: "e1", title: "氷脈の発見", text: "地下の熱源探査中、極めて純度の高い大規模な氷脈を発見。水の供給が潤沢になりました。", effect: { water: 80 } },
+            { id: "e2", title: "太陽フレアの直撃", text: "強力な磁気嵐が直撃。送電回路がショートし、電力が喪失しました。", effect: { energy: -30, integrity: -5 } },
+            { id: "e3", title: "隕石の不時着", text: "重金属を豊富に含む小隕石が落下。スクラップを回収し、防衛兵器に再利用しました。", effect: { weapons: 20, credits: 150 } },
+            { id: "e4", title: "水耕栽培の病害", text: "変異カビが水耕栽培ドームに蔓延。多くの作物が廃棄処分となりました。", effect: { food: -80, happiness: -5 } },
+            { id: "e5", title: "人工知能の暴走", text: "メインAIが異常演算を開始。一時的に大量の電力を消費しましたが、数式の処理が進みました。", effect: { energy: -20, rp: 40 } },
+            { id: "e6", title: "居住区の空気漏れ", text: "老朽化したジョイントから気密漏れが発生。酸素が一部喪失しました。", effect: { oxygen: -60, health: -5 } },
+            { id: "e7", title: "地球からの追加投資", text: "運用レポートが評価され、出資企業から追加のクレジットが送金されました。", effect: { credits: 350 } },
+            { id: "e8", title: "開拓者の誕生日", text: "ドーム内で初めての新生児が誕生。コロニー全体が歓喜に包まれました。", effect: { happiness: 15, population: 1 } },
+            { id: "e9", title: "宇宙感染症の疑い", text: "未知の胞子を吸い込んだ開拓者が呼吸困難を訴え、隔離病棟が稼働しました。", effect: { health: -15, happiness: -5 } },
+            { id: "e10", title: "モノリスの出現", text: "赤い砂漠から漆黒の石柱が発掘されました。解析により膨大な科学データを得ました。", effect: { rp: 80, happiness: -10 } },
+            { id: "e11", title: "地下水脈の破裂", text: "採掘中に高圧水脈が破裂し、機材が一部浸水。修復コストがかかりました。", effect: { water: 120, credits: -100, integrity: -5 } },
+            { id: "e12", title: "砂嵐の早期通過", text: "砂嵐のルートが逸れ、急速に天候が回復。太陽光アレイの効率が戻りました。", effect: { energy: 20, happiness: 5 } },
+            { id: "e13", title: "不良部品の混入", text: "地球から届いたバルブが欠陥品と判明。緊急対応費が発生しました。", effect: { credits: -150 } },
+            { id: "e14", title: "異星人の残骸回収", text: "斥候の残骸から戦闘用コアを回収。兵器技術の解明が進みました。", effect: { weapons: 30, rp: 20 } },
+            { id: "e15", title: "ホームシックの蔓延", text: "通信ラグが深刻化し、地球への恋しさが多くの開拓者の精神を削りました。", effect: { happiness: -20 } },
+            { id: "e16", title: "謎の結晶体発見", text: "洞窟で発光する奇妙なケイ素結晶を回収。科学的調査価値は極めて高いです。", effect: { rp: 35 } },
+            { id: "e17", title: "水質汚染警報", text: "リサイクルシステムに有害金属が混入。一時的に水が使用制限されました。", effect: { water: -40, health: -10 } },
+            { id: "e18", title: "豊作のドーム", text: "水耕の配合バランスが最適化され、栄養価の高い巨大な作物が収穫されました。", effect: { food: 100 } },
+            { id: "e19", title: "防衛システムのバグ", text: "警備ドローンの暴走が発生。鎮圧と自己修復に兵器が浪費されました。", effect: { weapons: -15 } },
+            { id: "e20", title: "亡命船の着陸", text: "他国の動乱から逃れてきた小型船が強行着陸。人員を受け入れました。", effect: { population: 3, credits: 100, food: -50 } },
+            { id: "e21", title: "オーロラの発生", text: "火星の極地から美しいオーロラが観測され、人々の心が一時的に癒やされました。", effect: { happiness: 10 } },
+            { id: "e22", title: "超伝導コーティング", text: "太陽光アレイに新コーティングを適用。送電効率が底上げされました。", effect: { energy: 40, rp: 10 } },
+            { id: "e23", title: "酸素タンク亀裂", text: "微小隕石が主酸素タンクに衝突し、少量の酸素が宇宙空間へ放出されました。", effect: { oxygen: -80, integrity: -5 } },
+            { id: "e24", title: "緊急寄付要請", text: "地球の姉妹コロニーが災害に直面。クレジットを寄付して支援しました。", effect: { credits: -200, happiness: 15 } },
+            { id: "e25", title: "古代の枯渇湖", text: "乾燥したかつての湖底を掘削。貴重なミネラルと水分の残留物を抽出しました。", effect: { water: 50 } },
+            { id: "e26", title: "配給フードの劣化", text: "保管中の合成ペーストが変質し、開拓者たちから不満の嵐が巻き起こりました。", effect: { food: -40, happiness: -15 } },
+            { id: "e27", title: "宇宙放射線の急増", text: "太陽活動が活発化し、一時的に屋外活動が禁止され、健康を害する者が出ました。", effect: { health: -15 } },
+            { id: "e28", title: "異星人の接近検知", text: "不可視シールドで隠蔽された異星人の偵察船が基地周辺を通過した痕跡を発見。", effect: { threat: 15 } },
+            { id: "e29", title: "防衛コンソール過熱", text: "長時間の哨戒監視により、防衛指令システムが過熱しショートしました。", effect: { weapons: -20, integrity: -10 } },
+            { id: "e30", title: "新種バクテリアの発見", text: "砂の下から炭酸ガスを酸素に変換する新種バクテリアを採取。研究が進みます。", effect: { rp: 50 } },
+            { id: "e31", title: "酸素リサイクル改善", text: "住民によるエコロジー運動が活発化し、酸素の無駄遣いが減りました。", effect: { oxygen: 40 } },
+            { id: "e32", title: "物資運送船の到着", text: "定期輸送船が少し早めに到着。予備のバッテリーを寄贈してくれました。", effect: { energy: 30, credits: 100 } },
+            { id: "e33", title: "水漏れセンサー誤作動", text: "センサーの誤検知により不要な排水プロトコルが作動し、水が失われました。", effect: { water: -30 } },
+            { id: "e34", title: "異星人の暗号解読", text: "傍受していた異星人無線のノイズから一部のパターンの解析に成功しました。", effect: { rp: 45, threat: -5 } },
+            { id: "e35", title: "レクリエーション施設の増設", text: "格納庫の一部を娯楽エリアに転用。開拓者たちの団結が深まりました。", effect: { happiness: 20, credits: -80 } },
+            { id: "e36", title: "カビの豊作", text: "水耕栽培の隅で偶然繁殖した美味な食用菌が評判になり、食料として活用されました。", effect: { food: 50 } },
+            { id: "e37", title: "医療ドーム of バグ", text: "自律診断システムの不具合により、一部の治療カプセルが停止しました。", effect: { health: -10 } },
+            { id: "e38", title: "防衛装備 of 品質向上", text: "防衛隊が独自の工夫によりライフル弾薬の充填プロセスを最適化しました。", effect: { weapons: 25 } },
+            { id: "e39", title: "砂嵐接近 of 誤報", text: "気象レーダーが砂嵐を誤検知。不要な防護壁の展開でエネルギーが浪費されました。", effect: { energy: -15 } },
+            { id: "e40", title: "他国基地との通信", text: "数十キロ離れた他国の探査基地と友好通信。データをお互いに交換しました。", effect: { rp: 30, credits: 50 } },
+            { id: "e41", title: "開拓者の移住", text: "別の過酷な中継基地から、避難を求めて2名の優秀なエンジニアが合流しました。", effect: { population: 2 } },
+            { id: "e42", title: "気密シャッターの破損", text: "ドーム接続通路の気密扉が錆びて破損。修復にコストが発生しました。", effect: { integrity: -15, credits: -120 } },
+            { id: "e43", title: "地球との貿易成功", text: "余剰の科学報告書を地球の学術機関に高値で売り払い、資金を獲得しました。", effect: { credits: 280, rp: -20 } },
+            { id: "e44", title: "カビの胞子によるアレルギー", text: "栽培ドーム内の植物性アレルゲンが循環ダクトに混入し、多くの住民がくしゃみに悩まされました。", effect: { health: -8 } },
+            { id: "e45", title: "兵器保管庫の空調故障", text: "兵器保管庫の除湿機が故障。一部の電子兵器が結露でショートしました。", effect: { weapons: -25 } },
+            { id: "e46", title: "新しい娯楽番組", text: "地球で大ヒット中のドラマが基地へ中継され、久しぶりの大娯楽に沸き立ちました。", effect: { happiness: 18 } },
+            { id: "e47", title: "電力コンデンサの破裂", text: "過充電により主電源アキュムレーターの1つが爆発。送電量が一時低下しました。", effect: { energy: -40, integrity: -8 } },
+            { id: "e48", title: "気象パターンの異常", text: "数日間にわたり珍しく晴天が続き、ソーラーパネルの効率が向上しました。", effect: { energy: 25 } },
+            { id: "e49", title: "異星人の残置トラップ", text: "赤い砂の下から古い異星人の地雷が発見され、パトロール隊員が負傷しました。", effect: { health: -12, weapons: -10 } },
+            { id: "e50", title: "科学的ひらめき", text: "技術者がシャワーを浴びている最中に、新しい核融合サイクルの制御方法をひらめきました。", effect: { rp: 60 } },
+            { id: "e51", title: "氷原の割れ目", text: "氷の運搬車が深いクレバスに転落。回収費用がかさみ、一時的に水量が減少しました。", effect: { water: -50, credits: -150 } },
+            { id: "e52", title: "高効率ヒーター", text: "暖房システムの循環バルブを改造。無駄な電力熱消費を抑えることに成功しました。", effect: { energy: 30 } },
+            { id: "e53", title: "居住区の配管凍結", text: "極度の寒冷により、給水パイプの一部が凍結・破裂。修復にCreditsを費やしました。", effect: { water: -30, credits: -100 } },
+            { id: "e54", title: "地球からの激励メッセージ", text: "開拓者の家族からのボイスメッセージ集が届き、基地全員のモチベーションが高まりました。", effect: { happiness: 20 } },
+            { id: "e55", title: "謎の重力異常", text: "数分間、基地周辺で微弱な局所的重力変動が発生。機材の調整が必要になりました。", effect: { integrity: -10, rp: 20 } },
+            { id: "e56", title: "兵器製造プロトコルの改善", text: "3Dプリンターでのバレル鋳造時間を短縮するバッチファイルを適用しました。", effect: { weapons: 35 } },
+            { id: "e57", title: "食料保存料の期限切れ", text: "古い食料コンテナの密封が解け、中身が傷んで廃棄されました。", effect: { food: -60 } },
+            { id: "e58", title: "新鮮な地下水の温泉", text: "地中深くから比較的高温の地下水脈を発見。水耕の温水として再利用します。", effect: { water: 70, food: 30 } },
+            { id: "e59", title: "自律修復ドローンの暴走", text: "修復ドローンがバグり、正常な隔壁を解体し始めるトラブルが発生しました。", effect: { integrity: -15 } },
+            { id: "e60", title: "異星人の通信妨害", text: "異星人勢力の強力なジャミングにより、一時的に地球との遠隔指示システムが麻痺しました。", effect: { threat: 10, happiness: -10 } },
+            { id: "e61", title: "地球の新技術の特許", text: "地球で公開されたばかりのオープンソースの熱効率計算技術を適用しました。", effect: { rp: 40 } },
+            { id: "e62", title: "開拓者の移入", text: "近くで遭難していた他社の民間シャトルから、3名の技術者を保護し仲間に加えました。", effect: { population: 3 } },
+            { id: "e63", title: "娯楽センターの閉鎖", text: "水漏れ事故によりレクリエーションルームが水浸しになり、住民の機嫌が損なわれました。", effect: { water: -20, happiness: -15 } },
+            { id: "e64", title: "対空火器のアップグレード", text: "防衛警備隊が弾道の予測追跡プログラムを改良。迎撃率を高めました。", effect: { weapons: 30 } },
+            { id: "e65", title: "空気汚染の濾過", text: "大気フィルターの交換が完了。きれいな空気が居住ドーム内を満たしました。", effect: { oxygen: 50, health: 10 } },
+            { id: "e66", title: "二酸化炭素の漏出", text: "精製プラントの一部のタンクが破損。呼吸用ガスから酸素が奪われました。", effect: { oxygen: -50 } },
+            { id: "e67", title: "太陽光パネルの砂被り", text: "前夜の微風により、太陽光パネル全体に細かい塵が積もり、発電量が低下しました。", effect: { energy: -30 } },
+            { id: "e68", title: "科学論文の発表", text: "基地の研究成果が地球のトップ宇宙科学雑誌に掲載され、多額の賞金を獲得しました。", effect: { credits: 400, rp: 25 } },
+            { id: "e69", title: "氷の採掘ドリル故障", text: "極地ドリルヘッドが摩耗で破損。交換部品の調達にコストがかかりました。", effect: { water: -40, credits: -120 } },
+            { id: "e70", title: "幸福なダンスナイト", text: "金曜の夜に食堂で音楽イベントを開催。人々は過酷な現実を忘れ大いに踊りました。", effect: { happiness: 22 } },
+            { id: "e71", title: "空気漏れ誤検知", text: "警報が夜間に鳴り響きましたが、誤検知でした。安眠を妨げられた住民は疲れました。", effect: { happiness: -8, health: -5 } },
+            { id: "e72", title: "新種の耐冷トマト栽培", text: "火星の土壌成分を少量混ぜても育つ耐寒トマトの育成に成功。食料が増えました。", effect: { food: 80 } },
+            { id: "e73", title: "防衛装備のサビ", text: "火星大気中の微細な過塩素酸塩により、保管中の火器の一部が腐食しました。", effect: { weapons: -20 } },
+            { id: "e74", title: "地球のチャリティ基金", text: "地球の人道的SF団体から、開拓生活を支援するためのクレジット基金が届きました。", effect: { credits: 220 } },
+            { id: "e75", title: "異常気象（砂嵐の前兆）", text: "上空の大気が急激に不安定化。敵の活動も活発化しているようです。", effect: { threat: 12 } },
+            { id: "e76", title: "古代有機化合物の堆積", text: "かつての湿地帯から、有用な有機化合物の化石を発見。燃料触媒として活用します。", effect: { energy: 35, rp: 15 } },
+            { id: "e77", title: "医療室の水不足", text: "医療用滅菌装置の給水器が故障。治療プロセスの効率が一時低下しました。", effect: { water: -25, health: -8 } },
+            { id: "e78", title: "防衛用の隔壁補強", text: "ドーム周囲の保護シェルを物理的に肉厚化。外壁の健全度が向上しました。", effect: { integrity: 15 } },
+            { id: "e79", title: "居住区の騒音問題", text: "換気ファンのベアリングが壊れ、不快な高周波音が響き渡り、人々の神経を逆撫でしました。", effect: { happiness: -12 } },
+            { id: "e80", title: "小惑星衝突予測", text: "天体観測チームが基地から数キロ先に落ちる小惑星を特定。貴重なレアメタルを回収しました。", effect: { credits: 180, rp: 30 } },
+            { id: "e81", title: "カビ胞子の抑制成功", text: "栽培ドームのUV滅菌シャワーの配置を見直し、作物の健康を維持しやすくなりました。", effect: { food: 40 } },
+            { id: "e82", title: "異星人の斥候撃退", text: "防衛警備隊が、隠密行動中の小型異星人ドローンの撃墜に成功。技術チップを回収しました。", effect: { weapons: 20, rp: 40 } },
+            { id: "e83", title: "地球の宇宙線研究データ", text: "地球の科学アカデミーから、放射線シールドの計算モデルデータが転送されました。", effect: { rp: 50 } },
+            { id: "e84", title: "通信サテライト故障", text: "静止軌道上の通信衛星の姿勢制御が狂い、一時的に地球との遠隔支援接続が途切れました。", effect: { credits: -50 } },
+            { id: "e85", title: "太陽光パネルの受光角調整", text: "自動トラッキングプログラムを最適化し、一日あたりの総発電量が向上しました。", effect: { energy: 25 } },
+            { id: "e86", title: "過酷な砂風", text: "強い砂混じりの突風が直撃。防護コーティングが削れ、ドーム壁面が摩耗しました。", effect: { integrity: -12 } },
+            { id: "e87", title: "新種の薬草開発", text: "栽培ドームで鎮痛・消炎作用を持つ火星変種ハーブが収穫され、医療に貢献しました。", effect: { health: 12 } },
+            { id: "e88", title: "防衛隊の士気低下", text: "長時間の哨戒任務と乾燥により、警備ドーム内の警備隊員の不満が募りました。", effect: { happiness: -10 } },
+            { id: "e89", title: "燃料カプセル破損", text: "予備の推進剤シリンダーが腐食により亀裂。安全のためにガスをベントしました。", effect: { energy: -30 } },
+            { id: "e90", title: "他基地からのSOS", text: "近くの他社探査キャンプが生命維持危機。水と食料を分け与えました。", effect: { water: -60, food: -60, credits: 300 } },
+            { id: "e91", title: "研究アーカイブのバックアップ", text: "データ損失事故が起きかけましたが、二重バックアップにより防がれ、ひらめきを得ました。", effect: { rp: 25 } },
+            { id: "e92", title: "開拓者の移民申請", text: "民間船から1名の優秀なエンジニアが基地の生活を求め、正式に移住してきました。", effect: { population: 1 } },
+            { id: "e93", title: "水槽タンクの沈殿物", text: "水タンクの底に不溶性の錆が蓄積。清掃とフィルターの交換が必要になりました。", effect: { water: -35, credits: -50 } },
+            { id: "e94", title: "防衛隊の模擬戦闘訓練", text: "警備隊員が最新の戦術シミュレーターを用いて演習を実施。能力を磨きました。", effect: { weapons: 25 } },
+            { id: "e95", title: "地球の宇宙港のトラブル", text: "地球での大規模労働争議により、当面の物資供給計画が滞り、一部の資金が相殺されました。", effect: { credits: -120 } },
+            { id: "e96", title: "太陽アレイの集中過熱", text: "ソーラーパネルの一部で電流が異常集中し、セルが溶融。修復にCreditsが必要です。", effect: { energy: -20, credits: -80 } },
+            { id: "e97", title: "おいしい人工肉の培養", text: "タンパク質培養のクローンレシピを改良。ステーキに近い食感が再現されました！", effect: { food: 60, happiness: 12 } },
+            { id: "e98", title: "空気調整のセンサーバグ", text: "誤った加圧判定で換気バルブが開き、高濃度の窒素が漏れて健康に悪影響を及ぼしました。", effect: { health: -10 } },
+            { id: "e99", title: "防衛タレットの暴走寸前", text: "レールガンの射撃管制AIがノイズにより敵味方識別エラー。手動介入で兵器が消費されました。", effect: { weapons: -15 } },
+            { id: "e100", title: "モノリスの共鳴", text: "かつて見つかった謎のモノリスが、異星人勢力の接近に伴い共鳴を開始。全員の頭脳が一時的に超活性化しました。", effect: { rp: 100, threat: 15 } }
+        ];
+
+        // 一時防衛バフ管理
+        let tempDefenseShield = 0; 
 
         // 調整可能な政策設定
         let taxRate = 10; // 課税率 (0% - 40%)
         let foodRation = 100; // 食料配給量 (50% - 150%)
 
-        const activePolicies = {
-            rationing: false,
-            overdrive: false
-        };
+        // 強くてニューゲーム (NG+) 累計技術ポイント
+        let accumulatedAP = 0;
+        let currentNgLevel = 0;
+
+        // 研究開発テクノロジーデータベース
+        const technologies = [
+            {
+                id: 'fuelcell',
+                name: 'バイオ燃料電池',
+                cost: 50,
+                desc: '毎Sol発電量を底上げします。',
+                effect: '毎Sol 電力 +10',
+                unlocked: false
+            },
+            {
+                id: 'recycle',
+                name: '水リサイクル循環',
+                cost: 80,
+                desc: '住民の毎Solの水消費を削減。',
+                effect: '水消費量 -20%',
+                unlocked: false
+            },
+            {
+                id: 'crops',
+                name: 'ゲノム品種改良',
+                cost: 100,
+                desc: '水耕栽培ドームの収穫効率UP。',
+                effect: '食料生産量 +25%',
+                unlocked: false
+            },
+            {
+                id: 'laser',
+                name: '自動防御レーザー',
+                cost: 120,
+                desc: '兵器製造スピードを強化。',
+                effect: '兵器生産速度 +30%',
+                unlocked: false
+            },
+            {
+                id: 'nanomachine',
+                name: '自己修復ナノマシン',
+                cost: 150,
+                desc: '基地健全度を自動で修復。',
+                effect: '毎Sol Integrity +2',
+                unlocked: false
+            },
+            {
+                id: 'early_warning',
+                name: '早期警戒レーダー網',
+                cost: 130,
+                desc: '敵の接近を早期に察知し、脅威上昇を抑制。',
+                effect: '毎Sol脅威度上昇 -30%',
+                unlocked: false
+            },
+            {
+                id: 'heavy_weapons',
+                name: '高エネルギー重プラズマ兵器',
+                cost: 180,
+                desc: '防衛部隊の火力を大幅強化。',
+                effect: '兵器生産速度 +50%',
+                unlocked: false
+            }
+        ];
+
+        // リピート可能な科学プロジェクトデータベース
+        const repeatableProjects = [
+            {
+                id: 'supplies',
+                name: '地球支援物資の誘導',
+                cost: 70,
+                desc: '軌道上の補給コンテナを基地へ誘導。',
+                effect: '食料+40, 水+40, 酸素+40',
+                run: () => {
+                    resources.food += 40;
+                    resources.water += 40;
+                    resources.oxygen += 40;
+                    addLog('支援物資', '地球からの緊急支援物資（食料+40, 水+40, 酸素+40）を誘導回収しました。');
+                }
+            },
+            {
+                id: 'shield_boost',
+                name: '防衛シールド過負荷',
+                cost: 60,
+                desc: '基地の防衛隔壁シールドを一時的に強化。',
+                effect: '次回襲撃時の防衛力 +15 (累積可)',
+                run: () => {
+                    tempDefenseShield += 15;
+                    addLog('シールド強化', `基地シールドを過負荷展開し、次回襲撃時の防衛力を一時的に +15 しました。(現在の累計バフ: +${tempDefenseShield})`);
+                }
+            },
+            {
+                id: 'nano_patch',
+                name: '応急ナノ修復パッチ',
+                cost: 50,
+                desc: '自己修復ナノマシンを特定セクターに集中投下。',
+                effect: '基地健全度 (Integrity) +15',
+                run: () => {
+                    integrity = Math.min(100, integrity + 15);
+                    addLog('ナノ修復', `応急ナノマシンにより、基地インフラ健全度を +15 修復しました。`);
+                }
+            }
+        ];
 
         // 施設データベース
         const buildings = [
@@ -1128,7 +1817,7 @@
                 effect: '最大収容人数 +15',
                 costResource: 'credits',
                 runEffect: () => { maxPopulation += 15; },
-                deltaDesc: {} // 生産・消費には影響しない
+                deltaDesc: {} 
             },
             {
                 id: 'bio',
@@ -1140,19 +1829,102 @@
                 costResource: 'credits',
                 runEffect: () => { happiness = Math.min(100, happiness + 5); resources.water -= 10; resources.energy -= 8; },
                 deltaDesc: { water: -10, energy: -8 }
+            },
+            {
+                id: 'turret',
+                name: '対空レールガンタレット',
+                count: 0,
+                cost: 300,
+                desc: '自動迎撃用タレット。脅威上昇を抑え、襲撃に備える。',
+                effect: '防衛力 +20、毎Sol脅威度上昇 -1%、兵器 -15',
+                costResource: 'credits',
+                runEffect: () => {},
+                deltaDesc: {}
+            },
+            {
+                id: 'shield',
+                name: 'プラズマシールドジェネレーター',
+                count: 0,
+                cost: 400,
+                desc: '防衛障壁発生器。防衛失敗時のドーム被害を半減。',
+                effect: '停電/襲撃被害 -50%、電力 -15',
+                costResource: 'credits',
+                runEffect: () => { resources.energy -= 15; },
+                deltaDesc: { energy: -15 }
             }
         ];
 
         // 状態異常イベントトラッキング
         let sandstormSol = 0; // 砂嵐の残りSol数
 
-        // 施設建設表示の更新
+        // ローカルストレージから強くてニューゲーム(AP)データを取得
+        function loadNgData() {
+            const raw = localStorage.getItem('ares_base_ng_ap');
+            if (raw) {
+                accumulatedAP = parseInt(raw);
+            } else {
+                accumulatedAP = 0;
+            }
+
+            // APに基づいてニューゲームレベルを算出
+            // Lvl 1: 30AP, Lvl 2: 80AP, Lvl 3: 150AP, Lvl 4: 250AP, Lvl 5: 400AP
+            if (accumulatedAP >= 400) currentNgLevel = 5;
+            else if (accumulatedAP >= 250) currentNgLevel = 4;
+            else if (accumulatedAP >= 150) currentNgLevel = 3;
+            else if (accumulatedAP >= 80) currentNgLevel = 2;
+            else if (accumulatedAP >= 30) currentNgLevel = 1;
+            else currentNgLevel = 0;
+
+            document.getElementById('lblNgLevel').textContent = `Alien Tech Lvl ${currentNgLevel}`;
+        }
+
+        // NG+レベルに応じたスタートボーナスの適用
+        function applyNgStartBonuses() {
+            // リセット
+            resources.credits = 1000;
+            resources.weapons = 0;
+            population = 15;
+
+            if (currentNgLevel >= 1) {
+                resources.credits += 200; // Cr+200
+                resources.weapons += 10;   // 初期兵器+10
+            }
+            if (currentNgLevel >= 2) {
+                population = 17;          // 人口17スタート
+            }
+            if (currentNgLevel >= 3) {
+                resources.credits += 200; // さらにCr+200
+                resources.weapons += 10;  // さらに初期兵器+10
+            }
+            if (currentNgLevel >= 4) {
+                population = 19;          // 人口19スタート
+                integrity = 100;          // 健全度100スタート
+            }
+            if (currentNgLevel >= 5) {
+                resources.credits += 200; // さらにCr+200
+                resources.weapons += 10;  // さらに初期兵器+10
+                population = 20;          // 人口20スタート
+            }
+
+            // 人員再分配
+            workers.engineers = Math.floor(population * 0.5);
+            workers.scientists = Math.floor(population * 0.3);
+            workers.soldiers = population - workers.engineers - workers.scientists;
+            unassignedPopulation = 0;
+        }
+
+        // 施設建設表示 of 更新
         function renderBuildings() {
             const grid = document.getElementById('buildGrid');
             grid.innerHTML = '';
-
+ 
             buildings.forEach(b => {
-                const canBuild = resources.credits >= b.cost;
+                let canBuild = resources.credits >= b.cost;
+                let costExtraDesc = "";
+                if (b.id === 'turret') {
+                    canBuild = canBuild && resources.weapons >= 15;
+                    costExtraDesc = ` / <i class="fa-solid fa-shield-halved" style="color:var(--military); font-size:0.6rem;"></i> 15 Wp`;
+                }
                 const card = document.createElement('div');
                 card.className = 'build-card';
                 card.innerHTML = `
@@ -1161,7 +1933,7 @@
                         <div class="build-detail">${b.desc}</div>
                         <div class="build-effect">効果: ${b.effect}</div>
                         <div class="build-costs">
-                            <span><i class="fa-solid fa-circle-dollar-to-slot"></i> ${b.cost} Cr</span>
+                            <span><i class="fa-solid fa-circle-dollar-to-slot"></i> ${b.cost} Cr${costExtraDesc}</span>
                         </div>
                     </div>
                     <button class="build-btn" ${canBuild ? '' : 'disabled'} onclick="buildStructure('${b.id}')">建設する</button>
@@ -1170,21 +1942,161 @@
             });
         }
 
+        // 研究開発表示 of 更新
+        function renderResearch() {
+            const grid = document.getElementById('researchGrid');
+            grid.innerHTML = '';
+ 
+            // 1. 通常研究の描画
+            technologies.forEach(t => {
+                let btnHtml = '';
+                if (t.unlocked) {
+                    btnHtml = `<button class="research-btn researched" disabled>研究完了</button>`;
+                } else {
+                    const canResearch = researchPoints >= t.cost;
+                    btnHtml = `<button class="research-btn" ${canResearch ? '' : 'disabled'} onclick="buyTechnology('${t.id}')">${t.cost} RP</button>`;
+                }
+ 
+                const card = document.createElement('div');
+                card.className = 'research-card';
+                card.innerHTML = `
+                    <div class="research-desc-block">
+                        <span class="research-name">${t.name}</span>
+                        <span class="build-detail" style="color:var(--text-muted);">${t.desc}</span>
+                        <span class="research-effect">効果: ${t.effect}</span>
+                    </div>
+                    ${btnHtml}
+                `;
+                grid.appendChild(card);
+            });
+            // 2. リピート可能なプロジェクトの描画
+            repeatableProjects.forEach(p => {
+                const canRun = researchPoints >= p.cost;
+                const card = document.createElement('div');
+                card.className = 'research-card';
+                card.innerHTML = `
+                    <div class="research-desc-block">
+                        <span class="research-name" style="color:var(--accent);">${p.name} <span style="font-size:0.6rem; background:rgba(76,201,240,0.1); padding:0.1rem 0.3rem; border-radius:3px; font-weight:normal;">リピート可</span></span>
+                        <span class="build-detail" style="color:var(--text-muted);">${p.desc}</span>
+                        <span class="research-effect" style="color:var(--accent);">効果: ${p.effect}</span>
+                    </div>
+                    <button class="research-btn" style="background:var(--accent); color:#000;" ${canRun ? '' : 'disabled'} onclick="runRepeatableProject('${p.id}')">${p.cost} RP</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         // 施設建設実行
         function buildStructure(id) {
             const b = buildings.find(item => item.id === id);
-            if (b && resources.credits >= b.cost) {
-                resources.credits -= b.cost;
-                b.count++;
-                b.cost = Math.round(b.cost * 1.25); // コスト増加
-
-                // 居住モジュールの場合その場で上限アップ
-                if (b.id === 'hab') {
-                    maxPopulation += 15;
+            if (b) {
+                // 特殊コストチェック (タレットはWp 15が必要)
+                if (b.id === 'turret' && resources.weapons < 15) {
+                    return;
                 }
-
-                addLog('建設完了', `${b.name}の建設が完了しました。(Cr -${b.cost})`);
+                if (resources.credits >= b.cost) {
+                    resources.credits -= b.cost;
+                    if (b.id === 'turret') {
+                        resources.weapons -= 15;
+                    }
+                    b.count++;
+                    b.cost = Math.round(b.cost * 1.25); // コスト増加
+ 
+                    // 居住モジュールの場合その場で上限アップ
+                    if (b.id === 'hab') {
+                        maxPopulation += 15;
+                    }
+ 
+                    addLog('建設完了', `${b.name}の建設が完了しました。(Cr -${b.cost}${b.id === 'turret' ? '、Wp -15' : ''})`);
+                    updateUI();
+                    saveGame();
+                }
+            }
+        }
+ 
+        // リピート可能なプロジェクトの実行
+        function runRepeatableProject(id) {
+            const p = repeatableProjects.find(item => item.id === id);
+            if (p && researchPoints >= p.cost) {
+                researchPoints -= p.cost;
+                p.run();
                 updateUI();
+                saveGame();
+            }
+        }
+        // 人員の自動最適配置
+        function autoAllocateTalents() {
+            // 一度全員の割り振りを解除して未配属にする
+            unassignedPopulation = population;
+            workers.engineers = 0;
+            workers.scientists = 0;
+            workers.soldiers = 0;
+ 
+            // 1. 最優先：資源の生命維持のためのエンジニア確保
+            const baseO2Need = population * 2.5;
+            const baseWaterNeed = population * 3.2 * (technologies.find(t => t.id === 'recycle').unlocked ? 0.8 : 1.0);
+            const baseFoodNeed = population * 3.8 * (foodRation / 100);
+ 
+            // 施設1個あたりの基礎生産量
+            const o2ProdPerFacility = 15;
+            const waterProdPerFacility = 20;
+            const cropsTech = technologies.find(t => t.id === 'crops');
+            const foodProdPerFacility = 30 * (cropsTech && cropsTech.unlocked ? 1.25 : 1.0);
+ 
+            // 各施設数
+            const o2Facilities = buildings.find(b => b.id === 'moxie').count;
+            const waterFacilities = buildings.find(b => b.id === 'extractor').count;
+            const foodFacilities = buildings.find(b => b.id === 'hydro').count;
+ 
+            // 必要なエンジニア数 = 8 * (必要生産量 / (施設数 * 施設単体生産量))
+            let neededEngineersForO2 = o2Facilities > 0 ? Math.ceil(8 * (baseO2Need / (o2Facilities * o2ProdPerFacility))) : 0;
+            let neededEngineersForWater = waterFacilities > 0 ? Math.ceil(8 * (baseWaterNeed / (waterFacilities * waterProdPerFacility))) : 0;
+            let neededEngineersForFood = foodFacilities > 0 ? Math.ceil(8 * (baseFoodNeed / (foodFacilities * foodProdPerFacility))) : 0;
+ 
+            let targetEngineers = Math.max(neededEngineersForO2, neededEngineersForWater, neededEngineersForFood);
+            if (resources.oxygen < 80 || resources.water < 80 || resources.food < 80 || resources.energy < 20) {
+                targetEngineers = Math.max(targetEngineers, Math.floor(population * 0.6)); // 最大60%
+            }
+            
+            const allocatedEngineers = Math.min(unassignedPopulation, Math.max(2, targetEngineers));
+            workers.engineers = allocatedEngineers;
+            unassignedPopulation -= allocatedEngineers;
+ 
+            // 2. 優先度高：防衛体制の構築（脅威度が50%以上、または兵器が不足している場合）
+            const nextInvasionThreat = Math.floor(sol * 4.5) + 15;
+            const turretBuilding = buildings.find(b => b.id === 'turret');
+            const turretDefense = turretBuilding ? turretBuilding.count * 20 : 0;
+            const neededWeapons = Math.max(0, nextInvasionThreat - turretDefense);
+            
+            if (unassignedPopulation > 0) {
+                if (threat >= 50 || resources.weapons < neededWeapons) {
+                    const soldierRatio = threat >= 75 ? 0.7 : 0.45;
+                    const targetSoldiers = Math.max(1, Math.round(unassignedPopulation * soldierRatio));
+                    const allocatedSoldiers = Math.min(unassignedPopulation, targetSoldiers);
+                    workers.soldiers = allocatedSoldiers;
+                    unassignedPopulation -= allocatedSoldiers;
+                }
+            }
+ 
+            // 3. 優先度中：残りを科学研究者に
+            if (unassignedPopulation > 0) {
+                workers.scientists = unassignedPopulation;
+                unassignedPopulation = 0;
+            }
+ 
+            addLog('人員最適化', '管制システムにより、現在の開拓地状況（資源・防衛）に合わせた最適な人員配置が実行されました。');
+            updateUI();
+            saveGame();
+        }
+        // テクノロジー研究の実行
+        function buyTechnology(id) {
+            const t = technologies.find(item => item.id === id);
+            if (t && researchPoints >= t.cost && !t.unlocked) {
+                researchPoints -= t.cost;
+                t.unlocked = true;
+                addLog('研究開発', `新テクノロジー【${t.name}】の開発に成功しました。`);
+                updateUI();
+                saveGame();
             }
         }
 
@@ -1198,12 +2110,28 @@
             document.getElementById('valHappiness').textContent = `${happiness} %`;
             document.getElementById('valHealth').textContent = `${health} %`;
             document.getElementById('valIntegrity').textContent = `${integrity} %`;
+            document.getElementById('valThreat').textContent = `${threat} %`;
             
             // コロニー基本値 (バー表示)
             document.getElementById('barPopulation').style.width = `${Math.min(100, (population / maxPopulation) * 100)}%`;
             document.getElementById('barHappiness').style.width = `${happiness}%`;
             document.getElementById('barHealth').style.width = `${health}%`;
             document.getElementById('barIntegrity').style.width = `${integrity}%`;
+            document.getElementById('barThreat').style.width = `${threat}%`;
+
+            // タレント人員配置の数値
+            document.getElementById('valEngineers').textContent = workers.engineers;
+            document.getElementById('valScientists').textContent = workers.scientists;
+            document.getElementById('valSoldiers').textContent = workers.soldiers;
+            
+            // 未配属タレントバッジ
+            const unassignedEl = document.getElementById('lblUnassigned');
+            unassignedEl.textContent = `未配属: ${unassignedPopulation}`;
+            if (unassignedPopulation > 0) {
+                unassignedEl.style.display = 'inline-block';
+            } else {
+                unassignedEl.style.display = 'none';
+            }
 
             // 資源
             document.getElementById('amtCredits').textContent = Math.round(resources.credits);
@@ -1211,6 +2139,10 @@
             document.getElementById('amtWater').textContent = Math.round(resources.water);
             document.getElementById('amtFood').textContent = Math.round(resources.food);
             document.getElementById('amtEnergy').textContent = Math.round(resources.energy);
+            document.getElementById('amtWeapons').textContent = Math.round(resources.weapons);
+
+            // 研究ポイント
+            document.getElementById('lblResearchPoints').textContent = `${researchPoints} RP`;
 
             // 収支予測(Delta)の計算と表示
             const deltas = calculateDeltas();
@@ -1220,6 +2152,7 @@
             updateDeltaUI('Water', deltas.water);
             updateDeltaUI('Food', deltas.food);
             updateDeltaUI('Energy', deltas.energy);
+            updateDeltaUI('Weapons', deltas.weapons);
 
             // 警告アラート背景の変更 (資源が枯渇しかけている時)
             checkWarning('Credits', resources.credits);
@@ -1228,13 +2161,11 @@
             checkWarning('Food', resources.food);
             checkWarning('Energy', resources.energy);
 
-            // 緊急交易ボタンの状態調整
-            document.getElementById('buyOxygenBtn').disabled = resources.credits < 150;
-            document.getElementById('buyWaterBtn').disabled = resources.credits < 150;
-            document.getElementById('buyFoodBtn').disabled = resources.credits < 150;
+            // 修復ボタンの状態調整
             document.getElementById('repairGridBtn').disabled = resources.credits < 200;
 
             renderBuildings();
+            renderResearch();
         }
 
         function updateDeltaUI(name, val) {
@@ -1263,45 +2194,33 @@
             }
         }
 
-        // 政策のON/OFF
-        function togglePolicy(type) {
-            if (type === 'rationing') {
-                activePolicies.rationing = document.getElementById('policyRationing').checked;
-                addLog('政策変更', `配給制限を${activePolicies.rationing ? '有効化' : '無効化'}しました。`);
-            } else if (type === 'overdrive') {
-                activePolicies.overdrive = document.getElementById('policyOverdrive').checked;
-                addLog('政策変更', `発電増幅を${activePolicies.overdrive ? '有効化' : '無効化'}しました。`);
+        // タレント配置変更
+        function adjustTalent(role, delta) {
+            if (delta === 1) {
+                // 増やす
+                if (unassignedPopulation > 0) {
+                    workers[role]++;
+                    unassignedPopulation--;
+                }
+            } else if (delta === -1) {
+                // 減らす
+                if (workers[role] > 0) {
+                    workers[role]--;
+                    unassignedPopulation++;
+                }
             }
             updateUI();
+            saveGame();
         }
 
-        // 地球からの緊急物資取引
-        function tradeResource(type) {
-            if (resources.credits >= 150) {
-                resources.credits -= 150;
-                let resourceName = '';
-                if (type === 'oxygen') {
-                    resources.oxygen += 100;
-                    resourceName = '酸素 100 単位';
-                } else if (type === 'water') {
-                    resources.water += 100;
-                    resourceName = '水 100 単位';
-                } else if (type === 'food') {
-                    resources.food += 100;
-                    resourceName = '食料 100 単位';
-                }
-                addLog('緊急取引', `地球の補給船から ${resourceName} を緊急購入しました。(Cr -150)`);
-                updateUI();
-            }
-        }
-
-        // インフラグリッド修復
+        // インフラ健全度修復
         function repairIntegrity() {
             if (resources.credits >= 200) {
                 resources.credits -= 200;
                 integrity = Math.min(100, integrity + 20);
                 addLog('基地修復', `Credits 200を支払い、基地インフラ健全度を +20 修復しました。`);
                 updateUI();
+                saveGame();
             }
         }
 
@@ -1310,60 +2229,84 @@
             taxRate = parseInt(val);
             document.getElementById('lblTaxRate').textContent = `${taxRate}%`;
             updateUI();
+            saveGame();
         }
 
         function changeFoodRation(val) {
             foodRation = parseInt(val);
             document.getElementById('lblFoodRation').textContent = `${foodRation}%`;
             updateUI();
+            saveGame();
         }
 
         // 毎ターンの収支・Delta算出
         function calculateDeltas() {
-            const deltas = { credits: 0, oxygen: 0, water: 0, food: 0, energy: 0 };
+            const deltas = { credits: 0, oxygen: 0, water: 0, food: 0, energy: 0, weapons: 0 };
 
-            // 基礎資金収入: 開拓者数 × 8 × 課税率の影響
-            // 課税率が10%を基準とし、0%なら半減、40%なら約2.5倍
+            // 1. 基礎資金収入: 生産エンジニア数 × 課税率の影響
+            // 課税率が10%を基準とし、0%なら半減、40%なら約2.5倍。エンジニア数比例
             const taxFactor = 0.5 + (taxRate / 20);
-            deltas.credits = Math.round(population * 8 * taxFactor); 
-            
-            // 生命維持：一人あたり酸素 -2、水 -2.5、食料 -3
-            let o2Consumption = population * 2;
-            let waterConsumption = population * 2.5;
-            let foodConsumption = population * 3 * (foodRation / 100);
+            const basicCredits = workers.engineers * 15 * taxFactor;
 
-            // 配給制限政策の適用
-            if (activePolicies.rationing) {
-                waterConsumption *= 0.7; // 30%削減
-                foodConsumption *= 0.7;  // 30%削減
+            // NG+ボーナス (Lvl 3以上で生産効率+10%、Lvl 5で+15%)
+            let prodBonus = 1.0;
+            if (currentNgLevel >= 5) prodBonus = 1.15;
+            else if (currentNgLevel >= 3) prodBonus = 1.10;
+
+            deltas.credits = Math.round(basicCredits * prodBonus); 
+            
+            // 2. 生命維持：一人あたり酸素 -2.5、水 -3.2、食料 -3.8
+            let o2Consumption = population * 2.5;
+            let waterConsumption = population * 3.2;
+            let foodConsumption = population * 3.8 * (foodRation / 100);
+
+            // 研究【水リサイクル循環】の効果適用 (水消費-20%)
+            if (technologies.find(t => t.id === 'recycle').unlocked) {
+                waterConsumption *= 0.8;
             }
 
             deltas.oxygen -= o2Consumption;
             deltas.water -= waterConsumption;
             deltas.food -= foodConsumption;
 
-            // 施設効果の累積
+            // 3. 施設効果の累積（エンジニア配属割合で生産量UP: 基準エンジニア数=8）
+            const engFactor = workers.engineers / 8;
             buildings.forEach(b => {
                 if (b.count > 0) {
                     if (b.id === 'solar') {
                         // 砂嵐中は発電量が半分
                         const sandstormMultiplier = sandstormSol > 0 ? 0.5 : 1.0;
-                        // 発電増幅政策の適用
-                        const overdriveMultiplier = activePolicies.overdrive ? 1.3 : 1.0;
-                        deltas.energy += b.deltaDesc.energy * b.count * sandstormMultiplier * overdriveMultiplier;
+                        // 研究【バイオ燃料電池】適用でベースエネルギー+10
+                        let baseEnergy = b.deltaDesc.energy;
+                        if (technologies.find(t => t.id === 'fuelcell').unlocked) {
+                            baseEnergy += 10;
+                        }
+                        deltas.energy += Math.round(baseEnergy * b.count * sandstormMultiplier * engFactor);
                     } else {
-                        // その他施設の生産
+                        // その他施設（酸素・水・食料生産）
                         for (let key in b.deltaDesc) {
-                            deltas[key] += b.deltaDesc[key] * b.count;
+                            let value = b.deltaDesc[key];
+                            // 研究【ゲノム品種改良】適用で食料生産+25%
+                            if (key === 'food' && technologies.find(t => t.id === 'crops').unlocked) {
+                                value *= 1.25;
+                            }
+                            deltas[key] += Math.round(value * b.count * engFactor * prodBonus);
                         }
                     }
                 }
             });
 
-            // 発電増幅政策の維持コスト
-            if (activePolicies.overdrive) {
-                deltas.credits -= 15; // 毎Sol 15 Cr消費
+            // 4. 兵器製造: 防衛警備隊数に依存
+            let wpRate = workers.soldiers * 1.5;
+            // 研究【自動防御レーザー】適用で生産速度+30%
+            if (technologies.find(t => t.id === 'laser') && technologies.find(t => t.id === 'laser').unlocked) {
+                wpRate *= 1.30;
             }
+            // 研究【高エネルギー重プラズマ兵器】適用で生産速度+50%
+            if (technologies.find(t => t.id === 'heavy_weapons') && technologies.find(t => t.id === 'heavy_weapons').unlocked) {
+                wpRate *= 1.50;
+            }
+            deltas.weapons = Math.round(wpRate);
 
             return deltas;
         }
@@ -1380,7 +2323,7 @@
             container.insertBefore(card, container.firstChild);
 
             // ログが多すぎたら古いものを消す
-            if (container.children.length > 5) {
+            if (container.children.length > 6) {
                 container.removeChild(container.lastChild);
             }
         }
@@ -1395,13 +2338,101 @@
             resources.water += deltas.water;
             resources.food += deltas.food;
             resources.energy += deltas.energy;
+            resources.weapons += deltas.weapons;
+
+            // 資源連続増加（過負荷）チェック
+            const resourcesList = ['credits', 'oxygen', 'water', 'food', 'energy', 'weapons'];
+            resourcesList.forEach(res => {
+                if (resources[res] > previousResources[res]) {
+                    consecutiveIncreases[res]++;
+                } else {
+                    consecutiveIncreases[res] = 0;
+                }
+            });
+
+            // 過負荷ペナルティ判定
+            resourcesList.forEach(res => {
+                if (consecutiveIncreases[res] >= 3) {
+                    const failProb = 0.2 + consecutiveIncreases[res] * 0.1; // 3回で50%, 4回で60%...
+                    if (Math.random() < failProb) {
+                        let destroyed = false;
+                        let msg = "";
+                        if (res === 'credits') {
+                            const hab = buildings.find(b => b.id === 'hab');
+                            const bio = buildings.find(b => b.id === 'bio');
+                            if (bio && bio.count > 0) {
+                                bio.count--;
+                                destroyed = true;
+                                msg = "市場過熱（Credits 3Sol連続増加）によりバイオドームが1つ過負荷損壊しました。";
+                            } else if (hab && hab.count > 0) {
+                                hab.count--;
+                                maxPopulation = Math.max(20, maxPopulation - 15);
+                                destroyed = true;
+                                msg = "市場過熱（Credits 3Sol連続増加）により居住モジュールが1つ過負荷損壊しました。";
+                            }
+                        } else if (res === 'oxygen') {
+                            const moxie = buildings.find(b => b.id === 'moxie');
+                            if (moxie && moxie.count > 0) {
+                                moxie.count--;
+                                destroyed = true;
+                                msg = "酸素過剰（Oxygen 3Sol連続増加）により酸素精製プラントが1つ過負荷破損しました。";
+                            }
+                        } else if (res === 'water') {
+                            const extractor = buildings.find(b => b.id === 'extractor');
+                            if (extractor && extractor.count > 0) {
+                                extractor.count--;
+                                destroyed = true;
+                                msg = "給水管過圧（Water 3Sol連続増加）により氷採掘リグが1つ過負荷破損しました。";
+                            }
+                        } else if (res === 'food') {
+                            const hydro = buildings.find(b => b.id === 'hydro');
+                            if (hydro && hydro.count > 0) {
+                                hydro.count--;
+                                destroyed = true;
+                                msg = "サイロ過重（Food 3Sol連続増加）により水耕栽培ドームが1つ過負荷破損しました。";
+                            }
+                        } else if (res === 'energy') {
+                            const solar = buildings.find(b => b.id === 'solar');
+                            if (solar && solar.count > 0) {
+                                solar.count--;
+                                destroyed = true;
+                                msg = "グリッド過負荷（Energy 3Sol連続増加）により太陽光発電アレイが1つ過負荷破損しました。";
+                            }
+                        } else if (res === 'weapons') {
+                            const turret = buildings.find(b => b.id === 'turret');
+                            if (turret && turret.count > 0) {
+                                turret.count--;
+                                destroyed = true;
+                                msg = "火薬庫暴発（Weapons 3Sol連続増加）により対空レールガンタレットが1つ破損しました。";
+                            }
+                        }
+
+                        if (destroyed) {
+                            addLog('⚠️過負荷損壊', msg);
+                            consecutiveIncreases[res] = 0; // カウンターをリセット
+                        }
+                    }
+                }
+            });
+
+            // 比較用資源データの更新
+            for (let key in resources) {
+                previousResources[key] = resources[key];
+            }
+
+            // 2. 研究ポイントの獲得（技術研究者数に応じてRP獲得）
+            const earnedRP = workers.scientists * 2;
+            researchPoints += earnedRP;
+            if (earnedRP > 0) {
+                addLog('科学研究', `技術研究者が ${earnedRP} RP（研究ポイント）を創出しました。`);
+            }
 
             // コロニーの生存チェック
             if (resources.oxygen < 0) resources.oxygen = 0;
             if (resources.water < 0) resources.water = 0;
             if (resources.food < 0) resources.food = 0;
 
-            // 2. 状態・幸福度・健康度計算
+            // 3. 状態・幸福度・健康度計算
             let happinessChange = 0;
             let healthChange = 0;
             let criticalLack = false;
@@ -1413,10 +2444,7 @@
                 happinessChange += 2;
             }
 
-            // 配給制限政策およびスライダーによる幸福度・健康度影響
-            if (activePolicies.rationing) {
-                happinessChange -= 4;
-            }
+            // 配給量スライダーによる幸福度・健康度影響
             if (foodRation < 100) {
                 happinessChange -= Math.round((100 - foodRation) / 8);
                 healthChange -= Math.round((100 - foodRation) / 6);
@@ -1430,109 +2458,260 @@
             if (resources.water <= 0) { happinessChange -= 20; healthChange -= 20; criticalLack = true; }
             if (resources.food <= 0) { happinessChange -= 15; healthChange -= 15; criticalLack = true; }
             
-            // 電力不足時のベース劣化
+            // 電力不足時のベース劣化 (被害増大)
             if (resources.energy < 0) {
                 happinessChange -= 10;
                 healthChange -= 10;
-                integrity -= 6; // 電力なしによるシステムの劣化
-                resources.oxygen = Math.max(0, resources.oxygen - 30);
-                resources.water = Math.max(0, resources.water - 30);
-                resources.food = Math.max(0, resources.food - 30);
+                integrity -= 6; // システムの劣化
+                resources.oxygen = Math.max(0, resources.oxygen - 50);
+                resources.water = Math.max(0, resources.water - 50);
+                resources.food = Math.max(0, resources.food - 50);
             }
-
-            // 政策(Overdrive)によるベース劣化
-            if (activePolicies.overdrive) {
-                integrity -= 2; // ジェネレータへの過負荷による劣化
+ 
+            // 研究【自己修復ナノマシン】による自動修復
+            if (technologies.find(t => t.id === 'nanomachine').unlocked) {
+                integrity = Math.min(100, integrity + 2);
             }
-
+ 
             // バイオドーム補正
             const bioCount = buildings.find(b => b.id === 'bio').count;
             if (bioCount > 0 && !criticalLack) {
                 happinessChange += bioCount * 4;
             }
-
+ 
             // 健康度と幸福度の適用
             happiness = Math.max(0, Math.min(100, happiness + happinessChange));
             health = Math.max(0, Math.min(100, health + healthChange));
-
+ 
             // 開拓者の死亡/合流判定
             if (criticalLack) {
                 const deathCount = Math.min(population - 3, Math.round(population * 0.15) + 1);
-                population -= deathCount;
+                removeColonists(deathCount);
                 totalDeaths += deathCount; // 死亡数カウント
-                addLog('開拓者危篤', `深刻な生活物資の不足により、開拓者が ${deathCount} 名離脱または死亡しました。`);
+                addLog('開拓者危篤', `生活物資の深刻な不足により、開拓者が ${deathCount} 名死亡しました。`);
             } else if (health < 40) {
                 // 健康度低下による病気死亡
                 const sickDeaths = Math.min(population - 3, Math.floor(Math.random() * 2) + 1);
-                population -= sickDeaths;
+                removeColonists(sickDeaths);
                 totalDeaths += sickDeaths;
-                addLog('健康度警告', `劣悪な健康状態（Health:${health}%）により開拓者が ${sickDeaths} 名病死しました。`);
+                addLog('健康度警告', `劣悪な健康状態により開拓者が ${sickDeaths} 名病死しました。`);
             } else if (happiness >= 75 && health >= 75 && population < maxPopulation) {
                 // 幸福度・健康度ともに高く、住居に空きがあれば自然増加（移民）
                 const newColonists = Math.min(maxPopulation - population, Math.floor(Math.random() * 3) + 1);
-                population += newColonists;
+                addColonists(newColonists);
                 addLog('開拓者合流', `コロニー環境が良好なため、地球船から新住民 ${newColonists} 名が基地へ到着しました。`);
             }
-
-            // 3. 状態異常イベント効果減少＆発生
+ 
+            // 4. 砂嵐の進行
             if (sandstormSol > 0) {
                 sandstormSol--;
-                integrity -= 3; // 砂嵐によるインフラ微減
+                integrity -= 3; // 砂嵐によるインフラ劣化
                 if (sandstormSol === 0) {
                     addLog('砂嵐通過', '火星の砂嵐が完全に通過し、太陽光パネルの発電効率が100%に回復しました。');
                 }
             }
-
-            // 4. ランダムイベントの抽選 (25% の確率)
-            if (Math.random() < 0.25) {
-                triggerRandomEvent();
+ 
+            // 5. 異星人の脅威度増加と襲撃チェック
+            // 毎Sol、脅威度が 7%〜14% ランダムで上昇 (難易度アップ)
+            let threatRise = Math.floor(Math.random() * 8) + 7;
+            const radarTech = technologies.find(t => t.id === 'early_warning');
+            if (radarTech && radarTech.unlocked) {
+                threatRise = Math.round(threatRise * 0.7); // レーダーで30%カット
+            }
+            threat += threatRise;
+            
+            if (threat >= 100) {
+                triggerAlienInvasion();
+            } else {
+                // 襲撃がないターンのランダムイベント抽選 (15% の確率)
+                if (Math.random() < 0.15) {
+                    triggerRandomEvent();
+                }
             }
 
-            // 5. 終了・勝利判定
+            // 6. 終了・勝利判定
             sol++;
             updateUI();
+            saveGame();
             checkGameStatus();
+        }
+
+        // 人員の削除 (死亡・離脱時、均等に減らす)
+        function removeColonists(count) {
+            for (let i = 0; i < count; i++) {
+                if (population <= 3) {
+                    population = Math.max(0, population - 1);
+                    continue;
+                }
+                
+                // 配置されている仕事から引く
+                if (unassignedPopulation > 0) {
+                    unassignedPopulation--;
+                } else if (workers.soldiers > 0) {
+                    workers.soldiers--;
+                } else if (workers.scientists > 0) {
+                    workers.scientists--;
+                } else if (workers.engineers > 0) {
+                    workers.engineers--;
+                }
+                population--;
+            }
+        }
+
+        // 新規人員の追加 (未配属に一時配置)
+        function addColonists(count) {
+            population += count;
+            unassignedPopulation += count;
+        }
+
+        // 異星人の襲撃イベント実行
+        function triggerAlienInvasion() {
+            // 生存日数に応じて必要な防衛力が上昇 (難易度アップ)
+            const requiredDefense = Math.floor(sol * 4.5) + 15;
+            
+            // 自軍の総防衛力 (保有兵器 + レールガンタレットの防衛力 + 一時シールドバフ)
+            const turretBuilding = buildings.find(b => b.id === 'turret');
+            const turretDefense = turretBuilding ? turretBuilding.count * 20 : 0;
+            const totalDefense = resources.weapons + turretDefense + tempDefenseShield;
+
+            addLog('⚠️警報', `異星人勢力の奇襲攻撃が開始されました！（敵戦闘力: ${requiredDefense} / 自軍防衛力: ${totalDefense}）`);
+
+            if (totalDefense >= requiredDefense) {
+                // 防衛成功！
+                // 兵器の消費 (タレットやシールドが防衛に貢献した分、兵器消費を抑えられる)
+                const weaponsContributionRatio = totalDefense > 0 ? (resources.weapons / totalDefense) : 0;
+                const baseConsumed = Math.round(requiredDefense * 0.4);
+                const consumedWp = Math.min(resources.weapons, Math.round(baseConsumed * weaponsContributionRatio));
+                
+                resources.weapons -= consumedWp;
+                threat = 0; // 脅威リセット
+                resources.credits += 250; // 略奪撃退報酬
+                addLog('防衛成功', `防衛部隊が異星人を撃退しました！戦利品を獲得し、脅威度は 0% に低下しました。(兵器 -${consumedWp}、Cr +250)`);
+            } else {
+                // 防衛失敗...
+                const remainingThreat = requiredDefense - totalDefense;
+                resources.weapons = 0;
+                threat = 20; // 脅威度は20%から再スタート
+
+                // 被害計算
+                const casualtyCount = Math.min(population - 2, Math.round(population * 0.25) + 1);
+                removeColonists(casualtyCount);
+                totalDeaths += casualtyCount;
+
+                // プラズマシールドジェネレーターによる被害軽減 (1つにつき 50% 軽減)
+                const shieldBuilding = buildings.find(b => b.id === 'shield');
+                let damageMultiplier = 1.0;
+                if (shieldBuilding && shieldBuilding.count > 0) {
+                    damageMultiplier = Math.pow(0.5, shieldBuilding.count);
+                }
+                const baseDamage = Math.round(remainingThreat * 1.5 * damageMultiplier);
+                integrity = Math.max(0, integrity - baseDamage);
+
+                addLog('☠️防衛失敗', `防衛線が決壊！ベースの一部が略奪・破壊されました。(開拓者死者: ${casualtyCount} 名、インフラ健全度 -${baseDamage}${shieldBuilding && shieldBuilding.count > 0 ? ' [シールド軽減適用]' : ''})`);
+            }
+
+            // 一時シールドバフのリセット
+            tempDefenseShield = 0;
         }
 
         // ランダムイベントライブラリ
         function triggerRandomEvent() {
-            const events = [
-                {
-                    title: '巨大砂嵐発生',
-                    text: 'コロニー周辺で巨大な砂嵐が発生。3SOLの間、太陽光パネルの発電効率が半減し、基地健全度が低下します。',
-                    action: () => {
-                        sandstormSol = 3;
-                    }
-                },
-                {
-                    title: '新技術の応用',
-                    text: '水耕ドームの自動肥料サイクルが完成。一時的に食料備蓄が +200 増加します。',
-                    action: () => {
-                        resources.food += 200;
-                    }
-                },
-                {
-                    title: '移民輸送艇の不時着',
-                    text: '軌道上からの貨物コンテナが付近に不時着。物資を回収しました (Cr +300、水 +100)。',
-                    action: () => {
-                        resources.credits += 300;
-                        resources.water += 100;
-                    }
-                },
-                {
-                    title: '居住区配管エラー',
-                    text: '水供給ラインの一部に亀裂が発覚。修理のために資源が消失し、健全度が低下します (Cr -200、水 -50、Integrity -10)。',
-                    action: () => {
-                        resources.credits = Math.max(0, resources.credits - 200);
-                        resources.water = Math.max(0, resources.water - 50);
-                        integrity = Math.max(0, integrity - 10);
+            if (!randomEventsDatabase || randomEventsDatabase.length === 0) return;
+            const ev = randomEventsDatabase[Math.floor(Math.random() * randomEventsDatabase.length)];
+            
+            if (ev.effect) {
+                if (ev.effect.credits) {
+                    resources.credits = Math.max(0, resources.credits + ev.effect.credits);
+                }
+                if (ev.effect.oxygen) {
+                    resources.oxygen = Math.max(0, resources.oxygen + ev.effect.oxygen);
+                }
+                if (ev.effect.water) {
+                    resources.water = Math.max(0, resources.water + ev.effect.water);
+                }
+                if (ev.effect.food) {
+                    resources.food = Math.max(0, resources.food + ev.effect.food);
+                }
+                if (ev.effect.energy) {
+                    // energyは敗北判定（GRID COLLAPSE）のため下限クランプはしない
+                    resources.energy += ev.effect.energy;
+                }
+                if (ev.effect.weapons) {
+                    resources.weapons = Math.max(0, resources.weapons + ev.effect.weapons);
+                }
+                if (ev.effect.rp) {
+                    researchPoints = Math.max(0, researchPoints + ev.effect.rp);
+                }
+                if (ev.effect.happiness) {
+                    happiness = Math.min(100, Math.max(0, happiness + ev.effect.happiness));
+                }
+                if (ev.effect.health) {
+                    health = Math.min(100, Math.max(0, health + ev.effect.health));
+                }
+                if (ev.effect.integrity) {
+                    integrity = Math.min(100, Math.max(0, integrity + ev.effect.integrity));
+                }
+                if (ev.effect.threat) {
+                    threat = Math.min(100, Math.max(0, threat + ev.effect.threat));
+                }
+                if (ev.effect.population) {
+                    const popChange = ev.effect.population;
+                    if (popChange > 0) {
+                        const actualAdd = Math.max(0, Math.min(maxPopulation - population, popChange));
+                        if (actualAdd > 0) {
+                            addColonists(actualAdd);
+                        }
+                    } else if (popChange < 0) {
+                        removeColonists(Math.abs(popChange));
                     }
                 }
-            ];
+            }
 
-            const ev = events[Math.floor(Math.random() * events.length)];
-            ev.action();
-            addLog(ev.title, ev.text);
+            // 効果の文字列表現を作成
+            let effectText = "";
+            const effectLabels = {
+                credits: "Cr",
+                oxygen: "酸素",
+                water: "水",
+                food: "食料",
+                energy: "電力",
+                weapons: "兵器",
+                rp: "RP",
+                happiness: "幸福度",
+                health: "健康度",
+                integrity: "健全度",
+                threat: "脅威度",
+                population: "人口"
+            };
+
+            const effectUnits = {
+                credits: "",
+                oxygen: "",
+                water: "",
+                food: "",
+                energy: "",
+                weapons: "",
+                rp: "",
+                happiness: "%",
+                health: "%",
+                integrity: "%",
+                threat: "%",
+                population: "名"
+            };
+
+            const changes = [];
+            for (let key in ev.effect) {
+                const val = ev.effect[key];
+                const sign = val > 0 ? "+" : "";
+                if (val !== 0) {
+                    changes.push(`${effectLabels[key]} ${sign}${val}${effectUnits[key]}`);
+                }
+            }
+            if (changes.length > 0) {
+                effectText = `（影響: ${changes.join(', ')}）`;
+            }
+
+            addLog(ev.title, `${ev.text} ${effectText}`);
         }
 
         // ゲームステータス確認
@@ -1542,71 +2721,133 @@
             const title = document.getElementById('modalTitle');
             const text = document.getElementById('modalText');
 
+            let isGameOver = false;
+            let isVictory = false;
+
             // 敗北：人口が0名
             if (population <= 0) {
                 title.textContent = 'MISSION FAILED';
-                text.textContent = `Ares Baseの開拓者が全滅しました。生命維持装置の設計および物資管理を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                text.textContent = `Ares Baseの開拓者が全滅しました。防衛体制および生命維持を見直し、再び火星の開拓を指揮してください。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
-                modal.classList.add('show');
+                isGameOver = true;
             } 
             // 敗北：電力がマイナス（凍結）
             else if (resources.energy < 0) {
                 totalDeaths += population; // 残った全員が死亡
                 population = 0;
                 title.textContent = 'GRID COLLAPSE';
-                text.textContent = `電力が完全に喪失し、生命維持装置を含むすべてのインフラシステムが凍結・停止しました。アレス基地は放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                text.textContent = `電力が完全に喪失し、生命維持装置を含むすべてのシステムが凍結・停止しました。アレス基地は放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-bolt"></i>';
-                modal.classList.add('show');
+                isGameOver = true;
             } 
-            // 敗北：幸福度が0
+            // 敗北：幸福度が0 (暴動)
             else if (happiness <= 0) {
                 title.textContent = 'COLONY RIOT';
                 text.textContent = `幸福度が0%になりました。過酷な労働と深刻な物資不足により住民の暴動が発生し、コロニーは放棄されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-                modal.classList.add('show');
+                isGameOver = true;
             } 
             // 敗北：健康度が0 (疫病)
             else if (health <= 0) {
                 title.textContent = 'EPIDEMIC OUTBREAK';
-                text.textContent = `住民の健康状態が崩壊し、致死性の感染症がドーム内に蔓延しました。防衛プロトコルが発動し、基地は永久にロックダウンされました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                text.textContent = `健康状態が崩壊し、致命的な宇宙感染症がドーム内に蔓延しました。防衛プロトコルによりアレス基地は封鎖されました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-virus-covid"></i>';
-                modal.classList.add('show');
+                isGameOver = true;
             }
             // 敗北：インフラ健全度が0 (決壊)
             else if (integrity <= 0) {
                 title.textContent = 'BASE COLLAPSE';
-                text.textContent = `基地のドーム外壁および電気グリッドが完全に崩壊しました。火星の大気と低温が開拓区になだれ込み、居住不能となりました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                text.textContent = `基地のドーム外壁が完全に崩壊しました。火星の大気と極低温が開拓区になだれ込み、居住不能となりました。\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon danger';
                 icon.innerHTML = '<i class="fa-solid fa-house-crack"></i>';
-                modal.classList.add('show');
+                isGameOver = true;
             }
             // 勝利：人口が100人突破
             else if (population >= 100) {
                 title.textContent = 'TERRAFORM SUCCESS';
-                text.textContent = `おめでとうございます！Ares Baseは人口100名を突破し、地球からの支援に頼らない完全自立型ドーム都市へと進化しました。火星が新しい人類の故郷になる第一歩です！\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
+                text.textContent = `おめでとうございます！Ares Baseは人口100名を突破し、異星人の脅威に打ち勝ち、地球からの支援に頼らない完全自立型ドーム都市へと進化しました！\n(生存日数: ${sol} Sols / 累計犠牲者数: ${totalDeaths} 名)`;
                 icon.className = 'modal-icon success';
                 icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                isVictory = true;
+            }
+
+            if (isGameOver || isVictory) {
+                // 強くてニューゲームのための獲得ポイント(AP)の計算
+                // 生存日数ポイント + 開発テクノロジー数ポイント + 勝利ボーナス
+                const techsCount = technologies.filter(t => t.unlocked).length;
+                const earnedAP = Math.floor(sol * 1.5) + (techsCount * 10) + (isVictory ? 60 : 0);
+
+                // ローカルストレージに累積保存
+                accumulatedAP += earnedAP;
+                localStorage.setItem('ares_base_ng_ap', accumulatedAP);
+
+                // NGストアのボーナスリストを再生成してモーダル内に表示
+                renderNgPreview(earnedAP);
+
                 modal.classList.add('show');
             }
         }
 
+        // 強くてニューゲームのプレビュー描画
+        function renderNgPreview(earned) {
+            const listEl = document.getElementById('ngBonusList');
+            listEl.innerHTML = '';
+
+            const bonuses = [
+                { lvl: 1, ap: 30, desc: '初期物資増加 (Cr +200、Weapons +10)' },
+                { lvl: 2, ap: 80, desc: '初期開拓者追加 (+2 人、初期人口 17 名)' },
+                { lvl: 3, ap: 150, desc: '地球の先進遺伝子 (全資源の生産効率 +10%)' },
+                { lvl: 4, ap: 250, desc: '先進チタン補強 (ドーム初期健全度 100% スタート)' },
+                { lvl: 5, ap: 400, desc: 'テラフォーマー・レガシー (全資源効率+15%、初期人口 20 名)' }
+            ];
+
+            bonuses.forEach(b => {
+                const isUnlocked = accumulatedAP >= b.ap;
+                const badge = isUnlocked ? `<span style="color:var(--success); font-weight:700;">[解放済]</span>` : `<span style="color:var(--text-muted);">${b.ap} AP</span>`;
+                
+                const div = document.createElement('div');
+                div.className = 'ng-bonus-item';
+                div.innerHTML = `
+                    <span>Lvl ${b.lvl}: ${b.desc}</span>
+                    <span>${badge}</span>
+                `;
+                listEl.appendChild(div);
+            });
+
+            // 獲得結果テキストを追加
+            const modalText = document.getElementById('modalText');
+            const originalText = modalText.textContent.split('【獲得レガシー】')[0];
+            modalText.innerHTML = `${originalText}\n\n【獲得レガシー】\n今回獲得した技術ポイント: <strong style="color:var(--primary);">${earned} AP</strong>\n累計技術ポイント: <strong style="color:var(--accent);">${accumulatedAP} AP</strong>`;
+        }
+
         function restartGame() {
             sol = 1;
-            resources.credits = 1000;
             resources.oxygen = 400;
             resources.water = 350;
             resources.food = 450;
             resources.energy = 60;
-            population = 15;
-            happiness = 80;
-            health = 90;
             integrity = 95;
             maxPopulation = 20;
+            threat = 5;
             totalDeaths = 0;
+            researchPoints = 0;
+            happiness = 80;
+            health = 90;
+ 
+            // 資源連続増加カウンターと前ターン資源の初期化
+            for (let key in consecutiveIncreases) {
+                consecutiveIncreases[key] = 0;
+            }
+            previousResources.credits = 1000;
+            previousResources.oxygen = 400;
+            previousResources.water = 350;
+            previousResources.food = 450;
+            previousResources.energy = 60;
+            previousResources.weapons = 0;
 
             taxRate = 10;
             foodRation = 100;
@@ -1615,14 +2856,18 @@
             document.getElementById('cfgFoodRation').value = 100;
             document.getElementById('lblFoodRation').textContent = '100%';
 
-            activePolicies.rationing = false;
-            activePolicies.overdrive = false;
+            // 強くてニューゲーム (NG+) データの再読み込みと適用
+            loadNgData();
+            applyNgStartBonuses();
 
-            document.getElementById('policyRationing').checked = false;
-            document.getElementById('policyOverdrive').checked = false;
+            // 研究テクノロジーのリセット
+            technologies.forEach(t => t.unlocked = false);
 
+            // 一時シールドバフのリセット
+            tempDefenseShield = 0;
+ 
             buildings.forEach(b => {
-                if (b.id === 'bio') b.count = 0;
+                if (b.id === 'bio' || b.id === 'turret' || b.id === 'shield') b.count = 0;
                 else b.count = 1;
                 
                 // コストのリセット
@@ -1632,6 +2877,8 @@
                 if (b.id === 'hydro') b.cost = 350;
                 if (b.id === 'hab') b.cost = 400;
                 if (b.id === 'bio') b.cost = 500;
+                if (b.id === 'turret') b.cost = 300;
+                if (b.id === 'shield') b.cost = 400;
             });
 
             sandstormSol = 0;
@@ -1639,8 +2886,8 @@
             const container = document.getElementById('feedContainer');
             container.innerHTML = `
                 <div class="event-card">
-                    <div class="event-title">システム再起動</div>
-                    <div class="event-text">火星アレス基地、生命維持システムが再起動されました。開拓者15名が到着しました。再びミッション開始です。</div>
+                    <div class="event-title">防衛ミッション開始</div>
+                    <div class="event-text">火星アレス基地が再起動されました。地球からの継承技術を駆使して、再び開拓と対異星人防衛を開始します。</div>
                 </div>
             `;
 
@@ -1648,9 +2895,237 @@
             updateUI();
         }
 
+        // タイトル画面用のアンロックプレビュー描画
+        function renderTitleNgPreview() {
+            const listEl = document.getElementById('titleNgBonusList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+ 
+            const bonuses = [
+                { lvl: 1, ap: 30, desc: '初期物資増加 (Cr +200、Weapons +10)' },
+                { lvl: 2, ap: 80, desc: '初期開拓者追加 (+2 人、初期人口 17 名)' },
+                { lvl: 3, ap: 150, desc: '地球の先進遺伝子 (全資源の生産効率 +10%)' },
+                { lvl: 4, ap: 250, desc: '先進チタン補強 (ドーム初期健全度 100% スタート)' },
+                { lvl: 5, ap: 400, desc: 'テラフォーマー・レガシー (全資源効率+15%、初期人口 20 名)' }
+            ];
+ 
+            bonuses.forEach(b => {
+                const isUnlocked = accumulatedAP >= b.ap;
+                const badge = isUnlocked ? `<span style="color:var(--success); font-weight:700;">[解放済]</span>` : `<span style="color:var(--text-muted);">${b.ap} AP</span>`;
+                
+                const div = document.createElement('div');
+                div.className = 'ng-bonus-item';
+                div.innerHTML = `
+                    <span>Lvl ${b.lvl}: ${b.desc}</span>
+                    <span>${badge}</span>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+ 
+        // 新規ゲーム開始
+        function startNewGame() {
+            restartGame();
+            document.getElementById('titleScreen').style.display = 'none';
+            saveGame(); // 初期ステートをセーブ
+        }
+ 
+        // オートセーブの実行
+        function saveGame() {
+            const saveState = {
+                sol: sol,
+                resources: resources,
+                researchPoints: researchPoints,
+                population: population,
+                maxPopulation: maxPopulation,
+                happiness: happiness,
+                health: health,
+                integrity: integrity,
+                threat: threat,
+                totalDeaths: totalDeaths,
+                workers: workers,
+                unassignedPopulation: unassignedPopulation,
+                taxRate: taxRate,
+                foodRation: foodRation,
+                sandstormSol: sandstormSol,
+                tempDefenseShield: tempDefenseShield,
+                consecutiveIncreases: consecutiveIncreases,
+                previousResources: previousResources,
+                techs: technologies.map(t => ({ id: t.id, unlocked: t.unlocked })),
+                buildings: buildings.map(b => ({ id: b.id, count: b.count, cost: b.cost }))
+            };
+            localStorage.setItem('ares_base_save_state', JSON.stringify(saveState));
+        }
+ 
+        // ゲームのロード＆再開
+        function continueSavedGame() {
+            const raw = localStorage.getItem('ares_base_save_state');
+            if (!raw) return;
+ 
+            try {
+                const state = JSON.parse(raw);
+                sol = state.sol;
+                Object.assign(resources, state.resources);
+                researchPoints = state.researchPoints;
+                population = state.population;
+                maxPopulation = state.maxPopulation;
+                happiness = state.happiness;
+                health = state.health;
+                integrity = state.integrity;
+                threat = state.threat;
+                totalDeaths = state.totalDeaths || 0;
+                Object.assign(workers, state.workers);
+                unassignedPopulation = state.unassignedPopulation;
+                taxRate = state.taxRate;
+                foodRation = state.foodRation;
+                sandstormSol = state.sandstormSol || 0;
+                tempDefenseShield = state.tempDefenseShield || 0;
+ 
+                if (state.consecutiveIncreases) {
+                    Object.assign(consecutiveIncreases, state.consecutiveIncreases);
+                }
+                if (state.previousResources) {
+                    Object.assign(previousResources, state.previousResources);
+                }
+ 
+                // 技術のアンロック復元
+                state.techs.forEach(st => {
+                    const t = technologies.find(item => item.id === st.id);
+                    if (t) t.unlocked = st.unlocked;
+                });
+ 
+                // 施設の数とコスト復元
+                state.buildings.forEach(sb => {
+                    const b = buildings.find(item => item.id === sb.id);
+                    if (b) {
+                        b.count = sb.count;
+                        b.cost = sb.cost;
+                    }
+                });
+ 
+                // ログフィードの復旧
+                const container = document.getElementById('feedContainer');
+                container.innerHTML = `
+                    <div class="event-card">
+                        <div class="event-title">[SOL ${sol}] ミッション再開</div>
+                        <div class="event-text">セーブデータが正常に読み込まれました。開拓と防衛を継続してください。</div>
+                    </div>
+                `;
+ 
+                document.getElementById('titleScreen').style.display = 'none';
+                updateUI();
+                
+                // スライダー表示の更新
+                document.getElementById('cfgTaxRate').value = taxRate;
+                document.getElementById('lblTaxRate').textContent = `${taxRate}%`;
+                document.getElementById('cfgFoodRation').value = foodRation;
+                document.getElementById('lblFoodRation').textContent = `${foodRation}%`;
+ 
+            } catch (e) {
+                console.error("Failed to load save state", e);
+                alert("セーブデータのロードに失敗しました。新規ゲームを開始してください。");
+            }
+        }
+ 
         // 初期化
         window.addEventListener('DOMContentLoaded', () => {
-            updateUI();
+            loadNgData();
+            renderTitleNgPreview();
+            
+            // セーブデータの存在確認
+            const savedState = localStorage.getItem('ares_base_save_state');
+            if (savedState) {
+                document.getElementById('btnContinueGame').disabled = false;
+            }
+        });
+ 
+        // キーボードショートカット
+        window.addEventListener('keydown', (e) => {
+            // モーダルが表示されている場合は無視
+            const modal = document.getElementById('gameModal');
+            if (modal && modal.classList.contains('show')) {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    restartGame();
+                }
+                return;
+            }
+ 
+            // タイトル画面がある場合も無視 (後述するタイトル画面 '#titleScreen' 用)
+            const titleScreen = document.getElementById('titleScreen');
+            if (titleScreen && titleScreen.style.display !== 'none') {
+                return;
+            }
+ 
+            // 入力要素フォーカス中なら無視
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                return;
+            }
+ 
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                case 'enter':
+                    e.preventDefault();
+                    nextSol();
+                    break;
+                case 'q':
+                    adjustTalent('engineers', -1);
+                    break;
+                case 'w':
+                    adjustTalent('engineers', 1);
+                    break;
+                case 'a':
+                    adjustTalent('scientists', -1);
+                    break;
+                case 's':
+                    adjustTalent('scientists', 1);
+                    break;
+                case 'z':
+                    adjustTalent('soldiers', -1);
+                    break;
+                case 'x':
+                    adjustTalent('soldiers', 1);
+                    break;
+                case 'o':
+                    autoAllocateTalents();
+                    break;
+                case 'r':
+                    repairIntegrity();
+                    break;
+                case '1':
+                    buildStructure('solar');
+                    break;
+                case '2':
+                    buildStructure('moxie');
+                    break;
+                case '3':
+                    buildStructure('extractor');
+                    break;
+                case '4':
+                    buildStructure('hydro');
+                    break;
+                case '5':
+                    buildStructure('hab');
+                    break;
+                case '6':
+                    buildStructure('bio');
+                    break;
+                case 't':
+                    buildStructure('turret');
+                    break;
+                case 'g':
+                    buildStructure('shield');
+                    break;
+                case '7':
+                    runRepeatableProject('supplies');
+                    break;
+                case '8':
+                    runRepeatableProject('shield_boost');
+                    break;
+                case '9':
+                    runRepeatableProject('nano_patch');
+                    break;
+            }
         });
     </script>
 </body>
