@@ -1,63 +1,69 @@
-# Astro Starter Kit: Blog
+# r — Portfolio & Blog
 
-```sh
-npm create astro@latest -- --template blog
+**r** のポートフォリオ兼ブログサイト。  
+深海をモチーフにしたダークテーマで、スクロールに連動した深度演出と日本語タイポグラフィで構成。
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Framework | [Astro 7](https://astro.build/) (SSR) |
+| Hosting | [Cloudflare Workers](https://workers.cloudflare.com/) |
+| Content | Astro Content Collections (Markdown / MDX) |
+| Styling | Vanilla CSS (dark deep-sea theme) |
+| Fonts | Shippori Mincho · Zen Kaku Gothic New · IBM Plex Mono |
+
+## ✨ Features
+
+- 🌊 深海ダイブをテーマにしたスクロール連動 UI
+- 📝 Markdown / MDX によるブログ機能
+- 🎮 スタンドアロンのミニアプリ群（Mars, Othello, Sound, Pressure, Password, CopyCraft）
+- 📊 AI モデル比較リファレンスページ
+- 🗺 サイトマップ & RSS フィード自動生成
+- ⚡ Cloudflare Workers でエッジ配信
+
+## 📁 Project Structure
+
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-Features:
-
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-├── public/
+├── public/                  # 静的アセット（ミニアプリ含む）
+│   ├── mars/                #   火星植民ゲーム
+│   ├── othello/             #   オセロ AI シミュレータ
+│   ├── sound/               #   サウンドジェネレータ
+│   ├── pressure/            #   気圧シミュレータ
+│   ├── password/            #   パスワードジェネレータ
+│   ├── copycraft/           #   AI CopyCraft
+│   └── models/              #   AI モデルリファレンス
 ├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+│   ├── components/          # Astro コンポーネント
+│   ├── content/blog/        # ブログ記事 (Markdown)
+│   ├── layouts/             # レイアウト (BlogPost.astro)
+│   ├── pages/               # ルートページ
+│   └── styles/global.css    # グローバル CSS（デザイントークン）
+├── astro.config.mjs         # Astro 設定
+├── wrangler.jsonc            # Cloudflare Workers 設定
+└── package.json
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
-
-Any static assets, like images, can be placed in the `public/` directory.
 
 ## 🧞 Commands
 
-All commands are run from the root of the project, from a terminal:
+```bash
+npm install          # 依存パッケージのインストール
+npm run dev          # 開発サーバー起動 (localhost:4321)
+npm run build        # 本番ビルド → ./dist/
+npm run preview      # ビルド + wrangler dev (ローカルプレビュー)
+npm run deploy       # ビルド + wrangler deploy (Cloudflare にデプロイ)
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+> **Note:** パッケージマネージャは `npm` を使用してください。
 
-## 👀 Want to learn more?
+## 🚀 Deployment
 
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```bash
+npm run deploy
+```
 
-## Credit
+`npm run build` で `./dist/` にビルドし、`wrangler deploy` で Cloudflare Workers にデプロイします。
 
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+## 📄 License
+
+Private repository.
