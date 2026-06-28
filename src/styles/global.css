@@ -28,7 +28,8 @@
 }
 
 html {
-	scroll-behavior: auto; /* スムーズスクロールはJS制御の邪魔になるため無効化 */
+	scroll-behavior: auto;
+	/* スムーズスクロールはJS制御の邪魔になるため無効化 */
 }
 
 body {
@@ -40,11 +41,17 @@ body {
 	font-size: 15.5px;
 	overflow-x: hidden;
 	position: relative;
-	transition: background-color 0.1s ease-out; /* 背景の補間をより滑らかにするため */
+	transition: background-color 0.1s ease-out;
+	/* 背景の補間をより滑らかにするため */
 }
 
 /* タイポグラフィ基本 */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
 	font-family: var(--font-display);
 	color: var(--ink);
 	font-weight: 600;
@@ -53,7 +60,6 @@ h1, h2, h3, h4, h5, h6 {
 
 p {
 	margin-bottom: 1.5em;
-	max-width: 58ch; /* 本文の最大幅制限 */
 }
 
 a {
@@ -94,6 +100,7 @@ button:focus-visible,
 		transform: none !important;
 		transition: none !important;
 	}
+
 	body {
 		transition: none !important;
 	}
@@ -103,13 +110,16 @@ button:focus-visible,
 ::-webkit-scrollbar {
 	width: 6px;
 }
+
 ::-webkit-scrollbar-track {
 	background: rgba(0, 0, 0, 0.2);
 }
+
 ::-webkit-scrollbar-thumb {
 	background: var(--gray-border);
 	border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--gray-label);
 }
