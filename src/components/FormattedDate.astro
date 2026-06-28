@@ -1,14 +1,16 @@
 ---
 interface Props {
-	date: Date;
+	date: Date | string | undefined;
 }
 
 const { date } = Astro.props;
+const dateObj = date ? (date instanceof Date ? date : new Date(date)) : new Date();
+const validDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
 ---
 
-<time datetime={date.toISOString()}>
+<time datetime={validDate.toISOString()}>
 	{
-		date.toLocaleDateString('en-us', {
+		validDate.toLocaleDateString('ja-JP', {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric',

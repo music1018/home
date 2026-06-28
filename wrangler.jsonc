@@ -1,7 +1,9 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"compatibility_date": "2026-06-26",
-	"compatibility_flags": ["global_fetch_strictly_public"],
+	"compatibility_flags": [
+		"global_fetch_strictly_public"
+	],
 	"name": "home",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"assets": {
@@ -15,7 +17,8 @@
 		{
 			"binding": "DB",
 			"database_name": "nifty-babbage-db",
-			"database_id": "local-db-id"
+			"database_id": "59ea9b76-5d43-42de-8b43-d1ff06e84b31",
+			"remote": true
 		}
 	]
 }
