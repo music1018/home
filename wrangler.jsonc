@@ -10,5 +10,12 @@
 	},
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "nifty-babbage-db",
+			"database_id": "local-db-id"
+		}
+	]
 }

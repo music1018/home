@@ -1,13 +1,17 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import type { CollectionEntry } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import Header from "../components/Header.astro";
+import LikeButton from "../components/LikeButton.astro";
+import CommentSection from "../components/CommentSection.astro";
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<"blog">["data"] & { slug?: string; id?: string };
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, id, slug } =
+	Astro.props;
+const currentSlug = slug || id || Astro.url.pathname.split('/').filter(Boolean).pop() || "";
 ---
 
 <html lang="ja">
@@ -18,7 +22,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.prose p {
 				margin-bottom: 1.8rem;
 				font-size: 16px;
-				line-height: 2.0;
+				line-height: 2;
 				color: rgba(234, 241, 248, 0.88);
 			}
 			.prose h2 {
@@ -41,7 +45,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				margin-bottom: 1rem !important;
 				letter-spacing: 0.04em !important;
 			}
-			.prose ul, .prose ol {
+			.prose ul,
+			.prose ol {
 				margin-bottom: 1.8rem;
 				padding-left: 2rem;
 			}
@@ -73,7 +78,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				margin: 2rem 0;
 				font-size: 14px;
 			}
-			.prose th, .prose td {
+			.prose th,
+			.prose td {
 				border: 1px solid rgba(255, 255, 255, 0.1);
 				padding: 0.75rem 1rem;
 				text-align: left;
@@ -104,10 +110,14 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				justify-content: center;
 				align-items: center;
 				z-index: 100;
-				box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.03);
+				box-shadow:
+					0 10px 25px rgba(0, 0, 0, 0.5),
+					0 0 15px rgba(0, 240, 255, 0.03);
 				backdrop-filter: blur(8px);
 				-webkit-backdrop-filter: blur(8px);
-				transition: border-color 0.3s ease, box-shadow 0.3s ease;
+				transition:
+					border-color 0.3s ease,
+					box-shadow 0.3s ease;
 			}
 			.o2-svg {
 				position: absolute;
@@ -115,7 +125,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				left: 5px;
 			}
 			.o2-progress {
-				transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+				transition:
+					stroke-dashoffset 0.1s linear,
+					stroke 0.3s ease;
 			}
 			.o2-text-wrapper {
 				display: flex;
@@ -142,9 +154,18 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			}
 			/* 警告点滅 */
 			@keyframes o2Blink {
-				0% { opacity: 1; filter: drop-shadow(0 0 8px #ff0055); }
-				50% { opacity: 0.5; filter: drop-shadow(0 0 1px #ff0055); }
-				100% { opacity: 1; filter: drop-shadow(0 0 8px #ff0055); }
+				0% {
+					opacity: 1;
+					filter: drop-shadow(0 0 8px #ff0055);
+				}
+				50% {
+					opacity: 0.5;
+					filter: drop-shadow(0 0 1px #ff0055);
+				}
+				100% {
+					opacity: 1;
+					filter: drop-shadow(0 0 8px #ff0055);
+				}
 			}
 			.o2-critical {
 				border-color: #ff0055 !important;
@@ -270,14 +291,33 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 
 	<body>
 		<Header />
-		
+
 		<canvas class="marine-snow" id="articleSnowCanvas"></canvas>
 
 		<!-- 酸素メーター -->
 		<div class="o2-meter-container" id="o2Meter" aria-label="酸素残量">
 			<svg class="o2-svg" width="70" height="70" viewBox="0 0 70 70">
-				<circle class="o2-track" cx="35" cy="35" r="28" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"></circle>
-				<circle class="o2-progress" id="o2Circle" cx="35" cy="35" r="28" fill="none" stroke="#00f0ff" stroke-width="4" stroke-dasharray="175.92" stroke-dashoffset="0" transform="rotate(-90 35 35)" stroke-linecap="round"></circle>
+				<circle
+					class="o2-track"
+					cx="35"
+					cy="35"
+					r="28"
+					fill="none"
+					stroke="rgba(255,255,255,0.06)"
+					stroke-width="4"></circle>
+				<circle
+					class="o2-progress"
+					id="o2Circle"
+					cx="35"
+					cy="35"
+					r="28"
+					fill="none"
+					stroke="#00f0ff"
+					stroke-width="4"
+					stroke-dasharray="175.92"
+					stroke-dashoffset="0"
+					transform="rotate(-90 35 35)"
+					stroke-linecap="round"></circle>
 			</svg>
 			<div class="o2-text-wrapper">
 				<span class="o2-label">O₂</span>
@@ -287,11 +327,18 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 
 		<main>
 			<article>
-				{heroImage && (
-					<div class="hero-image">
-						<img width="1020" height="510" src={heroImage} alt="" />
-					</div>
-				)}
+				{
+					heroImage && (
+						<div class="hero-image">
+							<img
+								width="1020"
+								height="510"
+								src={heroImage}
+								alt=""
+							/>
+						</div>
+					)
+				}
 				<div class="prose">
 					<div class="title">
 						<div class="date">
@@ -299,7 +346,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 							{
 								updatedDate && (
 									<div class="last-updated-on">
-										(Last updated on <FormattedDate date={updatedDate} />)
+										(Last updated on{" "}
+										<FormattedDate date={updatedDate} />)
 									</div>
 								)
 							}
@@ -307,21 +355,33 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						<h1>{title}</h1>
 					</div>
 					<slot />
+					{
+						currentSlug && (
+							<>
+								<LikeButton slug={currentSlug} />
+								<CommentSection slug={currentSlug} />
+							</>
+						)
+					}
 				</div>
 			</article>
 		</main>
 		<Footer />
 
 		<script>
-			const canvas = document.getElementById('articleSnowCanvas') as HTMLCanvasElement;
-			const ctx = canvas ? canvas.getContext('2d') : null;
-			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			const canvas = document.getElementById(
+				"articleSnowCanvas",
+			) as HTMLCanvasElement;
+			const ctx = canvas ? canvas.getContext("2d") : null;
+			const prefersReducedMotion = window.matchMedia(
+				"(prefers-reduced-motion: reduce)",
+			).matches;
 
 			if (canvas && ctx && !prefersReducedMotion) {
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
 
-				window.addEventListener('resize', () => {
+				window.addEventListener("resize", () => {
 					canvas.width = window.innerWidth;
 					canvas.height = window.innerHeight;
 				});
@@ -336,16 +396,16 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						r: Math.random() * 1.5 + 0.5,
 						d: Math.random() * numParticles,
 						speedY: Math.random() * 0.3 + 0.1,
-						speedX: Math.random() * 0.2 - 0.1
+						speedX: Math.random() * 0.2 - 0.1,
 					});
 				}
 
 				let angle = 0;
 				function drawParticles() {
 					ctx.clearRect(0, 0, canvas.width, canvas.height);
-					ctx.fillStyle = 'rgba(234, 241, 248, 0.25)';
+					ctx.fillStyle = "rgba(234, 241, 248, 0.25)";
 					ctx.beginPath();
-					
+
 					for (let i = 0; i < numParticles; i++) {
 						const p = particles[i];
 						ctx.moveTo(p.x, p.y);
@@ -361,7 +421,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 								r: p.r,
 								d: p.d,
 								speedY: p.speedY,
-								speedX: p.speedX
+								speedX: p.speedX,
 							};
 						}
 					}
@@ -374,9 +434,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			}
 
 			// 酸素メーター制御スクリプト
-			const o2Meter = document.getElementById('o2Meter');
-			const o2Circle = document.getElementById('o2Circle');
-			const o2Percent = document.getElementById('o2Percent');
+			const o2Meter = document.getElementById("o2Meter");
+			const o2Circle = document.getElementById("o2Circle");
+			const o2Percent = document.getElementById("o2Percent");
 
 			if (o2Meter && o2Circle && o2Percent) {
 				const maxOffset = 175.92; // 2 * PI * r (r=28)
@@ -388,14 +448,17 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 					const maxScroll = docHeight - winHeight;
 
 					if (maxScroll <= 0) {
-						o2Percent.textContent = '100%';
-						o2Circle.style.strokeDashoffset = '0';
-						o2Meter.classList.remove('o2-critical');
+						o2Percent.textContent = "100%";
+						o2Circle.style.strokeDashoffset = "0";
+						o2Meter.classList.remove("o2-critical");
 						return;
 					}
 
 					// 読み進めたパーセンテージ（0〜100）
-					const scrollPercent = Math.min(100, Math.max(0, (scrollY / maxScroll) * 100));
+					const scrollPercent = Math.min(
+						100,
+						Math.max(0, (scrollY / maxScroll) * 100),
+					);
 					// 酸素残量（100%から始まり、読み終わると0%になる）
 					const o2Remaining = Math.round(100 - scrollPercent);
 
@@ -407,16 +470,18 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 
 					// 20%以下で警告クラス追加
 					if (o2Remaining <= 20) {
-						o2Meter.classList.add('o2-critical');
-						o2Circle.style.stroke = '#ff0055';
+						o2Meter.classList.add("o2-critical");
+						o2Circle.style.stroke = "#ff0055";
 					} else {
-						o2Meter.classList.remove('o2-critical');
-						o2Circle.style.stroke = '#00f0ff';
+						o2Meter.classList.remove("o2-critical");
+						o2Circle.style.stroke = "#00f0ff";
 					}
 				}
 
-				window.addEventListener('scroll', updateO2Progress, { passive: true });
-				window.addEventListener('resize', updateO2Progress);
+				window.addEventListener("scroll", updateO2Progress, {
+					passive: true,
+				});
+				window.addEventListener("resize", updateO2Progress);
 				updateO2Progress(); // 初期実行
 			}
 		</script>

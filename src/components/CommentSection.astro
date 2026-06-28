@@ -1,0 +1,361 @@
+---
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<section class="comments-section" data-slug={slug}>
+  <h3 class="comments-title">
+    <svg class="title-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <span>Comments</span>
+  </h3>
+
+  <!-- 投稿フォーム -->
+  <form id={`comment-form-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`} class="comment-form">
+    <div class="form-group">
+      <label for={`comment-author-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}>お名前（任意）</label>
+      <input
+        type="text"
+        id={`comment-author-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}
+        name="author"
+        placeholder="お名前またはハンドルネーム"
+        maxlength="30"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for={`comment-content-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}>メッセージ（必須・最大500文字）</label>
+      <textarea
+        id={`comment-content-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}
+        name="content"
+        rows="4"
+        required
+        maxlength="500"
+        placeholder="記事の感想やメッセージをどうぞ..."
+        class="form-textarea"
+      ></textarea>
+    </div>
+
+    <div class="form-status" id={`comment-status-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}></div>
+
+    <button type="submit" class="submit-button" id={`comment-submit-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}>
+      <span class="submit-text">コメントを送信する</span>
+    </button>
+  </form>
+
+  <!-- コメント一覧 -->
+  <div class="comments-list" id={`comments-list-${slug.replace(/[^a-zA-Z0-9]/g, '-')}`}>
+    <div class="loading-state">コメントを読み込み中...</div>
+  </div>
+</section>
+
+<style>
+  .comments-section {
+    margin: 4rem 0 2rem;
+    padding: 2rem;
+    background: rgba(10, 25, 47, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .comments-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.4rem;
+    color: #e0f2fe;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    padding-bottom: 0.75rem;
+  }
+
+  .comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .form-input,
+  .form-textarea {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #f8fafc;
+    font-family: var(--font-body, inherit);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    background: rgba(15, 23, 42, 0.95);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-status {
+    font-size: 0.9rem;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .form-status.error {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+
+  .form-status.success {
+    display: block;
+    padding: 0.6rem 1rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+
+  .submit-button {
+    align-self: flex-start;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .submit-button:hover {
+    background: linear-gradient(135deg, #0369a1, #075985);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+  }
+
+  .submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .loading-state,
+  .empty-state {
+    color: #64748b;
+    text-align: center;
+    padding: 2rem 0;
+    font-size: 0.95rem;
+  }
+
+  :global(.comment-card) {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(56, 189, 248, 0.1);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    transition: border-color 0.2s ease;
+  }
+
+  :global(.comment-card:hover) {
+    border-color: rgba(56, 189, 248, 0.25);
+  }
+
+  :global(.comment-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.comment-author) {
+    font-weight: 600;
+    color: #38bdf8;
+    font-size: 0.95rem;
+  }
+
+  :global(.comment-date) {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  :global(.comment-body) {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.comments-section').forEach((section) => {
+    const slug = section.dataset.slug;
+    if (!slug) return;
+
+    const safeSlug = slug.replace(/[^a-zA-Z0-9]/g, '-');
+    const form = section.querySelector<HTMLFormElement>(`#comment-form-${safeSlug}`);
+    const listContainer = section.querySelector<HTMLElement>(`#comments-list-${safeSlug}`);
+    const statusDiv = section.querySelector<HTMLElement>(`#comment-status-${safeSlug}`);
+    const submitBtn = section.querySelector<HTMLButtonElement>(`#comment-submit-${safeSlug}`);
+
+    if (!form || !listContainer || !statusDiv || !submitBtn) return;
+
+    // 日時フォーマット関数
+    const formatDate = (isoStr: string) => {
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('ja-JP', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch {
+        return isoStr;
+      }
+    };
+
+    // コメントカード生成関数
+    const createCommentCard = (comment: { author: string; content: string; createdAt: string }) => {
+      const card = document.createElement('div');
+      card.className = 'comment-card';
+
+      const header = document.createElement('div');
+      header.className = 'comment-header';
+
+      const authorEl = document.createElement('span');
+      authorEl.className = 'comment-author';
+      authorEl.textContent = comment.author;
+
+      const dateEl = document.createElement('span');
+      dateEl.className = 'comment-date';
+      dateEl.textContent = formatDate(comment.createdAt);
+
+      header.appendChild(authorEl);
+      header.appendChild(dateEl);
+
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'comment-body';
+      bodyEl.textContent = comment.content;
+
+      card.appendChild(header);
+      card.appendChild(bodyEl);
+
+      return card;
+    };
+
+    // コメント一覧取得
+    const loadComments = () => {
+      fetch(`/api/comments?slug=${encodeURIComponent(slug)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          listContainer.innerHTML = '';
+          if (Array.isArray(data.comments) && data.comments.length > 0) {
+            data.comments.forEach((c: any) => {
+              listContainer.appendChild(createCommentCard(c));
+            });
+          } else {
+            listContainer.innerHTML = '<div class="empty-state">まだコメントはありません。一番乗りのコメントを投稿してみましょう！</div>';
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load comments', err);
+          listContainer.innerHTML = '<div class="empty-state">コメントの読み込みに失敗しました。</div>';
+        });
+    };
+
+    loadComments();
+
+    // フォーム送信処理
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusDiv.className = 'form-status';
+      statusDiv.style.display = 'none';
+
+      const authorInput = form.querySelector<HTMLInputElement>('[name="author"]');
+      const contentInput = form.querySelector<HTMLTextAreaElement>('[name="content"]');
+
+      const author = authorInput?.value || '';
+      const content = contentInput?.value || '';
+
+      if (!content.trim()) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '送信中...';
+
+      try {
+        const res = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, author, content }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || '送信に失敗しました。');
+        }
+
+        // 成功時
+        statusDiv.className = 'form-status success';
+        statusDiv.textContent = 'コメントを投稿しました！';
+        statusDiv.style.display = 'block';
+
+        if (contentInput) contentInput.value = '';
+
+        // 新しいコメントを先頭に挿入
+        if (data.comment) {
+          const emptyState = listContainer.querySelector('.empty-state');
+          if (emptyState) emptyState.remove();
+
+          const card = createCommentCard(data.comment);
+          listContainer.insertBefore(card, listContainer.firstChild);
+        }
+
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 4000);
+      } catch (err: any) {
+        statusDiv.className = 'form-status error';
+        statusDiv.textContent = err.message || 'エラーが発生しました。';
+        statusDiv.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'コメントを送信する';
+      }
+    });
+  });
+</script>
