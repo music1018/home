@@ -4,16 +4,50 @@
 import '../styles/global.css';
 import { SITE_TITLE } from '../consts';
 import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
 	title: string;
 	description: string;
 	image?: string;
+	type?: 'website' | 'article';
+	pubDate?: Date;
+	updatedDate?: Date;
 }
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 
-const { title, description, image = '/assets/blog-placeholder-1.jpg' } = Astro.props;
+const { title, description, image, type = 'website', pubDate, updatedDate } = Astro.props;
+
+// 動的 OGP URL の判定（明示的な画像がない場合やデフォルト画像の場合は動的生成エンドポイントを利用）
+const ogImageUrl = image && image !== '/assets/blog-placeholder-1.jpg' && !image.includes('placeholder')
+	? new URL(image, Astro.url).toString()
+	: new URL(`/api/og?title=${encodeURIComponent(title)}`, Astro.url).toString();
+
+// JSON-LD 構造化データオブジェクトの生成
+const jsonLd = type === 'article' ? {
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	"headline": title,
+	"description": description,
+	"image": [ogImageUrl],
+	"datePublished": pubDate ? pubDate.toISOString() : undefined,
+	"dateModified": updatedDate ? updatedDate.toISOString() : (pubDate ? pubDate.toISOString() : undefined),
+	"mainEntityOfPage": {
+		"@type": "WebPage",
+		"@id": canonicalURL.toString()
+	},
+	"author": {
+		"@type": "Person",
+		"name": SITE_TITLE
+	}
+} : {
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	"name": SITE_TITLE,
+	"url": Astro.url.origin,
+	"description": description
+};
 ---
 
 <!-- Global Metadata -->
@@ -25,11 +59,12 @@ const { title, description, image = '/assets/blog-placeholder-1.jpg' } = Astro.p
 	rel="alternate"
 	type="application/rss+xml"
 	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
+	href={new URL('rss.xml', Astro.site || Astro.url.origin)}
 />
 <meta name="generator" content={Astro.generator} />
 
 <Font cssVariable="--font-atkinson" preload />
+<ClientRouter />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -39,15 +74,19 @@ const { title, description, image = '/assets/blog-placeholder-1.jpg' } = Astro.p
 <meta name="description" content={description} />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
+<meta property="og:type" content={type} />
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image, Astro.url)} />
+<meta property="og:image" content={ogImageUrl} />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image, Astro.url)} />
+<meta property="twitter:image" content={ogImageUrl} />
+
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+

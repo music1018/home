@@ -16,7 +16,7 @@ const currentSlug = slug || id || Astro.url.pathname.split('/').filter(Boolean).
 
 <html lang="ja">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={heroImage} type="article" pubDate={pubDate} updatedDate={updatedDate} />
 		<style is:global>
 			/* 記事本文内のHTML要素に対する厳密なタイポグラフィ指定 */
 			.prose p {
