@@ -1,116 +1,116 @@
 # AGENTS.md
 
-## Project Overview
+## プロジェクト概要
 
-Personal portfolio & blog site for **r**. Built with Astro v7, deployed to **Cloudflare Workers** via `@astrojs/cloudflare`. The visual theme is a "deep-sea dive" motif with dark blue backgrounds, scroll-driven depth effects, and Japanese typography.
+**r** の個人ポートフォリオ＆ブログサイト。Astro v7で構築され、`@astrojs/cloudflare` 経由で **Cloudflare Workers** にデプロイされています。ビジュアルテーマは「深海ダイブ」をモチーフにしており、ダークブルーの背景、スクロール連動の深さエフェクト、および日本語タイポグラフィを採用しています。
 
-**This is NOT a monorepo.** It is a single Astro project with `npm` as the package manager.
+**モノリポではありません。** パッケージマネージャーに `npm` を使用した単一の Astro プロジェクトです。
 
-## Tech Stack
+## 技術スタック
 
-| Layer | Technology |
+| レイヤー | 技術 |
 | :--- | :--- |
-| Framework | Astro 7 (SSR mode via Cloudflare adapter) |
-| Content | Astro Content Collections (Markdown / MDX) |
-| Styling | Vanilla CSS (`src/styles/global.css` + scoped `<style>` in `.astro` files) |
-| Fonts | Google Fonts — Shippori Mincho, Zen Kaku Gothic New, IBM Plex Mono |
-| Hosting | Cloudflare Workers + Assets (`wrangler.jsonc`, worker name: `home`) |
-| Image Processing | `sharp` (with Cloudflare `passthrough` image service) |
-| Integrations | `@astrojs/mdx`, `@astrojs/sitemap`, `@astrojs/rss` |
+| フレームワーク | Astro 7 (Cloudflare アダプター経由の SSR モード) |
+| コンテンツ | Astro Content Collections (Markdown / MDX) |
+| スタイリング | Vanilla CSS (`src/styles/global.css` + `.astro` ファイル内のスコープ付き `<style>`) |
+| フォント | Google Fonts — しっぽり明朝, Zen 角ゴシック, IBM Plex Mono |
+| ホスティング | Cloudflare Workers + Assets (`wrangler.jsonc`, ワーカー名: `home`) |
+| 画像処理 | `sharp` (Cloudflare `passthrough` 画像サービスを利用) |
+| 統合パッケージ | `@astrojs/mdx`, `@astrojs/sitemap`, `@astrojs/rss` |
 
-## Directory Structure
+## ディレクトリ構造
 
 ```
-├── public/                  # Static assets served as-is
-│   ├── favicon.svg          # SVG favicon
-│   ├── ai-driven-development/ # Blog post images
-│   ├── mars/                # Mars colonization game (standalone HTML)
-│   ├── othello/             # Othello AI simulator (standalone HTML)
-│   ├── sound/               # Sound generator mini-app
-│   ├── pressure/            # Pressure simulator mini-app
-│   ├── password/            # Password generator mini-app
-│   ├── copycraft/           # AI CopyCraft mini-app
-│   ├── models/              # AI model reference page assets
-│   └── assets/              # Shared static assets
+├── public/                  # そのまま配信される静的アセット
+│   ├── favicon.svg          # SVG ファビコン
+│   ├── ai-driven-development/ # ブログ記事用画像
+│   ├── mars/                # 火星開拓ゲーム (スタンドアロン HTML)
+│   ├── othello/             # オセロ AI シミュレーター (スタンドアロン HTML)
+│   ├── sound/               # サウンドジェネレーター ミニアプリ
+│   ├── pressure/            # 圧力シミュレーター ミニアプリ
+│   ├── password/            # パスワードジェネレーター ミニアプリ
+│   ├── copycraft/           # AI CopyCraft ミニアプリ
+│   ├── models/              # AIモデル参照ページ用アセット
+│   └── assets/              # 共有静的アセット
 ├── src/
-│   ├── assets/fonts/        # Local font files (Atkinson woff)
-│   ├── components/          # Astro components (BaseHead, Header, Footer, etc.)
-│   ├── content/blog/        # Blog posts (Markdown)
-│   ├── content.config.ts    # Content collection schema (title, description, pubDate, heroImage)
-│   ├── consts.ts            # Site-wide constants (SITE_TITLE, SITE_DESCRIPTION)
-│   ├── layouts/             # BlogPost.astro layout
-│   ├── pages/               # Route pages
-│   │   ├── index.astro      # Homepage (portfolio with deep-sea scroll UI)
-│   │   ├── about.astro      # About page
-│   │   ├── people.astro     # People page
-│   │   ├── ai-driven-development.astro  # AI development article page
-│   │   ├── blog/            # Blog listing & [slug] routes
-│   │   └── rss.xml.js       # RSS feed endpoint
-│   └── styles/global.css    # Global CSS (color tokens, typography, resets)
-├── astro.config.mjs         # Astro config (MDX, sitemap, fonts, Cloudflare adapter)
-├── wrangler.jsonc           # Cloudflare Workers config
-├── tsconfig.json            # TypeScript (strict, extends astro/tsconfigs/strict)
-└── package.json             # npm scripts & dependencies
+│   ├── assets/fonts/        # ローカルフォントファイル (Atkinson woff)
+│   ├── components/          # Astro コンポーネント (BaseHead, Header, Footer など)
+│   ├── content/blog/        # ブログ記事 (Markdown)
+│   ├── content.config.ts    # コンテンツコレクションスキーマ (title, description, pubDate, heroImage)
+│   ├── consts.ts            # サイト全体の定数 (SITE_TITLE, SITE_DESCRIPTION)
+│   ├── layouts/             # BlogPost.astro レイアウト
+│   ├── pages/               # ルーティングページ
+│   │   ├── index.astro      # ホームページ (深海スクロール UI のポートフォリオ)
+│   │   ├── about.astro      # About ページ
+│   │   ├── people.astro     # People ページ
+│   │   ├── ai-driven-development.astro  # AI 開発関連記事ページ
+│   │   ├── blog/            # ブログ一覧＆ [slug] ルーティング
+│   │   └── rss.xml.js       # RSS フィードエンドポイント
+│   └── styles/global.css    # グローバル CSS (カラーキー、タイポグラフィ、リセット)
+├── astro.config.mjs         # Astro 設定 (MDX, sitemap, fonts, Cloudflare アダプター)
+├── wrangler.jsonc           # Cloudflare Workers 設定
+├── tsconfig.json            # TypeScript (strict, astro/tsconfigs/strict を継承)
+└── package.json             # npm スクリプトと依存関係
 ```
 
-## Commands
+## コマンド
 
-| Command | Description |
+| コマンド | 説明 |
 | :--- | :--- |
-| `npm install` | Install dependencies |
-| `npm run dev` | Start Astro dev server (`localhost:4321`) |
-| `npm run build` | Production build → `./dist/` |
-| `npm run preview` | Build + `wrangler dev` (local Cloudflare preview) |
-| `npm run deploy` | Build + `wrangler deploy` (deploy to Cloudflare) |
-| `npm run generate-types` | Generate Cloudflare Worker types via Wrangler |
+| `npm install` | 依存関係のインストール |
+| `npm run dev` | Astro 開発サーバーの起動 (`localhost:4321`) |
+| `npm run build` | プロダクションビルド → `./dist/` |
+| `npm run preview` | ビルド + `wrangler dev` (ローカルでの Cloudflare プレビュー) |
+| `npm run deploy` | ビルド + `wrangler deploy` (Cloudflare へのデプロイ) |
+| `npm run generate-types` | Wrangler 経由で Cloudflare Worker の型を生成 |
 
-Do **not** use `pnpm`, `yarn`, or other package managers. This project uses `npm`.
+`pnpm` や `yarn` などの他のパッケージマネージャーは使用しないでください。このプロジェクトでは `npm` を使用します。
 
-## Coding Conventions
+## コーディング規約
 
-### Language & Locale
-- The site language is **Japanese** (`<html lang="ja">`).
-- Code comments are in Japanese where they already exist. Match the surrounding style.
+### 言語とロケール
+- サイトの言語は **日本語** です (`<html lang="ja">`)。
+- コードコメントは既存のものが日本語であればそれに合わせ、周囲のスタイルと統一してください。
 
-### Styling
-- **No Tailwind.** Use vanilla CSS only.
-- Global design tokens are defined in `src/styles/global.css` under `:root`.
-- Page-specific styles go in scoped `<style>` blocks inside `.astro` files.
-- The color palette follows a dark deep-sea theme (blues, grays, light text on dark).
-- Key CSS variables: `--bg-deep`, `--ink`, `--ink-body`, `--ink-sub`, `--font-display`, `--font-body`, `--font-mono`.
+### スタイリング
+- **Tailwind は使用しません。** Vanilla CSS のみを使用してください。
+- グローバルなデザイントークンは `src/styles/global.css` の `:root` 下で定義されています。
+- ページ固有のスタイルは `.astro` ファイル内のスコープ付き `<style>` ブロックに記述します。
+- カラーパレットはダークな深海テーマ（ブルー、グレー、ダーク背景にライトテキスト）に準拠しています。
+- 主要な CSS 変数: `--bg-deep`, `--ink`, `--ink-body`, `--ink-sub`, `--font-display`, `--font-body`, `--font-mono`。
 
-### Content
-- Blog posts live in `src/content/blog/` as `.md` or `.mdx` files.
-- Frontmatter schema: `title` (string), `description` (string), `pubDate` (date), `updatedDate` (date, optional), `heroImage` (string, optional).
-- Images for blog posts go in `public/` and are referenced with absolute paths (e.g., `/ai-driven-development/hero.webp`).
+### コンテンツ
+- ブログ記事は `src/content/blog/` 内に `.md` または `.mdx` ファイルとして配置します。
+- フロントマターのスキーマ: `title` (文字列), `description` (文字列), `pubDate` (日付), `updatedDate` (日付, 任意), `heroImage` (文字列, 任意)。
+- ブログ記事用の画像は `public/` に配置し、絶対パス（例: `/ai-driven-development/hero.webp`）で参照します。
 
-### Components
-- All components are `.astro` files (no React/Vue/Svelte currently in use).
-- `BaseHead.astro` handles `<head>` meta tags, OGP, and favicon.
-- `Header.astro` / `Footer.astro` provide the global navigation shell.
+### コンポーネント
+- すべてのコンポーネントは `.astro` ファイルです（現在 React / Vue / Svelte は使用していません）。
+- `BaseHead.astro` は `<head>` メタタグ、OGP、ファビコンを処理します。
+- `Header.astro` / `Footer.astro` はグローバルなナビゲーションシェルを提供します。
 
-### Mini-Apps
-- Several standalone HTML mini-apps live under `public/` (mars, othello, sound, pressure, password, copycraft).
-- These are self-contained (HTML + inline JS/CSS) and are **not** part of the Astro build pipeline.
-- They are linked from the homepage (`index.astro`).
+### ミニアプリ
+- いくつかのスタンドアロン HTML ミニアプリが `public/` 下に存在します (mars, othello, sound, pressure, password, copycraft)。
+- これらは自己完結型（HTML + インライン JS/CSS）であり、Astro のビルドパイプラインには含まれません。
+- ホームページ (`index.astro`) からリンクされています。
 
-## Commit Convention
+## コミット規約
 
-Follow **Conventional Commits** with a lowercase verb prefix:
+小文字の動詞プレフィックスを使用した **Conventional Commits** に従って日本語で生成してください:
 
 ```
-feat: add new feature
-fix: bug fix
-docs: documentation only
-refactor: code change without feature/fix
-chore: maintenance tasks
+feat: 新機能の追加
+fix: バグ修正
+docs: ドキュメントのみの変更
+refactor: 機能追加やバグ修正を伴わないコード変更
+chore: 雑多なタスクやメンテナンスタスク
 ```
 
-Use scoped prefixes for mini-apps: `feat(mars):`, `fix(othello):`, etc.
+ミニアプリの場合はスコープ付きプレフィックスを使用します: `feat(mars):`, `fix(othello):` など。
 
-## Deployment
+## デプロイ
 
-1. `npm run build` — Astro builds to `./dist/`
-2. `wrangler deploy` — Uploads to Cloudflare Workers
+1. `npm run build` — Astro が `./dist/` にビルドします。
+2. `wrangler deploy` — Cloudflare Workers にアップロードします。
 
-The Wrangler config (`wrangler.jsonc`) uses `@astrojs/cloudflare/entrypoints/server` as the main entry and serves `./dist` as static assets.
+Wrangler の設定 (`wrangler.jsonc`) は、メインエントリーとして `@astrojs/cloudflare/entrypoints/server` を使用し、静的アセットとして `./dist` を配信します。
