@@ -1,0 +1,120 @@
+---
+interface Props {
+  quotes: Array<{
+    quote: string;
+    bookTitle: string;
+    bookSlug: string;
+    author: string;
+  }>;
+}
+
+const { quotes } = Astro.props;
+---
+
+<div class="sonar-quote-radar glass-panel" id="sonarQuoteRadar">
+  <div class="radar-content">
+    <div class="radar-tag">
+      <span class="pulse-dot"></span>
+      <span class="radar-label">思考のハイライト</span>
+    </div>
+    <blockquote class="quote-text" id="radarQuoteText">
+      "{quotes[0]?.quote || "準備中"}"
+    </blockquote>
+    <div class="quote-meta" id="radarQuoteMeta">
+      ─ <span class="quote-author">{quotes[0]?.author}</span> 『<a
+        href={`#book-${quotes[0]?.bookSlug}`}
+        class="quote-book-link">{quotes[0]?.bookTitle}</a
+      >』
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ quotes }}>
+  (function () {
+    if (!quotes || quotes.length === 0) return;
+    let index = 0;
+    const textEl = document.getElementById("radarQuoteText");
+    const metaEl = document.getElementById("radarQuoteMeta");
+
+    setInterval(() => {
+      index = (index + 1) % quotes.length;
+      const current = quotes[index];
+      if (textEl && metaEl && current) {
+        textEl.style.opacity = "0";
+        textEl.style.transform = "translateY(4px)";
+        metaEl.style.opacity = "0";
+
+        setTimeout(() => {
+          textEl.textContent = `"${current.quote}"`;
+          metaEl.innerHTML = `─ <span class="quote-author">${current.author}</span> 『<a href="#book-${current.bookSlug}" class="quote-book-link">${current.bookTitle}</a>』`;
+          textEl.style.opacity = "1";
+          textEl.style.transform = "translateY(0)";
+          metaEl.style.opacity = "1";
+        }, 300);
+      }
+    }, 7000);
+  })();
+</script>
+
+<style>
+  .sonar-quote-radar {
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .radar-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-label);
+    margin-bottom: 0.5rem;
+  }
+
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--ink);
+    border-radius: 50%;
+  }
+
+  .quote-text {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.6;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .quote-meta {
+    font-size: 0.8rem;
+    color: var(--gray-label);
+    text-align: right;
+    transition: opacity 0.3s ease;
+  }
+
+  .quote-author {
+    color: var(--ink-sub);
+    font-weight: 500;
+  }
+
+  .quote-book-link {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .quote-book-link:hover {
+    opacity: 0.8;
+  }
+</style>

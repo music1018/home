@@ -1,0 +1,320 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  books: CollectionEntry<'books'>[];
+}
+
+const { books } = Astro.props;
+
+const epipelagic = books.filter(b => b.data.depth < 500);
+const mesopelagic = books.filter(b => b.data.depth >= 500 && b.data.depth < 1500);
+const bathypelagic = books.filter(b => b.data.depth >= 1500);
+
+const zones = [
+  { name: '浅層 (0m 〜 500m)', items: epipelagic },
+  { name: '中深層 (500m 〜 1500m)', items: mesopelagic },
+  { name: '漸深層 (1500m 以上)', items: bathypelagic }
+];
+
+function getStatusBadge(status: string) {
+  switch(status) {
+    case 'anchor': return { label: '⚓ 座右の書', class: 'status-anchor' };
+    case 'diving': return { label: '🤿 読書中', class: 'status-diving' };
+    default: return { label: '🏁 読破', class: 'status-completed' };
+  }
+}
+---
+
+<div class="bookshelf-grid-view" id="bookshelfGridView">
+  {zones.map(zone => (
+    zone.items.length > 0 && (
+      <section class="depth-zone-section" data-zone={zone.name}>
+        <div class="zone-header">
+          <span class="zone-title">{zone.name}</span>
+          <span class="zone-badge">{zone.items.length} 冊</span>
+        </div>
+
+        <div class="shelf-container">
+          <div class="shelf-rack">
+            {zone.items.map(book => {
+              const statusInfo = getStatusBadge(book.data.status);
+              const stars = '★'.repeat(book.data.rating) + '☆'.repeat(5 - book.data.rating);
+              
+              return (
+                <article
+                  class="book-card-3d glass-card"
+                  data-book-card
+                  data-open-modal={book.id}
+                  data-slug={book.id}
+                  data-title={book.data.title.toLowerCase()}
+                  data-author={book.data.author.toLowerCase()}
+                  data-status={book.data.status}
+                  data-depth={book.data.depth}
+                  data-tags={JSON.stringify(book.data.tags)}
+                  id={`book-${book.id}`}
+                >
+                  <div class="book-cover-wrapper">
+                    <div class="book-depth-indicator">-{book.data.depth}M</div>
+                    <span class={`status-badge ${statusInfo.class}`}>{statusInfo.label}</span>
+                    
+                    {book.data.cover ? (
+                      <img src={book.data.cover} alt={book.data.title} class="book-cover-img" loading="lazy" />
+                    ) : (
+                      <div class="default-cover">
+                        <span class="cover-icon">📖</span>
+                        <span class="cover-title-text">{book.data.title}</span>
+                      </div>
+                    )}
+                    
+                    <div class="cover-overlay">
+                      <button class="periscope-inspect-btn" data-open-modal={book.id}>
+                        思考メモを見る ➔
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="book-meta">
+                    <div class="rating-stars" title={`評価: ${book.data.rating}/5`}>{stars}</div>
+                    <h3 class="book-title">{book.data.title}</h3>
+                    <p class="book-author">{book.data.author}</p>
+                    <p class="recommend-to">💡 {book.data.recommendTo}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <div class="shelf-glass-plank"></div>
+        </div>
+      </section>
+    )
+  ))}
+</div>
+
+<style>
+  .bookshelf-grid-view {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .zone-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.5rem;
+  }
+
+  .zone-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .zone-badge {
+    padding: 0.15rem 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--gray-label);
+  }
+
+  .shelf-container {
+    position: relative;
+    padding-bottom: 1.25rem;
+  }
+
+  .shelf-rack {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1.75rem 1.25rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .shelf-glass-plank {
+    position: absolute;
+    bottom: 0;
+    left: -0.5rem;
+    right: -0.5rem;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  .book-card-3d {
+    position: relative;
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+    cursor: pointer;
+  }
+
+  .book-card-3d:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .book-cover-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 18, 51, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .book-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .default-cover {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 18, 51, 0.8);
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .cover-icon {
+    font-size: 2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .cover-title-text {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+  }
+
+  .book-depth-indicator {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.4rem;
+    background: rgba(0, 18, 51, 0.85);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 3;
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    z-index: 3;
+  }
+
+  .status-anchor {
+    background: rgba(234, 179, 8, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+  }
+
+  .status-diving {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .status-completed {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 102, 200, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 4;
+  }
+
+  .book-card-3d:hover .cover-overlay {
+    opacity: 1;
+  }
+
+  .periscope-inspect-btn {
+    padding: 0.45rem 0.85rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--ink);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .book-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .rating-stars {
+    color: #facc15;
+    font-size: 0.75rem;
+  }
+
+  .book-title {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-author {
+    font-size: 0.75rem;
+    color: var(--gray-label);
+    margin: 0;
+  }
+
+  .recommend-to {
+    font-size: 0.725rem;
+    color: var(--ink-sub);
+    margin: 0.25rem 0 0 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

@@ -24,7 +24,7 @@
 			"binding": "DB",
 			"database_name": "nifty-babbage-db",
 			"database_id": "59ea9b76-5d43-42de-8b43-d1ff06e84b31",
-			"remote": true
+			// "remote": true
 		}
 	]
 }

@@ -1,0 +1,251 @@
+---
+interface Props {
+  tags: string[];
+  totalBooks: number;
+}
+
+const { tags, totalBooks } = Astro.props;
+---
+
+<div class="sticky-controls" id="stickyControls">
+  <!-- View Selector & Search -->
+  <div class="control-row primary-controls">
+    <div class="view-selector-group" role="tablist">
+      <button class="view-tab active" data-view="grid" role="tab" aria-selected="true" id="tab-grid">
+        <span class="tab-icon">📚</span>
+        <span>本棚</span>
+      </button>
+      <button class="view-tab" data-view="list" role="tab" aria-selected="false" id="tab-list">
+        <span class="tab-icon">📋</span>
+        <span>リスト</span>
+      </button>
+      <button class="view-tab" data-view="map" role="tab" aria-selected="false" id="tab-map">
+        <span class="tab-icon">🕸️</span>
+        <span>関連マップ</span>
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="タイトル / 著者 / キーワードで検索..." aria-label="書籍検索" />
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="control-row secondary-controls">
+    <!-- Status Filter Buttons -->
+    <div class="status-filters">
+      <button class="status-btn active" data-status="all">すべて ({totalBooks})</button>
+      <button class="status-btn" data-status="anchor">⚓ 座右の書</button>
+      <button class="status-btn" data-status="completed">🏁 読破</button>
+      <button class="status-btn" data-status="diving">🤿 読書中</button>
+    </div>
+
+    <!-- Depth Range Slider -->
+    <div class="depth-slider-container">
+      <div class="slider-label">
+        <span>最小水深:</span>
+        <strong id="depthValueDisplay">0M</strong>
+      </div>
+      <input type="range" id="depthSlider" min="0" max="3000" step="100" value="0" aria-label="水深フィルター" />
+    </div>
+  </div>
+
+  <!-- Tags Filter Row -->
+  <div class="tags-filter-row">
+    <span class="tag-title">タグ:</span>
+    <button class="tag-chip active" data-tag="all">#全タグ</button>
+    {tags.map(tag => (
+      <button class="tag-chip" data-tag={tag}>#{tag}</button>
+    ))}
+  </div>
+</div>
+
+<style>
+  .sticky-controls {
+    position: sticky;
+    top: 5.5rem;
+    z-index: 40;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .control-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+  }
+
+  .view-selector-group {
+    display: flex;
+    background: rgba(0, 18, 51, 0.6);
+    padding: 0.2rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .view-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    border: none;
+    background: transparent;
+    color: var(--gray-label);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .view-tab:hover {
+    color: var(--ink);
+  }
+
+  .view-tab.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--ink);
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 360px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-label);
+    font-size: 0.85rem;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 0.45rem 0.75rem 0.45rem 2.1rem;
+    background: rgba(0, 18, 51, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .search-box input:focus {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .status-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .status-btn {
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 18, 51, 0.4);
+    color: var(--ink-sub);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .status-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+  }
+
+  .status-btn.active {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--ink);
+  }
+
+  .depth-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: rgba(0, 18, 51, 0.4);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .slider-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-label);
+    white-space: nowrap;
+  }
+
+  .slider-label strong {
+    color: var(--ink);
+    margin-left: 0.2rem;
+  }
+
+  .depth-slider-container input[type="range"] {
+    accent-color: var(--ink);
+    cursor: pointer;
+    width: 110px;
+  }
+
+  .tags-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .tag-title {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--gray-label);
+    margin-right: 0.2rem;
+  }
+
+  .tag-chip {
+    padding: 0.15rem 0.5rem;
+    background: rgba(0, 18, 51, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    color: var(--gray-label);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tag-chip:hover {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .tag-chip.active {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--ink);
+  }
+</style>

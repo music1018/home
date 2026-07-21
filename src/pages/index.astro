@@ -751,21 +751,89 @@ const posts = (await getCollection('blog'))
 			let windowHeight = 0;
 			let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-			const body = document.body;
-			const depthValueEl = document.getElementById('depthValue');
-			const meterMarkerEl = document.getElementById('meterMarker');
-			const sunlightRayEl = document.getElementById('sunlightRay');
-			const canvas = document.getElementById('marineSnowCanvas') as HTMLCanvasElement;
-			const ctx = canvas ? canvas.getContext('2d') : null;
+			let depthValueEl: HTMLElement | null = null;
+			let meterMarkerEl: HTMLElement | null = null;
+			let sunlightRayEl: HTMLElement | null = null;
+			let canvas: HTMLCanvasElement | null = null;
+			let ctx: CanvasRenderingContext2D | null = null;
 
-			// 初期スクロール位置を Hero セクション（水深0m）に合わせる
-			window.addEventListener('load', () => {
-				const heroSection = document.getElementById('hero');
-				if (heroSection) {
-					heroSection.scrollIntoView({ behavior: 'auto' });
-				}
+			function updateMetrics() {
+				documentHeight = document.documentElement.scrollHeight;
+				windowHeight = window.innerHeight;
+			}
+
+			let handleIndexScroll: (() => void) | null = null;
+			let revealObserver: IntersectionObserver | null = null;
+			let animationFrameId: number | null = null;
+			let resizeObserver: ResizeObserver | null = null;
+
+			function setupIndexPage() {
+				// 毎回最新のDOM要素を取得し直す (View Transitions対策)
+				depthValueEl = document.getElementById('depthValue');
+				meterMarkerEl = document.getElementById('meterMarker');
+				sunlightRayEl = document.getElementById('sunlightRay');
+				canvas = document.getElementById('marineSnowCanvas') as HTMLCanvasElement | null;
+				ctx = canvas ? canvas.getContext('2d') : null;
+
+				// 強制的に前ページのクラス・インラインスタイルをリセット
+				document.body.classList.remove('submarine-body');
+				document.body.style.removeProperty('--bg-deep');
+				document.body.style.removeProperty('background-color');
+
 				updateMetrics();
 				onScroll();
+				initRevealAndSnow();
+
+				if (handleIndexScroll) {
+					window.removeEventListener('scroll', handleIndexScroll);
+				}
+
+				let ticking = false;
+				handleIndexScroll = () => {
+					if (!ticking) {
+						window.requestAnimationFrame(() => {
+							onScroll();
+							ticking = false;
+						});
+						ticking = true;
+					}
+				};
+
+				window.addEventListener('scroll', handleIndexScroll, { passive: true });
+
+				// ドキュメント高さの動的変化を監視
+				if (resizeObserver) {
+					resizeObserver.disconnect();
+				}
+				resizeObserver = new ResizeObserver(() => {
+					updateMetrics();
+					onScroll();
+				});
+				resizeObserver.observe(document.body);
+			}
+
+			function cleanupIndexPage() {
+				if (handleIndexScroll) {
+					window.removeEventListener('scroll', handleIndexScroll);
+					handleIndexScroll = null;
+				}
+				if (resizeObserver) {
+					resizeObserver.disconnect();
+					resizeObserver = null;
+				}
+				cleanupRevealAndSnow();
+			}
+
+			document.addEventListener('astro:page-load', () => {
+				if (document.getElementById('hero')) {
+					setupIndexPage();
+				} else {
+					cleanupIndexPage();
+				}
+			});
+
+			document.addEventListener('astro:before-preparation', () => {
+				cleanupIndexPage();
 			});
 
 			window.addEventListener('resize', () => {
@@ -776,28 +844,11 @@ const posts = (await getCollection('blog'))
 				}
 			});
 
-			function updateMetrics() {
-				documentHeight = document.documentElement.scrollHeight;
-				windowHeight = window.innerHeight;
-			}
-
-			// requestAnimationFrameによるスロットリング
-			let ticking = false;
-
-			window.addEventListener('scroll', () => {
-				if (!ticking) {
-					window.requestAnimationFrame(() => {
-						onScroll();
-						ticking = false;
-					});
-					ticking = true;
-				}
-			}, { passive: true });
-
 			function onScroll() {
 				scrollY = window.scrollY;
-				const maxScroll = documentHeight - windowHeight;
-				if (maxScroll <= 0) return;
+				documentHeight = document.documentElement.scrollHeight;
+				let maxScroll = documentHeight - windowHeight;
+				if (maxScroll <= 0) maxScroll = 1;
 
 				// 全体のスクロールパーセント (Skyを含む)
 				let percent = scrollY / maxScroll;
@@ -805,7 +856,7 @@ const posts = (await getCollection('blog'))
 
 				// 1. 背景色の変更
 				const currentBg = interpolateColor(percent);
-				body.style.setProperty('--bg-deep', currentBg);
+				document.body.style.setProperty('--bg-deep', currentBg);
 
 				// 2. ダイブメーター水深の数値計算 (Skyセクションより上が0以上、下がマイナス方向)
 				// 全体のスクロール可能領域に対する各セクションの位置からマッピング
@@ -826,17 +877,21 @@ const posts = (await getCollection('blog'))
 					const currentDepth = Math.round(divePercent * 3000);
 					
 					// 上空（Sky）領域にいる場合、高度表示
-					if (scrollY < heroTop) {
-						const skyPercent = (heroTop - scrollY) / heroTop;
-						const altitude = Math.round(skyPercent * 120);
-						depthValueEl.textContent = `+${altitude.toString().padStart(3, '0')}M`;
-					} else {
-						depthValueEl.textContent = `-${currentDepth.toString().padStart(4, '0')}M`;
+					if (depthValueEl) {
+						if (scrollY < heroTop) {
+							const skyPercent = (heroTop - scrollY) / heroTop;
+							const altitude = Math.round(skyPercent * 120);
+							depthValueEl.textContent = `+${altitude.toString().padStart(3, '0')}M`;
+						} else {
+							depthValueEl.textContent = `-${currentDepth.toString().padStart(4, '0')}M`;
+						}
 					}
 
 					// マーカーの縦位置変更 (メーター領域の15%から85%の間で移動)
-					const markerTop = 15 + (percent * 70);
-					meterMarkerEl.style.top = `${markerTop}%`;
+					if (meterMarkerEl) {
+						const markerTop = 15 + (percent * 70);
+						meterMarkerEl.style.top = `${markerTop}%`;
+					}
 					
 					// 3. 太陽光レイの不透明度（表層0.14付近でフェードアウト）
 					if (sunlightRayEl) {
@@ -860,82 +915,98 @@ const posts = (await getCollection('blog'))
 				}
 			}
 
-			// 5. リビールアニメーションのIntersectionObserver
-			const revealElements = document.querySelectorAll('.reveal');
-			const observerOptions = {
-				root: null,
-				threshold: 0.1,
-				rootMargin: '0px 0px -50px 0px'
-			};
+			function initRevealAndSnow() {
+				cleanupRevealAndSnow();
 
-			const revealObserver = new IntersectionObserver((entries, observer) => {
-				entries.forEach(entry => {
-					if (entry.isIntersecting) {
-						entry.target.classList.add('active');
-						observer.unobserve(entry.target);
+				// 5. リビールアニメーションのIntersectionObserver
+				const revealElements = document.querySelectorAll('.reveal');
+				const observerOptions = {
+					root: null,
+					threshold: 0.1,
+					rootMargin: '0px 0px -50px 0px'
+				};
+
+				revealObserver = new IntersectionObserver((entries, observer) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add('active');
+							observer.unobserve(entry.target);
+						}
+					});
+				}, observerOptions);
+
+				if (!prefersReducedMotion) {
+					revealElements.forEach(el => revealObserver.observe(el));
+				} else {
+					// モーション軽減時はすべて最初から表示
+					revealElements.forEach(el => el.classList.add('active'));
+				}
+
+				// 6. マリンスノー Canvasアニメーション
+				if (canvas && ctx && !prefersReducedMotion) {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+
+					const numParticles = 90;
+					const particles: any[] = [];
+
+					for (let i = 0; i < numParticles; i++) {
+						particles.push({
+							x: Math.random() * canvas.width,
+							y: Math.random() * canvas.height,
+							r: Math.random() * 2 + 0.5, // 粒子サイズ
+							d: Math.random() * numParticles, // 揺らぎの度合い
+							speedY: Math.random() * 0.5 + 0.2, // 降下速度
+							speedX: Math.random() * 0.2 - 0.1 // 横揺れ
+						});
 					}
-				});
-			}, observerOptions);
 
-			if (!prefersReducedMotion) {
-				revealElements.forEach(el => revealObserver.observe(el));
-			} else {
-				// モーション軽減時はすべて最初から表示
-				revealElements.forEach(el => el.classList.add('active'));
+					let angle = 0;
+					function drawParticles() {
+						if (!ctx || !canvas) return;
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						ctx.fillStyle = 'rgba(234, 241, 248, 0.4)';
+						ctx.beginPath();
+						
+						for (let i = 0; i < numParticles; i++) {
+							const p = particles[i];
+							ctx.moveTo(p.x, p.y);
+							ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+							// 位置のアップデート
+							p.y += p.speedY;
+							p.x += Math.sin(angle + p.d) * 0.3 + p.speedX;
+
+							// 画面外に出た粒子を上部に戻す
+							if (p.y > canvas.height) {
+								particles[i] = {
+									x: Math.random() * canvas.width,
+									y: -10,
+									r: p.r,
+									d: p.d,
+									speedY: p.speedY,
+									speedX: p.speedX
+								};
+							}
+						}
+						ctx.fill();
+						angle += 0.005;
+						animationFrameId = requestAnimationFrame(drawParticles);
+					}
+
+					drawParticles();
+				}
 			}
 
-			// 6. マリンスノー Canvasアニメーション
-			if (canvas && ctx && !prefersReducedMotion) {
-				canvas.width = window.innerWidth;
-				canvas.height = window.innerHeight;
-
-				const numParticles = 90;
-				const particles = [];
-
-				for (let i = 0; i < numParticles; i++) {
-					particles.push({
-						x: Math.random() * canvas.width,
-						y: Math.random() * canvas.height,
-						r: Math.random() * 2 + 0.5, // 粒子サイズ
-						d: Math.random() * numParticles, // 揺らぎの度合い
-						speedY: Math.random() * 0.5 + 0.2, // 降下速度
-						speedX: Math.random() * 0.2 - 0.1 // 横揺れ
-					});
+			function cleanupRevealAndSnow() {
+				if (revealObserver) {
+					revealObserver.disconnect();
+					revealObserver = null;
 				}
-
-				let angle = 0;
-				function drawParticles() {
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
-					ctx.fillStyle = 'rgba(234, 241, 248, 0.4)';
-					ctx.beginPath();
-					
-					for (let i = 0; i < numParticles; i++) {
-						const p = particles[i];
-						ctx.moveTo(p.x, p.y);
-						ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
-
-						// 位置のアップデート
-						p.y += p.speedY;
-						p.x += Math.sin(angle + p.d) * 0.3 + p.speedX;
-
-						// 画面外に出た粒子を上部に戻す
-						if (p.y > canvas.height) {
-							particles[i] = {
-								x: Math.random() * canvas.width,
-								y: -10,
-								r: p.r,
-								d: p.d,
-								speedY: p.speedY,
-								speedX: p.speedX
-							};
-						}
-					}
-					ctx.fill();
-					angle += 0.005;
-					requestAnimationFrame(drawParticles);
+				if (animationFrameId) {
+					cancelAnimationFrame(animationFrameId);
+					animationFrameId = null;
 				}
-
-				drawParticles();
 			}
 		</script>
 	</body>

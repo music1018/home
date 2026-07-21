@@ -1,0 +1,355 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SonarQuoteRadar from '../components/books/SonarQuoteRadar.astro';
+import BookshelfHeader from '../components/books/BookshelfHeader.astro';
+import BookshelfGrid from '../components/books/BookshelfGrid.astro';
+import BookshelfList from '../components/books/BookshelfList.astro';
+import SonarNetworkMap from '../components/books/SonarNetworkMap.astro';
+import PeriscopeModal from '../components/books/PeriscopeModal.astro';
+import { SITE_TITLE } from '../consts';
+
+// Fetch all book entries
+const allBooks = await getCollection('books');
+const books = allBooks.sort((a, b) => b.data.depth - a.data.depth);
+
+// Extract all tags
+const tags = Array.from(new Set(books.flatMap(b => b.data.tags)));
+
+// Extract quotes for radar
+const quotes = books
+  .filter(b => b.data.highlightQuote)
+  .map(b => ({
+    quote: b.data.highlightQuote!,
+    bookTitle: b.data.title,
+    bookSlug: b.id,
+    author: b.data.author,
+  }));
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <BaseHead
+      title={`読書本棚 | ${SITE_TITLE}`}
+      description="ブクログ風の本棚UIと深海思考ログの融合。書籍から得た知見と実務への還元成果を可視化した読書アーカイブ。"
+    />
+    <style>
+      /* マリンスノー背景 (blog/peopleと共通) */
+      .marine-snow {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.6;
+      }
+
+      main {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 120px 1.5rem 4rem 1.5rem; /* 固定ヘッダー分のパディング */
+        position: relative;
+        z-index: 2;
+      }
+
+      .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+      }
+
+      .page-header h1 {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 4.5vw, 48px);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.75rem;
+        color: var(--ink);
+      }
+
+      .page-header p.sub-title {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--gray-label);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        max-width: 50ch;
+        margin: 0 auto 1.25rem auto;
+      }
+
+      .intro-text {
+        max-width: 60ch;
+        margin: 0 auto;
+        text-align: center;
+        font-size: 15px;
+        color: var(--ink-sub);
+        line-height: 1.8;
+      }
+
+      .no-results-box {
+        background: rgba(15, 23, 42, 0.3);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 4rem 2rem;
+        text-align: center;
+        color: var(--gray-label);
+        margin-top: 2rem;
+      }
+
+      .no-results-icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 1rem;
+      }
+
+      .no-results-box h3 {
+        font-family: var(--font-display);
+        color: var(--ink);
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .no-results-box p {
+        font-size: 0.875rem;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body class="submarine-body">
+    <Header />
+
+    <!-- マリンスノー背景 (blog/peopleと共通) -->
+    <canvas class="marine-snow" id="booksSnowCanvas"></canvas>
+
+    <main>
+      <!-- トンマナ統一 ページヘッダー -->
+      <div class="page-header">
+        <h1>思考の読書本棚</h1>
+        <p class="sub-title">Booklog Archive / Depth -300M ~ -3000M</p>
+        <p class="intro-text">
+          深海で読み込み、思考を深めた技術書・構造設計書のアプローチ。得られた知見と実際のコードやアウトプットへの還元（実践ログ）を可視化した読書アーカイブです。
+        </p>
+      </div>
+
+      <!-- Deep Insight Sonar Quote Radar -->
+      <SonarQuoteRadar quotes={quotes} />
+
+      <!-- Submarine Sticky Controls -->
+      <BookshelfHeader tags={tags} totalBooks={books.length} />
+
+      <!-- View Containers -->
+      <div id="viewsWrapper">
+        <!-- 3D Bookshelf Grid View -->
+        <BookshelfGrid books={books} />
+
+        <!-- Instrument List View -->
+        <BookshelfList books={books} />
+
+        <!-- Sonar Network Map View -->
+        <SonarNetworkMap books={books} />
+
+        <!-- Empty State Message -->
+        <div id="noResultsMessage" class="no-results-box" style="display: none;">
+          <span class="no-results-icon">📡</span>
+          <h3>該当する書籍探査データが見つかりません</h3>
+          <p>フィルター条件または検索キーワードを変更してください。</p>
+        </div>
+      </div>
+
+      <!-- Native <dialog> Periscope Modal -->
+      <PeriscopeModal books={books} />
+    </main>
+
+    <Footer />
+
+    <!-- マリンスノーアニメーション実行スクリプト (blog/peopleと共通 - astro:page-load対応) -->
+    <script>
+      function initSnowCanvas() {
+        const canvas = document.getElementById('booksSnowCanvas') as HTMLCanvasElement;
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (canvas && ctx && !prefersReducedMotion) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+
+          const numParticles = 60;
+          const particles: Array<{ x: number; y: number; r: number; d: number; speedY: number; speedX: number }> = [];
+
+          for (let i = 0; i < numParticles; i++) {
+            particles.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              r: Math.random() * 2 + 0.5,
+              d: Math.random() * numParticles,
+              speedY: Math.random() * 0.4 + 0.1,
+              speedX: Math.random() * 0.2 - 0.1
+            });
+          }
+
+          let angle = 0;
+          function drawParticles() {
+            if (!ctx || !canvas) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(234, 241, 248, 0.3)';
+            ctx.beginPath();
+            
+            for (let i = 0; i < numParticles; i++) {
+              const p = particles[i];
+              ctx.moveTo(p.x, p.y);
+              ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+              p.y += p.speedY;
+              p.x += Math.sin(angle + p.d) * 0.25 + p.speedX;
+
+              if (p.y > canvas.height) {
+                particles[i] = {
+                  x: Math.random() * canvas.width,
+                  y: -10,
+                  r: p.r,
+                  d: p.d,
+                  speedY: p.speedY,
+                  speedX: p.speedX
+                };
+              }
+            }
+            ctx.fill();
+            angle += 0.005;
+            requestAnimationFrame(drawParticles);
+          }
+
+          drawParticles();
+        }
+      }
+
+      document.addEventListener('astro:page-load', initSnowCanvas);
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initSnowCanvas();
+      }
+    </script>
+
+    <!-- Client-side Filtering & View Toggle Script (astro:page-load & CSS Variable安全化) -->
+    <script is:inline>
+      (function() {
+        function setupBooksPage() {
+          let activeView = 'grid';
+          let activeStatus = 'all';
+          let activeTag = 'all';
+          let minDepth = 0;
+          let searchQuery = '';
+
+          const gridView = document.getElementById('bookshelfGridView');
+          const listView = document.getElementById('bookshelfListView');
+          const mapView = document.getElementById('sonarMapView');
+          const noResults = document.getElementById('noResultsMessage');
+
+          const searchInput = document.getElementById('searchInput');
+          const depthSlider = document.getElementById('depthSlider');
+          const depthValueDisplay = document.getElementById('depthValueDisplay');
+
+          // View Tab Switching
+          document.querySelectorAll('.view-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+              document.querySelectorAll('.view-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+              });
+              tab.classList.add('active');
+              tab.setAttribute('aria-selected', 'true');
+
+              activeView = tab.getAttribute('data-view');
+              switchView(activeView);
+            });
+          });
+
+          function switchView(view) {
+            if (gridView) gridView.style.display = view === 'grid' ? 'flex' : 'none';
+            if (listView) listView.style.display = view === 'list' ? 'block' : 'none';
+            if (mapView) {
+              mapView.style.display = view === 'map' ? 'block' : 'none';
+              if (view === 'map' && typeof window.initSonarMap === 'function') {
+                window.initSonarMap();
+              }
+            }
+
+            filterCards();
+          }
+
+          // Status Filter Buttons
+          document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              activeStatus = btn.getAttribute('data-status');
+              filterCards();
+            });
+          });
+
+          // Tag Chips
+          document.querySelectorAll('.tag-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+              document.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
+              chip.classList.add('active');
+              activeTag = chip.getAttribute('data-tag');
+              filterCards();
+            });
+          });
+
+          // Depth Slider
+          depthSlider?.addEventListener('input', (e) => {
+            minDepth = parseInt(e.target.value, 10);
+            if (depthValueDisplay) depthValueDisplay.textContent = `${minDepth}M`;
+            filterCards();
+          });
+
+          // Search Input
+          searchInput?.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim().toLowerCase();
+            filterCards();
+          });
+
+          // Main Filtering Function
+          function filterCards() {
+            const cards = document.querySelectorAll('[data-book-card]');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+              const title = card.getAttribute('data-title') || '';
+              const author = card.getAttribute('data-author') || '';
+              const status = card.getAttribute('data-status') || '';
+              const depth = parseInt(card.getAttribute('data-depth') || '0', 10);
+              const tags = JSON.parse(card.getAttribute('data-tags') || '[]');
+
+              const matchesStatus = activeStatus === 'all' || status === activeStatus;
+              const matchesTag = activeTag === 'all' || tags.includes(activeTag);
+              const matchesDepth = depth >= minDepth;
+              const matchesSearch = !searchQuery || title.includes(searchQuery) || author.includes(searchQuery);
+
+              if (matchesStatus && matchesTag && matchesDepth && matchesSearch) {
+                card.style.display = '';
+                visibleCount++;
+              } else {
+                card.style.display = 'none';
+              }
+            });
+
+            // Toggle empty state message
+            if (noResults) {
+              noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+          }
+        }
+
+        document.addEventListener('astro:page-load', setupBooksPage);
+        setupBooksPage();
+      })();
+    </script>
+  </body>
+</html>

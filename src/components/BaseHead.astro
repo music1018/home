@@ -90,3 +90,17 @@ const jsonLd = type === 'article' ? {
 <!-- Structured Data (JSON-LD) -->
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
+<!-- Global Style Cleanup for View Transitions -->
+<script>
+	function resetGlobalStyles() {
+		document.body.style.removeProperty('--bg-deep');
+	}
+	// ページ離脱時と到着時の両方でクリーンアップを行い、スタイルのリークを完全防止
+	document.addEventListener('astro:before-preparation', resetGlobalStyles);
+	document.addEventListener('astro:page-load', () => {
+		// index.astro 以外では明示的にリセット
+		if (!document.getElementById('hero')) {
+			resetGlobalStyles();
+		}
+	});
+</script>

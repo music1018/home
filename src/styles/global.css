@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:ital,wght@0,500;0,600;0,800;1,500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
 
 :root {
-	/* 深度カラーのプレースホルダー（JSで動的変更されるが、初期値） */
-	--bg-deep: #0466C8;
+	/* デフォルト背景色（最深海） */
+	--bg-deep: #001233;
 
 	/* グレースケールパレット */
 	--gray-lowest: #33415C;
@@ -41,8 +41,6 @@ body {
 	font-size: 15.5px;
 	overflow-x: hidden;
 	position: relative;
-	transition: background-color 0.1s ease-out;
-	/* 背景の補間をより滑らかにするため */
 }
 
 /* タイポグラフィ基本 */
@@ -169,4 +167,9 @@ button:focus-visible,
 ::view-transition-new(root) {
 	animation-duration: 0.35s;
 	animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Bookshelf 固有背景色 */
+body.submarine-body {
+	--bg-deep: #001233 !important;
 }

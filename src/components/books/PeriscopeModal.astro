@@ -1,0 +1,659 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  books: CollectionEntry<'books'>[];
+}
+
+const { books } = Astro.props;
+
+// Prepare data array with raw body for client side modal
+const booksData = books.map(b => ({
+  id: b.id,
+  data: b.data,
+  body: b.body || ''
+}));
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'anchor': return '座右の書';
+    case 'diving': return '読書中';
+    default: return '読破';
+  }
+}
+---
+
+<dialog id="periscopeDialog" class="periscope-modal-dialog">
+  <div class="hud-frame">
+    <!-- Top Bar -->
+    <div class="hud-top-bar">
+      <div class="hud-status">
+        <span class="hud-pulse"></span>
+        <span class="hud-title">読書メモ・思考ログ</span>
+      </div>
+      <div class="nav-keys-hint">
+        <span class="key-badge">←</span> <span class="key-badge">→</span> 切り替え | <span class="key-badge">ESC</span> 閉じる
+      </div>
+      <button class="close-hud-btn" id="closePeriscopeBtn" aria-label="閉じる">✕</button>
+    </div>
+
+    <!-- Modal Content Grid -->
+    <div class="hud-body">
+      <!-- Left Column: Cover & Quick Stats -->
+      <div class="hud-left-col">
+        <div class="modal-cover-wrapper">
+          <img id="modalBookCover" src="" alt="" class="modal-cover-img" />
+          <div class="modal-depth-badge" id="modalBookDepth">-0M</div>
+        </div>
+
+        <div class="modal-quick-stats">
+          <div class="stat-item">
+            <span class="stat-label">ステータス</span>
+            <span class="stat-val" id="modalBookStatus">読破</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">評価</span>
+            <span class="stat-val stars-color" id="modalBookRating">★★★★★</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">読了日</span>
+            <span class="stat-val" id="modalBookReadDate">2024-01-01</span>
+          </div>
+        </div>
+
+        <!-- Output Practice Links -->
+        <div class="practice-section" id="modalPracticeSection">
+          <h4 class="practice-title">⚡ 実践への還元・成果</h4>
+          <div class="practice-links-list" id="modalPracticeLinks">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Detail Notes & Next Reads -->
+      <div class="hud-right-col">
+        <div class="book-header-info">
+          <span class="modal-author" id="modalBookAuthor">著者名</span>
+          <h2 class="modal-title" id="modalBookTitle">書籍タイトル</h2>
+          <p class="modal-subtitle" id="modalBookSubtitle">サブタイトル</p>
+          <div class="modal-tags" id="modalBookTags"></div>
+        </div>
+
+        <div class="modal-quote-box" id="modalQuoteContainer">
+          <span class="quote-icon">“</span>
+          <p class="quote-text-val" id="modalBookQuote">引用テキスト</p>
+        </div>
+
+        <div class="recommend-box">
+          <strong>💡 こんな人におすすめ:</strong>
+          <span id="modalBookRecommend">対象読者</span>
+        </div>
+
+        <div class="notes-content-box">
+          <h3 class="notes-heading">思考ログ・考察</h3>
+          <div class="notes-body" id="modalBookBody">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+
+        <!-- Next Reads -->
+        <div class="next-reads-section" id="modalNextReadsSection">
+          <h4 class="next-reads-title">🔗 次に読むべき本（関連書籍）</h4>
+          <div class="next-reads-grid" id="modalNextReadsGrid">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="hud-bottom-bar">
+      <button class="nav-book-btn prev" id="prevBookBtn">◀ 前の書籍</button>
+      <span class="book-counter" id="modalBookCounter">1 / 5</span>
+      <button class="nav-book-btn next" id="nextBookBtn">次の書籍 ▶</button>
+    </div>
+  </div>
+</dialog>
+
+<script is:inline define:vars={{ booksData }}>
+  (function() {
+    let currentIndex = 0;
+    const dialog = document.getElementById('periscopeDialog');
+    const closeBtn = document.getElementById('closePeriscopeBtn');
+    const prevBtn = document.getElementById('prevBookBtn');
+    const nextBtn = document.getElementById('nextBookBtn');
+
+    if (!dialog) return;
+
+    function getStatusLabel(status) {
+      switch (status) {
+        case 'anchor': return '座右の書';
+        case 'diving': return '読書中';
+        default: return '読破';
+      }
+    }
+
+    function normalizeSlug(s) {
+      return (s || '').replace(/\.md$/, '').toLowerCase();
+    }
+
+    // Event delegation for opening modal
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-open-modal]');
+      if (btn) {
+        const slug = btn.getAttribute('data-open-modal');
+        if (slug) {
+          openModalBySlug(slug);
+        }
+      }
+    });
+
+    // Close on Backdrop Click
+    dialog.addEventListener('click', (e) => {
+      const rect = dialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) {
+        dialog.close();
+      }
+    });
+
+    closeBtn?.addEventListener('click', () => dialog.close());
+
+    // Navigation buttons
+    prevBtn?.addEventListener('click', () => navigateModal(-1));
+    nextBtn?.addEventListener('click', () => navigateModal(1));
+
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+      if (!dialog.open) return;
+      const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea') return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navigateModal(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navigateModal(1);
+      }
+    });
+
+    function navigateModal(dir) {
+      if (!booksData || booksData.length === 0) return;
+      currentIndex = (currentIndex + dir + booksData.length) % booksData.length;
+      renderModalContent(booksData[currentIndex]);
+    }
+
+    function openModalBySlug(slug) {
+      if (!booksData) return;
+      const targetSlug = normalizeSlug(slug);
+      const idx = booksData.findIndex(b => normalizeSlug(b.id) === targetSlug);
+
+      if (idx !== -1) {
+        currentIndex = idx;
+        renderModalContent(booksData[currentIndex]);
+        dialog.showModal();
+      }
+    }
+
+    function renderModalContent(book) {
+      if (!book) return;
+      const data = book.data;
+
+      const coverImg = document.getElementById('modalBookCover');
+      if (coverImg) coverImg.src = data.cover || '';
+
+      document.getElementById('modalBookDepth').textContent = `-${data.depth}M`;
+      document.getElementById('modalBookTitle').textContent = data.title;
+      document.getElementById('modalBookSubtitle').textContent = data.subtitle || '';
+      document.getElementById('modalBookAuthor').textContent = `著者: ${data.author}`;
+      document.getElementById('modalBookReadDate').textContent = data.readDate;
+      document.getElementById('modalBookStatus').textContent = getStatusLabel(data.status);
+      document.getElementById('modalBookRating').textContent = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+      document.getElementById('modalBookRecommend').textContent = data.recommendTo;
+      document.getElementById('modalBookCounter').textContent = `${currentIndex + 1} / ${booksData.length}`;
+
+      // Tags
+      const tagsContainer = document.getElementById('modalBookTags');
+      if (tagsContainer) {
+        tagsContainer.innerHTML = (data.tags || []).map(t => `<span class="hud-tag">#${t}</span>`).join('');
+      }
+
+      // Quote
+      const quoteBox = document.getElementById('modalQuoteContainer');
+      const quoteText = document.getElementById('modalBookQuote');
+      if (quoteBox && quoteText) {
+        if (data.highlightQuote) {
+          quoteBox.style.display = 'flex';
+          quoteText.textContent = data.highlightQuote;
+        } else {
+          quoteBox.style.display = 'none';
+        }
+      }
+
+      // Practice Links
+      const practiceSection = document.getElementById('modalPracticeSection');
+      const practiceLinks = document.getElementById('modalPracticeLinks');
+      if (practiceSection && practiceLinks) {
+        if (data.practiceLinks && data.practiceLinks.length > 0) {
+          practiceSection.style.display = 'block';
+          practiceLinks.innerHTML = data.practiceLinks.map(p => `
+            <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="practice-link-item">
+              <span class="link-type-tag">${p.type === 'blog' ? 'ブログ' : p.type === 'github' ? 'GitHub' : '実務'}</span>
+              <span class="link-label">${p.label}</span>
+            </a>
+          `).join('');
+        } else {
+          practiceSection.style.display = 'none';
+        }
+      }
+
+      // Body Content
+      const bodyContainer = document.getElementById('modalBookBody');
+      if (bodyContainer) {
+        let bodyHtml = `<p class="summary-paragraph"><strong>【要約】</strong> ${data.summary}</p>`;
+        if (book.body && book.body.trim().length > 0) {
+          const formattedBody = book.body
+            .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+            .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^\* (.*$)/gim, '<li>$1</li>')
+            .replace(/^- (.*$)/gim, '<li>$1</li>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+          bodyHtml += `<div class="md-body-content">${formattedBody}</div>`;
+        }
+        bodyContainer.innerHTML = bodyHtml;
+      }
+
+      // Next Reads
+      const nextReadsSection = document.getElementById('modalNextReadsSection');
+      const nextReadsGrid = document.getElementById('modalNextReadsGrid');
+      if (nextReadsSection && nextReadsGrid) {
+        if (data.nextReads && data.nextReads.length > 0) {
+          nextReadsSection.style.display = 'block';
+          nextReadsGrid.innerHTML = data.nextReads.map(nr => {
+            const targetSlugNorm = normalizeSlug(nr.targetSlug);
+            const targetBook = booksData.find(b => normalizeSlug(b.id) === targetSlugNorm);
+            const title = targetBook ? targetBook.data.title : nr.targetSlug;
+            return `
+              <div class="next-read-card" data-open-modal="${nr.targetSlug}">
+                <div class="nr-relation">🔗 ${nr.relation}</div>
+                <div class="nr-title">『${title}』</div>
+                <div class="nr-reason">${nr.reason}</div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          nextReadsSection.style.display = 'none';
+        }
+      }
+    }
+  })();
+</script>
+
+<style>
+  .periscope-modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 0;
+    background: #001233;
+    color: var(--ink-body);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    max-width: 820px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow: hidden;
+  }
+
+  .periscope-modal-dialog::backdrop {
+    background: rgba(0, 18, 51, 0.8);
+    backdrop-filter: blur(8px);
+  }
+
+  .hud-frame {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 85vh;
+  }
+
+  .hud-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .hud-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .hud-pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--ink);
+    border-radius: 50%;
+  }
+
+  .nav-keys-hint {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-label);
+  }
+
+  .key-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--ink);
+    font-family: var(--font-mono);
+  }
+
+  .close-hud-btn {
+    background: transparent;
+    border: none;
+    color: var(--gray-label);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .close-hud-btn:hover {
+    color: var(--ink);
+  }
+
+  .hud-body {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  @media (max-width: 700px) {
+    .hud-body {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .hud-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .modal-cover-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .modal-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .modal-depth-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: rgba(0, 18, 51, 0.85);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .modal-quick-stats {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+  }
+
+  .stat-label {
+    color: var(--gray-label);
+  }
+
+  .stat-val {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .stars-color {
+    color: #facc15;
+  }
+
+  .practice-section {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 0.65rem;
+  }
+
+  .practice-title {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 0.4rem 0;
+  }
+
+  .practice-links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .practice-link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    color: var(--ink-sub);
+    font-size: 0.75rem;
+  }
+
+  .practice-link-item:hover {
+    color: var(--ink);
+  }
+
+  .link-type-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+  }
+
+  .hud-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .modal-author {
+    font-size: 0.8rem;
+    color: var(--gray-label);
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0.1rem 0 0.2rem 0;
+  }
+
+  .modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--gray-label);
+    margin: 0 0 0.4rem 0;
+  }
+
+  .modal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .hud-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--gray-label);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  .modal-quote-box {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid var(--ink);
+    padding: 0.65rem 0.85rem;
+    border-radius: 0 6px 6px 0;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .quote-icon {
+    font-size: 1.25rem;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .quote-text-val {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .recommend-box {
+    font-size: 0.8rem;
+    color: var(--ink-sub);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+  }
+
+  .notes-heading {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 0.4rem 0;
+  }
+
+  .notes-body {
+    font-size: 0.85rem;
+    color: var(--ink-body);
+    line-height: 1.8;
+  }
+
+  .summary-paragraph {
+    margin-bottom: 0.65rem;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+  }
+
+  .next-reads-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 0.75rem;
+  }
+
+  .next-reads-title {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    color: var(--ink);
+    margin: 0 0 0.4rem 0;
+  }
+
+  .next-reads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.65rem;
+  }
+
+  .next-read-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .next-read-card:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .nr-relation { font-family: var(--font-mono); font-size: 0.65rem; color: var(--gray-label); }
+  .nr-title { font-family: var(--font-display); font-size: 0.8rem; color: var(--ink); font-weight: 600; margin: 0.15rem 0; }
+  .nr-reason { font-size: 0.7rem; color: var(--ink-sub); }
+
+  .hud-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1.25rem;
+    background: rgba(15, 23, 42, 0.6);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-book-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--ink);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .nav-book-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .book-counter {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-label);
+  }
+</style>

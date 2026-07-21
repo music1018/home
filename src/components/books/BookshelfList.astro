@@ -1,0 +1,247 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  books: CollectionEntry<'books'>[];
+}
+
+const { books } = Astro.props;
+
+function getStatusBadge(status: string) {
+  switch(status) {
+    case 'anchor': return { label: '⚓ 座右の書', class: 'status-anchor' };
+    case 'diving': return { label: '🤿 読書中', class: 'status-diving' };
+    default: return { label: '🏁 読破', class: 'status-completed' };
+  }
+}
+---
+
+<div class="bookshelf-list-view" id="bookshelfListView" style="display: none;">
+  <div class="list-table-container">
+    <table class="instrument-table">
+      <thead>
+        <tr>
+          <th>水深</th>
+          <th>タイトル / 著者</th>
+          <th>ステータス</th>
+          <th>評価</th>
+          <th>おすすめ / 要約</th>
+          <th>タグ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {books.map(book => {
+          const statusInfo = getStatusBadge(book.data.status);
+          const stars = '★'.repeat(book.data.rating) + '☆'.repeat(5 - book.data.rating);
+
+          return (
+            <tr
+              class="instrument-row"
+              data-book-card
+              data-slug={book.id}
+              data-title={book.data.title.toLowerCase()}
+              data-author={book.data.author.toLowerCase()}
+              data-status={book.data.status}
+              data-depth={book.data.depth}
+              data-tags={JSON.stringify(book.data.tags)}
+            >
+              <td class="cell-depth">
+                <span class="depth-tag">-{book.data.depth}M</span>
+              </td>
+              <td class="cell-title">
+                <div class="title-author-group">
+                  <span class="title-text">{book.data.title}</span>
+                  {book.data.subtitle && <span class="subtitle-text">{book.data.subtitle}</span>}
+                  <span class="author-text">著者: {book.data.author}</span>
+                </div>
+              </td>
+              <td class="cell-status">
+                <span class={`status-badge ${statusInfo.class}`}>{statusInfo.label}</span>
+              </td>
+              <td class="cell-rating">
+                <span class="stars">{stars}</span>
+              </td>
+              <td class="cell-summary">
+                <div class="summary-box">
+                  <p class="recommend">💡 {book.data.recommendTo}</p>
+                  <p class="summary-text">{book.data.summary}</p>
+                </div>
+              </td>
+              <td class="cell-tags">
+                <div class="tags-group">
+                  {book.data.tags.map(t => <span class="mini-tag">#{t}</span>)}
+                </div>
+              </td>
+              <td class="cell-action">
+                <button class="inspect-btn" data-open-modal={book.id}>
+                  🔍 メモを見る
+                </button>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .bookshelf-list-view {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .list-table-container {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .instrument-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+
+  .instrument-table th {
+    background: #1e293b;
+    color: #94a3b8;
+    font-weight: 700;
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+  }
+
+  .instrument-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s ease;
+  }
+
+  .instrument-row:hover {
+    background: rgba(30, 41, 59, 0.5);
+  }
+
+  .instrument-table td {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+  }
+
+  .depth-tag {
+    color: #38bdf8;
+    font-weight: 700;
+    font-size: 0.75rem;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+
+  .title-author-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .title-text {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 0.875rem;
+  }
+
+  .subtitle-text {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+  }
+
+  .author-text {
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  .stars {
+    color: #facc15;
+    white-space: nowrap;
+  }
+
+  .summary-box {
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .recommend {
+    font-size: 0.725rem;
+    color: #38bdf8;
+    margin: 0;
+  }
+
+  .summary-text {
+    font-size: 0.725rem;
+    color: #94a3b8;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tags-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+  }
+
+  .mini-tag {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+  }
+
+  .inspect-btn {
+    padding: 0.35rem 0.65rem;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .inspect-btn:hover {
+    background: #0369a1;
+  }
+
+  .status-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .status-anchor {
+    background: rgba(234, 179, 8, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+  }
+
+  .status-diving {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .status-completed {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+</style>
